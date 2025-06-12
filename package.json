@@ -1,0 +1,23 @@
+{
+  "name": "kraakscore",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "deploy": "npm run build --base=/kraakscore/ && gh-pages -d dist"
+  },
+  "dependencies": {
+    "core-js": "^3.8.3",
+    "vue": "^3.2.13"
+  },
+  "devDependencies": {
+    "@babel/plugin-transform-private-methods": "^7.27.1",
+    "@tailwindcss/cli": "^4.1.9",
+    "@vue/cli-plugin-babel": "^5.0.8",
+    "@vue/cli-service": "~5.0.0",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.4",
+    "tailwindcss": "^4.1.9"
+  }
+}
