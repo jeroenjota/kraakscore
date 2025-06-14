@@ -225,6 +225,8 @@ function resetAll() {
           }
         });
       }
+      // en opslaan
+      localStorage.setItem("lastTeams", JSON.stringify(teams.value));
     }
     if (confirm("Weet je zeker dat je de scores en het schema wilt resetten?")) {
       teams.value = [];
