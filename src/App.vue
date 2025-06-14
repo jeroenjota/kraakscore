@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-4xl mx-auto space-y-4 maindiv">
+  <div class="max-w-4xl mx-auto space-y-4 maindiv rounded">
     <div class="kop">
       <h1 class="text-2xl font-bold">
         Laurierboom Kraakscore
@@ -9,13 +9,8 @@
     <div class="toprow">
       <!-- Teams sectie -->
       <div class="teams">
-        <div class="flex gap-2">
-          <input
-            v-model="newTeam"
-            @keyup.enter="addTeam"
-            placeholder="Teamnaam"
-            class="p-1 border teamnaam rounded"
-          />
+        <div class="flex gap-2 text-center">
+          <input v-model="newTeam" @keyup.enter="addTeam" placeholder="Teamnaam" class="p-1 border teamnaam rounded" />
           <button @click="addTeam" class="bg-blue-500 text-white px-4 py-2 rounded">Meedoen</button>
         </div>
 
@@ -56,19 +51,21 @@
       <!-- rechter div -->
       <!-- kan ofwel de standaard deelnemers lijst ofwel de stand laten zien -->
       <!-- Afhankelijk of er al dan niet al een schema is gemaakt -->
-      
+
       <!-- Standaard team lijst -->
-      <div id="lastTeams" class="stand" v-if="!schedule.length">
-        <h2>Standaard teams</h2>
+      <div id="lastTeams" class="stand rounded" v-if="!schedule.length">
+        <h2>Opgeslagen teams</h2>
         <ul class="dbl">
-          <li v-for="tm in lastTeams">
-            <p @click.exact="getTeam(tm)" @click.ctrl="delTeam(tm)">{{ tm }}</p>
+          <li v-for="(tm, index) in lastTeams">
+            <p @click.exact="getTeam(tm)" @click.ctrl="delTeam(tm)" :class="teamSelected(tm) ? 'teamSelected' : ''">
+              <span v-if="teamSelected(tm)">&#10004;</span> {{ tm }}
+            </p>
             <!-- voeg een team toe aan de deelnemerslijst (klik) of haal hem weg uit de standaardlijst (ctrl+klik)-->
           </li>
         </ul>
-        <small>click = meedoen / ctrl+click = verwijderen</small>
+        <small>click = Meedoen / ctrl+click = Wissen</small>
       </div>
-      
+
       <!-- De standen tabel -->
       <div id="standTeams" class="stand" v-if="schedule.length">
         <h2 class="text-xl font-semibold">Stand</h2>
@@ -93,7 +90,7 @@
       </div>
     </div>
     <!-- onderste helft van de viewport -->
-      <!-- Het schema voor het toernooi -->
+    <!-- Het schema voor het toernooi -->
     <div class="schema">
       <div v-if="schedule.length">
         <h2 class="text-xl font-semibold">Speelschema</h2>
@@ -139,11 +136,10 @@ onMounted(() => {
   const oldTeams = JSON.parse(localStorage.getItem("lastTeams"));
   const savedSchedule = JSON.parse(localStorage.getItem("schedule"));
   const savedRounds = JSON.parse(localStorage.getItem("repeatRounds"));
-  if (oldTeams) lastTeams.value = oldTeams;
+  if (oldTeams) lastTeams.value = oldTeams.sort();
   if (savedTeams) teams.value = savedTeams;
   if (savedSchedule) schedule.value = savedSchedule;
   if (savedRounds) repeatRounds.value = savedRounds;
-  console.log("Teams: " + teams.value);
 });
 
 function addTeam() {
@@ -180,11 +176,17 @@ function getTeam(tm) {
 }
 
 function delTeam(tm) {
-  // zit dit team wel ihn het lastTeams array?
+  // zit dit team wel in het lastTeams array?
   const idx = lastTeams.value.indexOf(tm);
+  // maar niet in het teams array
+  const idx2 = teams.value.indexOf(tm);
   //. zo ja, weghalen
-  if (idx > -1) {
-    lastTeams.value.splice(idx, 1);
+  if (idx > -1 && idx2 < 0) {
+    if (confirm(tm + " definitief verwijderen uit standaardlijst?")) {
+      lastTeams.value.splice(idx, 1);
+      // en maar gelijk opslaan, anders blijft ie hangen
+      localStorage.setItem("lastTeams", JSON.stringify(lastTeams.value));
+    }
   }
 }
 
@@ -242,6 +244,7 @@ function resetAll() {
             lastTeams.value.push(tm);
           }
         });
+        lastTeams.value.sort();
       }
       // en lastTeams array opslaan
       localStorage.setItem("lastTeams", JSON.stringify(lastTeams.value));
@@ -256,6 +259,11 @@ function resetAll() {
       localStorage.removeItem("repeatRounds");
     }
   }
+}
+
+function teamSelected(tm) {
+  const idx = teams.value.indexOf(tm);
+  return idx > -1;
 }
 
 const standings = computed(() => {

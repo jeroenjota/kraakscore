@@ -37,7 +37,7 @@ table input {
   border: 1px solid blue;
   border-radius: 5px;
   padding: 12px;
-  margin: 12px;
+  margin: 8px;
 }
 
 .schema input {
@@ -68,7 +68,7 @@ table input {
 
 .teamnaam {
   background-color: white;
-  width: 140px;
+  width: 150px;
 }
 
 td.team {
@@ -77,19 +77,18 @@ td.team {
 }
 
 .toprow {
-  background-color: cornflowerblue;
+  background-color: var(--color-blue-500);
   color: black;
   text-align: left;
-  margin: 12px;
+  margin: 8px;
   position: relative;
   border-radius: 5px;
 }
 
 .maindiv {
   background-color: darkgreen;
-  padding: 5px;
+  padding: 1px;
   max-width: 680px;
-  border-radius: 5px;
 }
 
 .maindiv h1 {
@@ -103,4 +102,23 @@ ul.dbl{
   -webkit-columns: 2;
   -moz-columns: 2;
   text-align: left;
+}
+
+.teamSelected {
+  /* text-decoration: line-through;  */
+  color: darkgreen;
+  /* background-color: rgb(116, 206, 116); */
+  /* visibility:hidden; */
+}
+
+button.bg-green-500 {
+  background-color: darkgreen;
+}
+
+button.bg-red-500 {
+  background-color: darkred;
+}
+
+button {
+  border-radius: 5px;
 }

@@ -246,7 +246,7 @@
     }
   }
   .rounded {
-    border-radius: 0.25rem;
+    border-radius: 0.5rem;
   }
   .border {
     border-style: var(--tw-border-style);
