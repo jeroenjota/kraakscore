@@ -6,109 +6,119 @@
         <p class="copyright">©2025 Jota Services</p>
       </h1>
     </div>
-    <div>
-      <div class="toprow">
-        <div class="teams">
-          <div class="flex gap-2">
-            <input
-              v-model="newTeam"
-              @keyup.enter="addTeam"
-              placeholder="Teamnaam"
-              class="p-1 border teamnaam rounded"
-            />
-            <button @click="addTeam" class="bg-blue-500 text-white px-4 py-2 rounded">Meedoen</button>
-          </div>
-
-          <div class="flex gap-2 items-center p-1">
-            <label for="repeatRounds">Aantal volle rondes:</label>
-            <input
-              id="repeatRounds"
-              type="number"
-              v-model.number="repeatRounds"
-              min="1"
-              class="border p-2 w-12 rounded"
-            />
-          </div>
-
-          <div>
-            <h2 v-if="teams.length > 0" class="font-semibold">Teams:
-              <small v-if="!schedule.length">ctrl+klik=weghalen)</small>
-            </h2>
-            <ul class="list-number list-inside" style="margin-left: 10px">
-              <li
-                v-for="(team, index) in teams"
-                :key="index"
-                @click.exact="editTeam(index)"
-                @click.ctrl="removeTeam(index)"
-              >
-                {{ team }}
-              </li>
-            </ul>
-          </div>
-
-          <div class="flex gap-2">
-            <button @click="generateSchedule" class="bg-green-500 text-white px-4 py-2 rounded">Genereer schema</button>
-            <button @click="resetAll" class="bg-red-500 text-white px-4 py-2 rounded">Reset</button>
-          </div>
+    <div class="toprow">
+      <!-- Teams sectie -->
+      <div class="teams">
+        <div class="flex gap-2">
+          <input
+            v-model="newTeam"
+            @keyup.enter="addTeam"
+            placeholder="Teamnaam"
+            class="p-1 border teamnaam rounded"
+          />
+          <button @click="addTeam" class="bg-blue-500 text-white px-4 py-2 rounded">Meedoen</button>
         </div>
-        <!-- rechter div -->
-        <div id="lastTeams" class="stand" v-if="!schedule.length">
-          <h2>Standaard teams</h2>
-          <ul class="dbl">
-            <li v-for="tm in lastTeams">
-              <p @click.ctrl="delTeam(tm)" @click.exact="getTeam(tm)">{{ tm }}</p>
+
+        <div class="flex gap-2 items-center p-1">
+          <label for="repeatRounds">Aantal volle rondes:</label>
+          <input
+            id="repeatRounds"
+            type="number"
+            v-model.number="repeatRounds"
+            min="1"
+            class="border p-2 w-12 rounded"
+          />
+        </div>
+
+        <div>
+          <h2 v-if="teams.length > 0" class="font-semibold">
+            Teams:
+            <small v-if="!schedule.length">ctrl+klik=weghalen)</small>
+          </h2>
+          <ul class="list-number list-inside" style="margin-left: 10px">
+            <li
+              v-for="(team, index) in teams"
+              :key="index"
+              @click.exact="editTeam(index)"
+              @click.ctrl="removeTeam(index)"
+            >
+              {{ team }}
             </li>
           </ul>
-          <small>click = meedoen / ctrl+click = verwijderen</small>
         </div>
-        <div id="standTeams" class="stand" v-if="schedule.length">
-          <h2 class="text-xl font-semibold">Stand</h2>
-          <table v-if="standings.length" class="mt-2">
-            <thead>
-              <tr>
-                <th class="border px-2"></th>
-                <th class="border px-2">Team</th>
-                <th class="border px-2">#</th>
-                <th class="border px-2">Punten</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(team, i) in standings" :key="team.team">
-                <td class="border px-2">{{ i + 1 }}</td>
-                <td class="border px-2">{{ team.team }}</td>
-                <td class="border px-2 text-center">{{ team.played }}</td>
-                <td class="border px-2 text-center">{{ team.goalsFor }}</td>
-              </tr>
-            </tbody>
-          </table>
+
+        <div class="flex gap-2">
+          <button @click="generateSchedule" class="bg-green-500 text-white px-4 py-2 rounded">Genereer schema</button>
+          <button @click="resetAll" class="bg-red-500 text-white px-4 py-2 rounded">Reset</button>
         </div>
       </div>
-      <div class="schema">
-        <div v-if="schedule.length">
-          <h2 class="text-xl font-semibold">Speelschema</h2>
-          <table class="rondes w-full">
-            <tbody>
-              <div v-for="(round, roundIndex) in schedule" :key="roundIndex" class="mt-4">
-                <td colspan="7">Ronde {{ roundIndex + 1 }}</td>
-                <tr v-for="(match, matchIndex) in round" :key="matchIndex">
-                  <td class="border px-2">T{{ matchIndex + 1 }}</td>
-                  <td class="border px-2 team">
-                    {{ match.home }}
-                  </td>
-                  <td class="border px-2">vs</td>
-                  <td class="border px-2 team">{{ match.away }}</td>
-                  <td class="border px-2">
-                    <input v-model.number="match.homeScore" @change="saveResults" type="number" class="w-16" />
-                  </td>
-                  <td class="border px-2">-</td>
-                  <td class="border px-2">
-                    <input v-model.number="match.awayScore" @change="saveResults" type="number" class="w-16" />
-                  </td>
-                </tr>
-              </div>
-            </tbody>
-          </table>
-        </div>
+
+      <!-- rechter div -->
+      <!-- kan ofwel de standaard deelnemers lijst ofwel de stand laten zien -->
+      <!-- Afhankelijk of er al dan niet al een schema is gemaakt -->
+      
+      <!-- Standaard team lijst -->
+      <div id="lastTeams" class="stand" v-if="!schedule.length">
+        <h2>Standaard teams</h2>
+        <ul class="dbl">
+          <li v-for="tm in lastTeams">
+            <p @click.exact="getTeam(tm)" @click.ctrl="delTeam(tm)">{{ tm }}</p>
+            <!-- voeg een team toe aan de deelnemerslijst (klik) of haal hem weg uit de standaardlijst (ctrl+klik)-->
+          </li>
+        </ul>
+        <small>click = meedoen / ctrl+click = verwijderen</small>
+      </div>
+      
+      <!-- De standen tabel -->
+      <div id="standTeams" class="stand" v-if="schedule.length">
+        <h2 class="text-xl font-semibold">Stand</h2>
+        <table v-if="standings.length" class="mt-2">
+          <thead>
+            <tr>
+              <th class="border px-2"></th>
+              <th class="border px-2">Team</th>
+              <th class="border px-2">#</th>
+              <th class="border px-2">Punten</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(team, i) in standings" :key="team.team">
+              <td class="border px-2">{{ i + 1 }}</td>
+              <td class="border px-2">{{ team.team }}</td>
+              <td class="border px-2 text-center">{{ team.played }}</td>
+              <td class="border px-2 text-center">{{ team.goalsFor }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <!-- onderste helft van de viewport -->
+      <!-- Het schema voor het toernooi -->
+    <div class="schema">
+      <div v-if="schedule.length">
+        <h2 class="text-xl font-semibold">Speelschema</h2>
+        <table class="rondes w-full">
+          <tbody>
+            <div v-for="(round, roundIndex) in schedule" :key="roundIndex" class="mt-4">
+              <td colspan="7">Ronde {{ roundIndex + 1 }}</td>
+              <tr v-for="(match, matchIndex) in round" :key="matchIndex">
+                <td class="border px-2">T{{ matchIndex + 1 }}</td>
+                <td class="border px-2 team">
+                  {{ match.home }}
+                </td>
+                <td class="border px-2">vs</td>
+                <td class="border px-2 team">{{ match.away }}</td>
+                <td class="border px-2">
+                  <input v-model.number="match.homeScore" @change="saveResults" type="number" class="w-16" />
+                </td>
+                <td class="border px-2">-</td>
+                <td class="border px-2">
+                  <input v-model.number="match.awayScore" @change="saveResults" type="number" class="w-16" />
+                </td>
+              </tr>
+            </div>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -139,6 +149,7 @@ onMounted(() => {
 function addTeam() {
   if (newTeam.value.trim()) {
     const idx = teams.value.indexOf(newTeam.value);
+    // check if element exists
     if (idx < 0) {
       teams.value.push(newTeam.value.trim());
     }
@@ -163,19 +174,22 @@ function getTeam(tm) {
   // is het team al in het toernooi?
   const idx = teams.value.indexOf(tm);
   if (idx < 0) {
+    // nee, dus toevoegen
     teams.value.push(tm);
-    // newTeam.value = tm
   }
 }
 
 function delTeam(tm) {
+  // zit dit team wel ihn het lastTeams array?
   const idx = lastTeams.value.indexOf(tm);
+  //. zo ja, weghalen
   if (idx > -1) {
     lastTeams.value.splice(idx, 1);
   }
 }
 
 function generateSchedule() {
+  // gerereer een RoundRobin schema, waar pper ronde iedereen tegen iedereen speelt
   const inputTeams = [...teams.value];
   if (inputTeams.length % 2 !== 0) {
     inputTeams.push("BYE");
@@ -208,15 +222,19 @@ function generateSchedule() {
 }
 
 function saveResults() {
+  // alle arrays lokaal opslaan
   localStorage.setItem("teams", JSON.stringify(teams.value));
   localStorage.setItem("schedule", JSON.stringify(schedule.value));
   localStorage.setItem("repeatRounds", JSON.stringify(repeatRounds.value));
 }
 
 function resetAll() {
+  // reset de deelnemende teams , de scores en het schema
+  // alleen als er een schema is ;-)
   if (schedule.value.length > 0) {
-    if (!teams.value.every(tm => lastTeams.value.includes(tm))){
+    if (!teams.value.every((tm) => lastTeams.value.includes(tm))) {
       // check for new items
+      // neiwue tiems in loc storage toevoegen?
       if (confirm("Nieuwe teams toevoegen aan standaardlijst?")) {
         // voeg teams toe aan lastTeams als ze (nog) niet bestaan
         teams.value.forEach((tm, index) => {
@@ -225,9 +243,10 @@ function resetAll() {
           }
         });
       }
-      // en opslaan
-      localStorage.setItem("lastTeams", JSON.stringify(teams.value));
+      // en lastTeams array opslaan
+      localStorage.setItem("lastTeams", JSON.stringify(lastTeams.value));
     }
+    // nogmaals bevestigen
     if (confirm("Weet je zeker dat je de scores en het schema wilt resetten?")) {
       teams.value = [];
       schedule.value = [];
@@ -243,14 +262,15 @@ const standings = computed(() => {
   const table = {};
   teams.value.forEach((team) => {
     table[team] = {
+      // voor het kraak toernooi is alleen 'played' en goalsFor van belang
       team,
       played: 0,
-      wins: 0,
-      draws: 0,
-      losses: 0,
+      // wins: 0,
+      // draws: 0,
+      // losses: 0,
       goalsFor: 0,
-      goalsAgainst: 0,
-      points: 0,
+      // goalsAgainst: 0,
+      // points: 0,
     };
   });
 
@@ -266,33 +286,34 @@ const standings = computed(() => {
       awayTeam.played++;
 
       homeTeam.goalsFor += homeScore;
-      homeTeam.goalsAgainst += awayScore;
+      // homeTeam.goalsAgainst += awayScore;
 
       awayTeam.goalsFor += awayScore;
-      awayTeam.goalsAgainst += homeScore;
 
-      if (homeScore > awayScore) {
-        homeTeam.wins++;
-        homeTeam.points += 3;
-        awayTeam.losses++;
-      } else if (homeScore < awayScore) {
-        awayTeam.wins++;
-        awayTeam.points += 3;
-        homeTeam.losses++;
-      } else {
-        homeTeam.draws++;
-        awayTeam.draws++;
-        homeTeam.points += 1;
-        awayTeam.points += 1;
-      }
+      // alles hieronderniet van belang voor Kraaktoernooi
+
+      // awayTeam.goalsAgainst += homeScore;
+
+      // if (homeScore > awayScore) {
+      //   homeTeam.wins++;
+      //   homeTeam.points += 3;
+      //   awayTeam.losses++;
+      // } else if (homeScore < awayScore) {
+      //   awayTeam.wins++;
+      //   awayTeam.points += 3;
+      //   homeTeam.losses++;
+      // } else {
+      //   homeTeam.draws++;
+      //   awayTeam.draws++;
+      //   homeTeam.points += 1;
+      //   awayTeam.points += 1;
+      // }
     }
   }
 
   return Object.values(table).sort((a, b) => {
+    // sorteer de stand
     return b.goalsFor - a.goalsFor;
-    // const goalDiffA = a.goalsFor - a.goalsAgainst;
-    // const goalDiffB = b.goalsFor - b.goalsAgainst;
-    // return goalDiffB - goalDiffA;
   });
 });
 </script>
