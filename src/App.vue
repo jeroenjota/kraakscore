@@ -1,33 +1,46 @@
 <template>
   <div class="max-w-4xl mx-auto space-y-4 maindiv">
     <div class="kop">
-      <h1 class="text-2xl font-bold">Laurierboom Kraakscore
-      <p class="copyright">©2025 Jota Services</p>
+      <h1 class="text-2xl font-bold">
+        Laurierboom Kraakscore
+        <p class="copyright">©2025 Jota Services</p>
       </h1>
     </div>
     <div>
       <div class="toprow">
         <div class="teams">
           <div class="flex gap-2">
-            <input v-model="newTeam" @keyup.enter="addTeam" placeholder="Teamnaam" class="p-1 border teamnaam" />
-            <button @click="addTeam" class="bg-blue-500 text-white px-4 py-2 rounded">Voeg toe</button>
+            <input
+              v-model="newTeam"
+              @keyup.enter="addTeam"
+              placeholder="Teamnaam"
+              class="p-1 border teamnaam rounded"
+            />
+            <button @click="addTeam" class="bg-blue-500 text-white px-4 py-2 rounded">Meedoen</button>
           </div>
 
-          <div class="flex gap-2 items-center">
+          <div class="flex gap-2 items-center p-1">
             <label for="repeatRounds">Aantal volle rondes:</label>
             <input
               id="repeatRounds"
               type="number"
               v-model.number="repeatRounds"
               min="1"
-              class="border p-1 w-16 rounded"
+              class="border p-2 w-12 rounded"
             />
           </div>
 
           <div>
-            <h2 class="font-semibold">Teams:</h2>
-            <ul class="list-number list-inside" style="margin-left:10px">
-              <li v-for="(team, index) in teams" :key="index" @click.exact="editTeam(index)"" @click.ctrl="removeTeam(index)">
+            <h2 v-if="teams.length > 0" class="font-semibold">Teams:
+              <small v-if="!schedule.length">ctrl+klik=weghalen)</small>
+            </h2>
+            <ul class="list-number list-inside" style="margin-left: 10px">
+              <li
+                v-for="(team, index) in teams"
+                :key="index"
+                @click.exact="editTeam(index)"
+                @click.ctrl="removeTeam(index)"
+              >
                 {{ team }}
               </li>
             </ul>
@@ -43,18 +56,15 @@
           <h2>Standaard teams</h2>
           <ul class="dbl">
             <li v-for="tm in lastTeams">
-            <p @click.ctrl="delTeam(tm)" @click.exact="getTeam(tm)" >{{tm}}</p>
+              <p @click.ctrl="delTeam(tm)" @click.exact="getTeam(tm)">{{ tm }}</p>
             </li>
           </ul>
+          <small>click = meedoen / ctrl+click = verwijderen</small>
         </div>
-        <div  id="standTeams" class="stand" v-if="schedule.length">
+        <div id="standTeams" class="stand" v-if="schedule.length">
+          <h2 class="text-xl font-semibold">Stand</h2>
           <table v-if="standings.length" class="mt-2">
             <thead>
-              <tr>
-                <th colspan="3">
-                  <h2 class="text-xl font-semibold">Stand</h2>
-                </th>
-              </tr>
               <tr>
                 <th class="border px-2"></th>
                 <th class="border px-2">Team</th>
@@ -63,8 +73,8 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="team, i in standings" :key="team.team">
-                <td class="border px-2">{{ i+1 }}</td>
+              <tr v-for="(team, i) in standings" :key="team.team">
+                <td class="border px-2">{{ i + 1 }}</td>
                 <td class="border px-2">{{ team.team }}</td>
                 <td class="border px-2 text-center">{{ team.played }}</td>
                 <td class="border px-2 text-center">{{ team.goalsFor }}</td>
@@ -106,7 +116,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from "vue";
-import '../public/styles.css'
+import "../public/styles.css";
 
 const newTeam = ref("");
 const teams = ref([]);
@@ -123,48 +133,45 @@ onMounted(() => {
   if (savedTeams) teams.value = savedTeams;
   if (savedSchedule) schedule.value = savedSchedule;
   if (savedRounds) repeatRounds.value = savedRounds;
-  console.log("Teams: " + teams.value)
+  console.log("Teams: " + teams.value);
 });
 
 function addTeam() {
   if (newTeam.value.trim()) {
-    const idx = teams.value.indexOf(newTeam.value)
-    if (idx <0 ){
-      console.log(newTeam.value.trim())
-      // teams.value.push(newTeam.value.trim());
+    const idx = teams.value.indexOf(newTeam.value);
+    if (idx < 0) {
+      teams.value.push(newTeam.value.trim());
     }
     newTeam.value = "";
   }
 }
-function editTeam(i){
+function editTeam(i) {
   // plaats de team naam in het input veld
-  if (schedule.value.length===0){
-    newTeam.value = teams.value[i]
-    teams.value.splice(i,1)
-      // teams.value(x) = teams.value(x+1)
+  if (schedule.value.length === 0) {
+    newTeam.value = teams.value[i];
+    teams.value.splice(i, 1);
   }
 }
 function removeTeam(i) {
   // haal het team uit de lijst met gekozen teams
-  if (schedule.value.length===0){
-    teams.value.splice(i,1)
+  if (schedule.value.length === 0) {
+    teams.value.splice(i, 1);
   }
 }
 
-function getTeam(tm){
+function getTeam(tm) {
   // is het team al in het toernooi?
-  const idx =teams.value.indexOf(tm)
+  const idx = teams.value.indexOf(tm);
   if (idx < 0) {
-    console.log("Voeg team toe", tm)
-    // teams.value.push(tm);
-    newTeam.value = tm
+    teams.value.push(tm);
+    // newTeam.value = tm
   }
 }
 
-function delTeam(tm){
-  const idx = lastTeams.value.indexOf(tm)
-  if (idx >-1) {
-    lastTeams.value.splice(idx,1)
+function delTeam(tm) {
+  const idx = lastTeams.value.indexOf(tm);
+  if (idx > -1) {
+    lastTeams.value.splice(idx, 1);
   }
 }
 
@@ -207,23 +214,26 @@ function saveResults() {
 }
 
 function resetAll() {
-  if (confirm("Weet je zeker dat je de wilt resetten?")) {
-    if (confirm("Nieuwe teams toevoegen aan standaardlijst?")){
-      // voeg teams toe aan lastTeams als ze (nog) niet bestaan
-      teams.value.forEach((tm, index) => {
-        if (!lastTeams.value.includes(tm)){
-          lastTeams.value.push(tm)
-        }
-      })
-
+  if (schedule.value.length > 0) {
+    if (!teams.value.every(tm => lastTeams.value.includes(tm))){
+      // check for new items
+      if (confirm("Nieuwe teams toevoegen aan standaardlijst?")) {
+        // voeg teams toe aan lastTeams als ze (nog) niet bestaan
+        teams.value.forEach((tm, index) => {
+          if (!lastTeams.value.includes(tm)) {
+            lastTeams.value.push(tm);
+          }
+        });
+      }
     }
-    localStorage.setItem("lastTeams", JSON.stringify(teams.value))
-    teams.value = [];
-    schedule.value = [];
-    repeatRounds.value = 1;
-    localStorage.removeItem("teams");
-    localStorage.removeItem("schedule");
-    localStorage.removeItem("repeatRounds");
+    if (confirm("Weet je zeker dat je de scores en het schema wilt resetten?")) {
+      teams.value = [];
+      schedule.value = [];
+      repeatRounds.value = 1;
+      localStorage.removeItem("teams");
+      localStorage.removeItem("schedule");
+      localStorage.removeItem("repeatRounds");
+    }
   }
 }
 
@@ -285,5 +295,4 @@ const standings = computed(() => {
 });
 </script>
 
-<style>
-</style>
+<style></style>

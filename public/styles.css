@@ -6,7 +6,7 @@ body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 p.copyright {
-  font-size: small;
+  font-size: .5em;
   color: white;
   text-align: right;
   position: relative;
@@ -21,6 +21,7 @@ table input {
   text-align: right;
   width: 100px;
 }
+
 .teams {
   background-color: beige;
   border: 1px solid blue;
@@ -46,17 +47,23 @@ table input {
   background-color: rgb(158, 207, 240);
   border: 1px solid blue;
   border-radius: 5px;
-  padding: 12px;
+  padding: 2px 10px;
   margin: 4px;
   width: 52%;
   display: inline-block;
   position: absolute;
   top: 0px;
+  text-align: center;
+}
+.stand table {
+  margin: 2px auto;
+  text-align: left;
 }
 .stand h2{
   font-size: 1.2em;
   color:darkblue;
-  text-decoration: underline;
+  margin-top: 2px;
+  margin-top: 0px;
 }
 
 .teamnaam {
@@ -91,9 +98,9 @@ td.team {
   padding-top: 5px;
 }
 
-
-ul.dbl {
+ul.dbl{
   columns: 2;
   -webkit-columns: 2;
   -moz-columns: 2;
+  text-align: left;
 }
