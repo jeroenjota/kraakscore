@@ -106,11 +106,11 @@
                 <td class="border px-2">vs</td>
                 <td class="border px-2 team">{{ match.away }}</td>
                 <td class="border px-2">
-                  <input v-model.number="match.homeScore" @change="saveResults" type="number" class="w-16" />
+                  <input v-model.number="match.homeScore" @change="saveResults" type="number" class="w-16"  @keypress="blokkeerLetters" />
                 </td>
                 <td class="border px-2">-</td>
                 <td class="border px-2">
-                  <input v-model.number="match.awayScore" @change="saveResults" type="number" class="w-16" />
+                  <input v-model.number="match.awayScore" @change="saveResults" type="number" class="w-16"  @keypress="blokkeerLetters" />
                 </td>
               </tr>
             </div>
@@ -141,6 +141,23 @@ onMounted(() => {
   if (savedSchedule) schedule.value = savedSchedule;
   if (savedRounds) repeatRounds.value = savedRounds;
 });
+
+function blokkeerLetters(event) {
+    const key = event.key;
+
+  // Toegestane toetsen:
+  const allowedKeys = [
+    'Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete', 'Home', 'End'
+  ];
+
+  // Sta alleen cijfers of bepaalde control-toetsen toe
+  if (
+    !/^\d$/.test(key) &&      // geen cijfer
+    !allowedKeys.includes(key)
+  ) {
+    event.preventDefault();
+  }
+}
 
 function addTeam() {
   if (newTeam.value.trim()) {
