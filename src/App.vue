@@ -27,7 +27,7 @@
           <div>
             <h2 class="font-semibold">Teams:</h2>
             <ul class="list-number list-inside" style="margin-left:10px">
-              <li v-for="(team, index) in teams" :key="index" @click="editTeam(index)">
+              <li v-for="(team, index) in teams" :key="index" @click.exact="editTeam(index)"" @click.ctrl="removeTeam(index)">
                 {{ team }}
               </li>
             </ul>
@@ -38,24 +38,16 @@
             <button @click="resetAll" class="bg-red-500 text-white px-4 py-2 rounded">Reset</button>
           </div>
         </div>
-        <div class="stand" v-if="!schedule.length">
+        <!-- rechter div -->
+        <div id="lastTeams" class="stand" v-if="!schedule.length">
           <h2>Standaard teams</h2>
           <ul class="dbl">
-            <li v-for="tm in [
-              'Carla/Theo',
-              'Joost/Wim',
-              'Gerard/Willem',
-              'Jeroen/Ron',
-              'Jan/Ramon',
-              'Lize/Joren',
-              'Jesse/Micha',
-              'Rob/Angelo',
-            ]">
-            <p @click="getTeam(tm)">{{tm}}</p>
+            <li v-for="tm in lastTeams">
+            <p @click.ctrl="delTeam(tm)" @click.exact="getTeam(tm)" >{{tm}}</p>
             </li>
           </ul>
         </div>
-        <div class="stand" v-if="schedule.length">
+        <div  id="standTeams" class="stand" v-if="schedule.length">
           <table v-if="standings.length" class="mt-2">
             <thead>
               <tr>
@@ -118,21 +110,29 @@ import '../public/styles.css'
 
 const newTeam = ref("");
 const teams = ref([]);
+const lastTeams = ref([]);
 const schedule = ref([]);
 const repeatRounds = ref(1);
 
 onMounted(() => {
   const savedTeams = JSON.parse(localStorage.getItem("teams"));
+  const oldTeams = JSON.parse(localStorage.getItem("lastTeams"));
   const savedSchedule = JSON.parse(localStorage.getItem("schedule"));
   const savedRounds = JSON.parse(localStorage.getItem("repeatRounds"));
+  if (oldTeams) lastTeams.value = oldTeams;
   if (savedTeams) teams.value = savedTeams;
   if (savedSchedule) schedule.value = savedSchedule;
   if (savedRounds) repeatRounds.value = savedRounds;
+  console.log("Teams: " + teams.value)
 });
 
 function addTeam() {
   if (newTeam.value.trim()) {
-    teams.value.push(newTeam.value.trim());
+    const idx = teams.value.indexOf(newTeam.value)
+    if (idx <0 ){
+      console.log(newTeam.value.trim())
+      // teams.value.push(newTeam.value.trim());
+    }
     newTeam.value = "";
   }
 }
@@ -144,8 +144,28 @@ function editTeam(i){
       // teams.value(x) = teams.value(x+1)
   }
 }
+function removeTeam(i) {
+  // haal het team uit de lijst met gekozen teams
+  if (schedule.value.length===0){
+    teams.value.splice(i,1)
+  }
+}
+
 function getTeam(tm){
-  newTeam.value = tm
+  // is het team al in het toernooi?
+  const idx =teams.value.indexOf(tm)
+  if (idx < 0) {
+    console.log("Voeg team toe", tm)
+    // teams.value.push(tm);
+    newTeam.value = tm
+  }
+}
+
+function delTeam(tm){
+  const idx = lastTeams.value.indexOf(tm)
+  if (idx >-1) {
+    lastTeams.value.splice(idx,1)
+  }
 }
 
 function generateSchedule() {
@@ -181,7 +201,6 @@ function generateSchedule() {
 }
 
 function saveResults() {
-  console.log("teams=", teams)
   localStorage.setItem("teams", JSON.stringify(teams.value));
   localStorage.setItem("schedule", JSON.stringify(schedule.value));
   localStorage.setItem("repeatRounds", JSON.stringify(repeatRounds.value));
@@ -189,10 +208,20 @@ function saveResults() {
 
 function resetAll() {
   if (confirm("Weet je zeker dat je de wilt resetten?")) {
+    if (confirm("Nieuwe teams toevoegen aan standaardlijst?")){
+      // voeg teams toe aan lastTeams als ze (nog) niet bestaan
+      teams.value.forEach((tm, index) => {
+        if (!lastTeams.value.includes(tm)){
+          lastTeams.value.push(tm)
+        }
+      })
+
+    }
+    localStorage.setItem("lastTeams", JSON.stringify(teams.value))
     teams.value = [];
     schedule.value = [];
     repeatRounds.value = 1;
-    // localStorage.removeItem("teams");
+    localStorage.removeItem("teams");
     localStorage.removeItem("schedule");
     localStorage.removeItem("repeatRounds");
   }
@@ -211,7 +240,6 @@ const standings = computed(() => {
       goalsAgainst: 0,
       points: 0,
     };
-    console.log(standings)
   });
 
   for (const round of schedule.value) {
