@@ -26,11 +26,11 @@
 
           <div>
             <h2 class="font-semibold">Teams:</h2>
-            <ol class="list-disc list-inside">
+            <ul class="list-number list-inside" style="margin-left:10px">
               <li v-for="(team, index) in teams" :key="index" @click="editTeam(index)">
                 {{ team }}
               </li>
-            </ol>
+            </ul>
           </div>
 
           <div class="flex gap-2">
@@ -38,7 +38,24 @@
             <button @click="resetAll" class="bg-red-500 text-white px-4 py-2 rounded">Reset</button>
           </div>
         </div>
-        <div class="stand">
+        <div class="stand" v-if="!schedule.length">
+          <h2>Standaard teams</h2>
+          <ul class="dbl">
+            <li v-for="tm in [
+              'Carla/Theo',
+              'Joost/Wim',
+              'Gerard/Willem',
+              'Jeroen/Ron',
+              'Jan/Ramon',
+              'Lize/Joren',
+              'Jesse/Micha',
+              'Rob/Angelo',
+            ]">
+            <p @click="getTeam(tm)">{{tm}}</p>
+            </li>
+          </ul>
+        </div>
+        <div class="stand" v-if="schedule.length">
           <table v-if="standings.length" class="mt-2">
             <thead>
               <tr>
@@ -127,6 +144,10 @@ function editTeam(i){
       // teams.value(x) = teams.value(x+1)
   }
 }
+function getTeam(tm){
+  newTeam.value = tm
+}
+
 function generateSchedule() {
   const inputTeams = [...teams.value];
   if (inputTeams.length % 2 !== 0) {
@@ -160,6 +181,7 @@ function generateSchedule() {
 }
 
 function saveResults() {
+  console.log("teams=", teams)
   localStorage.setItem("teams", JSON.stringify(teams.value));
   localStorage.setItem("schedule", JSON.stringify(schedule.value));
   localStorage.setItem("repeatRounds", JSON.stringify(repeatRounds.value));
@@ -170,7 +192,7 @@ function resetAll() {
     teams.value = [];
     schedule.value = [];
     repeatRounds.value = 1;
-    localStorage.removeItem("teams");
+    // localStorage.removeItem("teams");
     localStorage.removeItem("schedule");
     localStorage.removeItem("repeatRounds");
   }
