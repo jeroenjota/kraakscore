@@ -68,7 +68,6 @@ function exportPdf() {
 
           startY: (yPos += 2),
           columnStyles: { 
-            0: { row}
             3: { halign: "center" }, 
             4: { halign: "center" } },
           tableWidth: 140,
