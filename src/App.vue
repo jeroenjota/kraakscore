@@ -69,7 +69,7 @@
       <!-- De standen tabel -->
       <div id="standTeams" class="stand" v-if="schedule.length">
         <h2 class="text-xl font-semibold">Stand</h2>
-        <table v-if="standings.length" class="mt-2">
+        <table v-if="standings.length" class="mt-2" id="standTabel">
           <thead>
             <tr>
               <th class="border px-2"></th>
@@ -87,14 +87,17 @@
             </tr>
           </tbody>
         </table>
+        <Pdf />
+
       </div>
     </div>
     <!-- onderste helft van de viewport -->
+     
     <!-- Het schema voor het toernooi -->
     <div class="schema">
       <div v-if="schedule.length">
         <h2 class="text-xl font-semibold">Speelschema</h2>
-        <table class="rondes w-full">
+        <table class="rondes w-full" id="scoreTabel">
           <tbody>
             <div v-for="(round, roundIndex) in schedule" :key="roundIndex" class="mt-4">
               <td colspan="7">Ronde {{ roundIndex + 1 }}</td>
@@ -119,17 +122,21 @@
       </div>
     </div>
   </div>
+  
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import "../public/styles.css";
+import Pdf from './components/Pdf.vue'
 
 const newTeam = ref("");
 const teams = ref([]);
 const lastTeams = ref([]);
 const schedule = ref([]);
 const repeatRounds = ref(1);
+
+
 
 onMounted(() => {
   const savedTeams = JSON.parse(localStorage.getItem("teams"));
