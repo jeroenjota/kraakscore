@@ -36,8 +36,6 @@
               :key="index"
               @click.exact="editTeam(index)"
               @click.ctrl="removeTeam(index)"
-              @touchstart="startPress(index)"
-              @touchend="endPress()"
             >
               {{ team }}
             </li>
@@ -59,7 +57,13 @@
         <h2>Opgeslagen teams</h2>
         <ul class="dbl">
           <li v-for="(tm, index) in lastTeams">
-            <p @click.exact="getTeam(tm)" @click.ctrl="delTeam(tm)" :class="teamSelected(tm) ? 'teamSelected' : ''">
+            <p
+              @click.exact="getTeam(tm)"
+              @click.ctrl="delTeam(tm)"
+              :class="teamSelected(tm) ? 'teamSelected' : ''"
+              @touchstart="startPress(index)"
+              @touchend="endPress()"
+            >
               <span v-if="teamSelected(tm)">&#10004;</span> {{ tm }}
             </p>
             <!-- voeg een team toe aan de deelnemerslijst (klik) of haal hem weg uit de standaardlijst (ctrl+klik)-->
@@ -90,11 +94,10 @@
           </tbody>
         </table>
         <Pdf />
-
       </div>
     </div>
     <!-- onderste helft van de viewport -->
-     
+
     <!-- Het schema voor het toernooi -->
     <div class="schema">
       <div v-if="schedule.length">
@@ -111,11 +114,23 @@
                 <td class="border px-2">vs</td>
                 <td class="border px-2 team">{{ match.away }}</td>
                 <td class="border px-2">
-                  <input v-model.number="match.homeScore" @change="saveResults" type="number" class="w-16"  @keypress="blokkeerLetters" />
+                  <input
+                    v-model.number="match.homeScore"
+                    @change="saveResults"
+                    type="number"
+                    class="w-16"
+                    @keypress="blokkeerLetters"
+                  />
                 </td>
                 <td class="border px-2">-</td>
                 <td class="border px-2">
-                  <input v-model.number="match.awayScore" @change="saveResults" type="number" class="w-16"  @keypress="blokkeerLetters" />
+                  <input
+                    v-model.number="match.awayScore"
+                    @change="saveResults"
+                    type="number"
+                    class="w-16"
+                    @keypress="blokkeerLetters"
+                  />
                 </td>
               </tr>
             </div>
@@ -124,13 +139,12 @@
       </div>
     </div>
   </div>
-  
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import "../public/styles.css";
-import Pdf from './components/Pdf.vue'
+import Pdf from "./components/Pdf.vue";
 
 const newTeam = ref("");
 const teams = ref([]);
@@ -138,7 +152,6 @@ const lastTeams = ref([]);
 const schedule = ref([]);
 const repeatRounds = ref(1);
 let pressTimer = null;
-
 
 onMounted(() => {
   const savedTeams = JSON.parse(localStorage.getItem("teams"));
@@ -151,28 +164,25 @@ onMounted(() => {
   if (savedRounds) repeatRounds.value = savedRounds;
 });
 
-
 function startPress(tm) {
   pressTimer.setTimeout(() => {
-    delTeam(tm)
+    delTeam(tm);
   }, 500);
 }
 
-function endPress(){
-  clearTimeout(pressTimer)
+function endPress() {
+  clearTimeout(pressTimer);
 }
 
 function blokkeerLetters(event) {
-    const key = event.key;
+  const key = event.key;
 
   // Toegestane toetsen:
-  const allowedKeys = [
-    'Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete', 'Home', 'End'
-  ];
+  const allowedKeys = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete", "Home", "End"];
 
   // Sta alleen cijfers of bepaalde control-toetsen toe
   if (
-    !/^\d$/.test(key) &&      // geen cijfer
+    !/^\d$/.test(key) && // geen cijfer
     !allowedKeys.includes(key)
   ) {
     event.preventDefault();
