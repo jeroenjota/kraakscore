@@ -59,8 +59,6 @@
               @click.exact="getTeam(tm)"
               @click.ctrl="delTeam(tm)"
               :class="teamSelected(tm) ? 'teamSelected' : ''"
-              @touchstart="startPress"
-              @touchend="endPress(tm)"
             >
               <!-- @touchstart="startPress"
               @touchend="endPress" -->
@@ -152,8 +150,6 @@ const teams = ref([]);
 const lastTeams = ref([]);
 const schedule = ref([]);
 const repeatRounds = ref(1);
-let touchStartX = 0;
-let touchEndX = 0;
 
 onMounted(() => {
   const savedTeams = JSON.parse(localStorage.getItem("teams"));
@@ -165,21 +161,6 @@ onMounted(() => {
   if (savedSchedule) schedule.value = savedSchedule;
   if (savedRounds) repeatRounds.value = savedRounds;
 });
-
-// poging om 'long press'toe te voegen
-function startPress(e) {
-  touchStartX = e.changedTouches[0].screenX;
-}
-function endPress(e, tm) {
-  touchEndX = e.changedTouches[0].screenX;
-  checkSwipe();
-}
-function checkSwipe(tm) {
-  const distance = touchEndX - touchStartX;
-  if (Math.abs(distance) > 50) {
-    delTeam(tm);
-  }
-}
 
 
 function blokkeerLetters(event) {
