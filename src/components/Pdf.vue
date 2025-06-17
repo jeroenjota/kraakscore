@@ -29,6 +29,7 @@ function exportPdf() {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
   const head = ["Ronde", "Tafel", "Match", "Uitslag", "tegen"];
+  doc.setFont('times')
   doc.setFontSize(24);
   const datum = new Date().toLocaleDateString("nl-NL");
   doc.text("Overzicht kraaktoernooi van " + datum, pageWidth/2, 20, { align:'center'});
@@ -43,10 +44,13 @@ function exportPdf() {
     doc.text("Stand ", pageWidth/2, (yPos += 12), {align:'center'});
     autoTable(doc, {
       theme: "striped",
+      styles: {font: 'times', fontSize: 14},
       startY: (yPos += 2),
+      headStyles: {fillColor:[158, 207, 240], textColor:[0,0,139]},
       html: "#standTabel",
       columnStyles: { 3: { halign: "center" } },
-      tableWidth: 100,
+      tableWidth: 90,
+      tableLineWidth: 1,
       margin: { left:(pageWidth- 100)/2 },
     });
     yPos += doc.lastAutoTable.finalY - 26;
@@ -64,8 +68,10 @@ function exportPdf() {
         });
         autoTable(doc, {
           theme: "grid",
+          tableLineWidth: 1,
           head: [head],
-
+          headStyles: {fillColor:[0,100,139]},
+          styles: {font: 'times'},
           startY: (yPos += 2),
           columnStyles: { 
             3: { halign: "center" }, 
