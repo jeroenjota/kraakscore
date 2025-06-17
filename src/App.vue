@@ -26,10 +26,8 @@
         </div>
 
         <div v-if="teams.length > 0" class="teamlist">
-          <h2 class="font-semibold">
-            Teams:
-          </h2>
-          <ul class="list-number list-outside"  style="margin-left: 20px">
+          <h2 class="font-semibold">Teams:</h2>
+          <ul class="list-number list-outside" style="margin-left: 20px">
             <li
               v-for="(team, index) in teams"
               :key="index"
@@ -63,7 +61,9 @@
               :class="teamSelected(tm) ? 'teamSelected' : ''"
               @touchstart="startPress"
               @touchend="endPress"
-              >
+            >
+              <!-- @touchstart="startPress"
+              @touchend="endPress" -->
               <span v-if="teamSelected(tm)">&#10004;</span> {{ tm }}
             </p>
             <!-- voeg een team toe aan de deelnemerslijst (klik) of haal hem weg uit de standaardlijst (ctrl+klik)-->
@@ -145,13 +145,15 @@
 import { ref, onMounted, computed } from "vue";
 import "../public/styles.css";
 import Pdf from "./components/Pdf.vue";
+import { useSwipe } from "@vueuse/core";
 
 const newTeam = ref("");
 const teams = ref([]);
 const lastTeams = ref([]);
 const schedule = ref([]);
 const repeatRounds = ref(1);
-let pressTimer =0
+let touchStartX = 0;
+let touchEndX = 0;
 
 onMounted(() => {
   const savedTeams = JSON.parse(localStorage.getItem("teams"));
@@ -164,18 +166,21 @@ onMounted(() => {
   if (savedRounds) repeatRounds.value = savedRounds;
 });
 
-function startPress(tm) {
-  pressTimer = new Date().getTime()
+// poging om 'long press'toe te voegen
+function startPress(e, tm) {
+  touchStartX = e.changedTouches[0].screenX;
 }
-
-function endPress(tm) {
-  const touchEndTime = new Date().getTime()
-  const timeDiff = touchEndTime - pressTimer
-  if (timeDiff > 500){ 
-    delTeam(tm)
-    pressTimer = 0
+function endPress(e, tm) {
+  touchEndX = e.changedTouches[0].screenX;
+  checkSwipe();
+}
+function checkSwipe() {
+  const distance = touchEndX - touchStartX;
+  if (Math.abs(distance) > 50) {
+    delTeam(tm);
   }
 }
+
 
 function blokkeerLetters(event) {
   const key = event.key;
