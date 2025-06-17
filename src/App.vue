@@ -61,8 +61,8 @@
               @click.exact="getTeam(tm)"
               @click.ctrl="delTeam(tm)"
               :class="teamSelected(tm) ? 'teamSelected' : ''"
-              v-touch:swipe="delTeam(tm)"
-            >
+              @touchmove="delTeam(tm)"
+              >
               <span v-if="teamSelected(tm)">&#10004;</span> {{ tm }}
             </p>
             <!-- voeg een team toe aan de deelnemerslijst (klik) of haal hem weg uit de standaardlijst (ctrl+klik)-->
