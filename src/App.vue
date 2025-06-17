@@ -25,12 +25,11 @@
           />
         </div>
 
-        <div>
-          <h2 v-if="teams.length > 0" class="font-semibold">
+        <div v-if="teams.length > 0" class="teamlist">
+          <h2 class="font-semibold">
             Teams:
-            <small v-if="!schedule.length">ctrl+klik=weghalen)</small>
           </h2>
-          <ul class="list-number list-inside" style="margin-left: 10px">
+          <ul class="list-number list-outside"  style="margin-left: 20px">
             <li
               v-for="(team, index) in teams"
               :key="index"
@@ -40,6 +39,7 @@
               {{ team }}
             </li>
           </ul>
+          <small class="text-center" v-if="!schedule.length">klik = aanpassen, ctrl+klik=weghalen</small>
         </div>
 
         <div class="flex gap-2">
@@ -61,8 +61,7 @@
               @click.exact="getTeam(tm)"
               @click.ctrl="delTeam(tm)"
               :class="teamSelected(tm) ? 'teamSelected' : ''"
-              @touchstart="startPress(index)"
-              @touchend="endPress()"
+              v-touch:swipe="delTeam(tm)"
             >
               <span v-if="teamSelected(tm)">&#10004;</span> {{ tm }}
             </p>
@@ -151,7 +150,7 @@ const teams = ref([]);
 const lastTeams = ref([]);
 const schedule = ref([]);
 const repeatRounds = ref(1);
-let pressTimer = null;
+// let pressTimer =0
 
 onMounted(() => {
   const savedTeams = JSON.parse(localStorage.getItem("teams"));
@@ -164,15 +163,15 @@ onMounted(() => {
   if (savedRounds) repeatRounds.value = savedRounds;
 });
 
-function startPress(tm) {
-  pressTimer.setTimeout(() => {
-    delTeam(tm);
-  }, 500);
-}
+// function startPress(tm) {
+//   setTimeout(() => {
+//     delTeam(tm);
+//   }, 500);
+// }
 
-function endPress() {
-  clearTimeout(pressTimer);
-}
+// function endPress() {
+//   clearTimeout();
+// }
 
 function blokkeerLetters(event) {
   const key = event.key;

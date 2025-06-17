@@ -25,7 +25,7 @@ table input {
 .teams {
   background-color: beige;
   border: 1px solid blue;
-  padding: 12px;
+  padding: 4px;
   margin: 5px;
   width: 45%;
   display: inline-block;
@@ -102,6 +102,13 @@ ul.dbl{
   -webkit-columns: 2;
   -moz-columns: 2;
   text-align: left;
+}
+
+.teamlist {
+  border: 1px solid darkblue;
+  border-radius:5px;
+  padding:1px;
+  margin: 2px;
 }
 
 .teamSelected {
