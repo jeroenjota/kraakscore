@@ -60,7 +60,7 @@
               @click.ctrl="delTeam(tm)"
               :class="teamSelected(tm) ? 'teamSelected' : ''"
               @touchstart="startPress"
-              @touchend="endPress"
+              @touchend="endPress(tm)"
             >
               <!-- @touchstart="startPress"
               @touchend="endPress" -->
@@ -167,14 +167,14 @@ onMounted(() => {
 });
 
 // poging om 'long press'toe te voegen
-function startPress(e, tm) {
+function startPress(e) {
   touchStartX = e.changedTouches[0].screenX;
 }
 function endPress(e, tm) {
   touchEndX = e.changedTouches[0].screenX;
   checkSwipe();
 }
-function checkSwipe() {
+function checkSwipe(tm) {
   const distance = touchEndX - touchStartX;
   if (Math.abs(distance) > 50) {
     delTeam(tm);
