@@ -154,7 +154,7 @@ onMounted(() => {
 
 function startPress(tm) {
   pressTimer.setTimeout(() => {
-    removeTeam(tm)
+    delTeam(tm)
   }, 500);
 }
 
