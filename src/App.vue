@@ -36,6 +36,8 @@
               :key="index"
               @click.exact="editTeam(index)"
               @click.ctrl="removeTeam(index)"
+              @ontouchstart="startPress(index)"
+              @ontouchend="endPress()"
             >
               {{ team }}
             </li>
@@ -135,7 +137,7 @@ const teams = ref([]);
 const lastTeams = ref([]);
 const schedule = ref([]);
 const repeatRounds = ref(1);
-
+let pressTimer = null;
 
 
 onMounted(() => {
@@ -148,6 +150,17 @@ onMounted(() => {
   if (savedSchedule) schedule.value = savedSchedule;
   if (savedRounds) repeatRounds.value = savedRounds;
 });
+
+
+function startPress(tm) {
+  pressTimer.setTimeout(() => {
+    removeTeam(tm)
+  }, 500);
+}
+
+function endPress(){
+  clearTimeout(pressTimer)
+}
 
 function blokkeerLetters(event) {
     const key = event.key;
