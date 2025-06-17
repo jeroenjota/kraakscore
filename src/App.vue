@@ -61,7 +61,8 @@
               @click.exact="getTeam(tm)"
               @click.ctrl="delTeam(tm)"
               :class="teamSelected(tm) ? 'teamSelected' : ''"
-              @touchmove="delTeam(tm)"
+              @touchstart="startPress"
+              @touchend="endPress"
               >
               <span v-if="teamSelected(tm)">&#10004;</span> {{ tm }}
             </p>
@@ -150,7 +151,7 @@ const teams = ref([]);
 const lastTeams = ref([]);
 const schedule = ref([]);
 const repeatRounds = ref(1);
-// let pressTimer =0
+let pressTimer =0
 
 onMounted(() => {
   const savedTeams = JSON.parse(localStorage.getItem("teams"));
@@ -163,15 +164,18 @@ onMounted(() => {
   if (savedRounds) repeatRounds.value = savedRounds;
 });
 
-// function startPress(tm) {
-//   setTimeout(() => {
-//     delTeam(tm);
-//   }, 500);
-// }
+function startPress(tm) {
+  pressTimer = new Date().getTime()
+}
 
-// function endPress() {
-//   clearTimeout();
-// }
+function endPress(tm) {
+  const touchEndTime = new Date().getTime()
+  const timeDiff = touchEndTime - pressTimer
+  if (timeDiff > 500){ 
+    delTeam(tm)
+    pressTimer = 0
+  }
+}
 
 function blokkeerLetters(event) {
   const key = event.key;
