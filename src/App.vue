@@ -36,8 +36,8 @@
               :key="index"
               @click.exact="editTeam(index)"
               @click.ctrl="removeTeam(index)"
-              @ontouchstart="startPress(index)"
-              @ontouchend="endPress()"
+              @touchstart="startPress(index)"
+              @touchend="endPress()"
             >
               {{ team }}
             </li>
