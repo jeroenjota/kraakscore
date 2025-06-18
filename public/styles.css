@@ -129,3 +129,8 @@ button.bg-red-500 {
 button {
   border-radius: 5px;
 }
+
+button:disabled {
+  background-color: darkgrey;
+  color:lightgray;
+}

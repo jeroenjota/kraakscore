@@ -41,8 +41,8 @@
         </div>
 
         <div class="flex gap-2">
-          <button @click="generateSchedule" class="bg-green-500 text-white px-4 py-2 rounded">Genereer schema</button>
-          <button @click="resetAll" class="bg-red-500 text-white px-4 py-2 rounded">Reset</button>
+          <button @click="generateSchedule" class="bg-green-500 text-white px-4 py-2 rounded" :disabled="!scheduleGenerated()">Genereer schema</button>
+          <button @click="resetAll" class="bg-red-500 text-white px-4 py-2 rounded" :disabled="!scheduleGenerated()">Reset</button>
         </div>
       </div>
 
@@ -146,15 +146,18 @@ import Pdf from "./components/Pdf.vue";
 
 const newTeam = ref("");
 const teams = ref([]);
+// const players = ref([]);
 const lastTeams = ref([]);
 const schedule = ref([]);
 const repeatRounds = ref(1);
 
 onMounted(() => {
   const savedTeams = JSON.parse(localStorage.getItem("teams"));
+  // const savedPlayers = JSON.parse(localStorage.getItem('players'))
   const oldTeams = JSON.parse(localStorage.getItem("lastTeams"));
   const savedSchedule = JSON.parse(localStorage.getItem("schedule"));
   const savedRounds = JSON.parse(localStorage.getItem("repeatRounds"));
+  // if (savedPlayers) players.value = savedPlayers.sort();
   if (oldTeams) lastTeams.value = oldTeams.sort();
   if (savedTeams) teams.value = savedTeams;
   if (savedSchedule) schedule.value = savedSchedule;
@@ -177,8 +180,26 @@ function blokkeerLetters(event) {
   }
 }
 
+function cleanTeamName(thisTeam){
+    // vervang elk mogelijke koppel teken door /
+    return thisTeam.replace(/[^a-zA-Z]+/g, '/')
+}
+
+// function addPlayers(thisTeam) {
+//   // split team in spelers
+//   let names = []
+//   names = thisTeam.split('/')
+//   names.forEach((name, i) => {
+//     if (players.value.indexOf(name) < 0) {
+//       // voeg spelers toe
+//       players.value.push(name.trim())
+//     }
+//   })
+// }
+
 function addTeam() {
   if (newTeam.value.trim()) {
+    newTeam.value = cleanTeamName(newTeam.value )
     const idx = teams.value.indexOf(newTeam.value);
     // check if element exists
     if (idx < 0) {
@@ -187,10 +208,12 @@ function addTeam() {
     newTeam.value = "";
   }
 }
+
 function editTeam(i) {
   // plaats de team naam in het input veld
   if (schedule.value.length === 0) {
     newTeam.value = teams.value[i];
+    // tijdelijk weghalen uit array 
     teams.value.splice(i, 1);
   }
 }
@@ -203,12 +226,20 @@ function removeTeam(i) {
 
 function getTeam(tm) {
   // is het team al in het toernooi?
+  tm = cleanTeamName(tm)
   const idx = teams.value.indexOf(tm);
   if (idx < 0) {
     // nee, dus toevoegen
+    // addPlayers(tm)   // spelers toevoegen eventueel
     teams.value.push(tm);
   }
 }
+
+function scheduleGenerated(){
+  console.log("Teams:", teams.value.length)
+  return teams.value.length > 0
+}
+  
 
 function delTeam(tm) {
   // zit dit team wel in het lastTeams array?
@@ -226,6 +257,8 @@ function delTeam(tm) {
 }
 
 function generateSchedule() {
+  let a = scheduleGenerated()
+  addTeamsToList() // voeg eventueel nieuwe teams aan de standaardlijst toe
   // gerereer een RoundRobin schema, waar pper ronde iedereen tegen iedereen speelt
   const inputTeams = [...teams.value];
   if (inputTeams.length % 2 !== 0) {
@@ -261,29 +294,35 @@ function generateSchedule() {
 function saveResults() {
   // alle arrays lokaal opslaan
   localStorage.setItem("teams", JSON.stringify(teams.value));
+  // localStorage.setItem("players", JSON.stringify(players.value));
   localStorage.setItem("schedule", JSON.stringify(schedule.value));
   localStorage.setItem("repeatRounds", JSON.stringify(repeatRounds.value));
 }
 
+function addTeamsToList(){
+  if (!teams.value.every((tm) => lastTeams.value.includes(tm))) {
+    // check for new items
+    // nieuwe tiems in loc storage toevoegen?
+    if (confirm("Nieuwe teams toevoegen aan standaardlijst?")) {
+      // voeg teams toe aan lastTeams als ze (nog) niet bestaan
+      teams.value.forEach((tm, index) => {
+        if (!lastTeams.value.includes(tm)) {
+          lastTeams.value.push(tm);
+        }
+      });
+      lastTeams.value.sort();
+    }
+    // en lastTeams array opslaan
+    localStorage.setItem("lastTeams", JSON.stringify(lastTeams.value));
+  }
+}
+
+
 function resetAll() {
+  addTeamsToList() // voeg eventueel nieuwe teams aan de standaardlijst toe
   // reset de deelnemende teams , de scores en het schema
   // alleen als er een schema is ;-)
   if (schedule.value.length > 0) {
-    if (!teams.value.every((tm) => lastTeams.value.includes(tm))) {
-      // check for new items
-      // neiwue tiems in loc storage toevoegen?
-      if (confirm("Nieuwe teams toevoegen aan standaardlijst?")) {
-        // voeg teams toe aan lastTeams als ze (nog) niet bestaan
-        teams.value.forEach((tm, index) => {
-          if (!lastTeams.value.includes(tm)) {
-            lastTeams.value.push(tm);
-          }
-        });
-        lastTeams.value.sort();
-      }
-      // en lastTeams array opslaan
-      localStorage.setItem("lastTeams", JSON.stringify(lastTeams.value));
-    }
     // nogmaals bevestigen
     if (confirm("Weet je zeker dat je de scores en het schema wilt resetten?")) {
       teams.value = [];
