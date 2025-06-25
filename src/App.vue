@@ -10,19 +10,20 @@
 
       </h1>
     </div>
-    <div class="toprow"  v-if="!tournamentStarted">
+    <div class="toprow" v-if="!tournamentStarted">
       <!-- Teams sectie -->
       <div class="teams">
         <div class="flex gap-2 text-center">
           <input v-model="newTeam" @keyup.enter="addTeam" placeholder="Teamnaam" class="p-1 border teamnaam rounded"
-            style="width:50%;" :disabled="teams.length>7"/>
-          <button @click="addTeam" class="bg-blue-500 text-white px-4 py-2 rounded" style="width:50%;" :disabled="teams.length>7">Meedoen</button>
+            style="width:50%;" :disabled="teams.length > 7" />
+          <button @click="addTeam" class="bg-blue-500 text-white px-4 py-2 rounded" style="width:50%;"
+            :disabled="teams.length > 7">Meedoen</button>
         </div>
 
         <div class="flex gap-2 items-center p-1">
           <label for="repeatRounds">Aantal volle rondes:</label>
-          <input id="repeatRounds" type="number" v-model.number="repeatRounds" min="1" class="border p-2 w-12 rounded"
-            style="width:25%;" />
+          <input id="repeatRounds" type="number" v-model.number="repeatRounds" min="1" max="2"
+            class="border p-2 w-12 rounded" style="width:25%;" />
         </div>
 
         <div v-if="teams.length > 0" class="teamlist">
@@ -104,11 +105,8 @@ function removeTeam(i) {
 }
 
 function removeAll() {
-  // console.log("RemoveAll...")
+  // Haal alle teams uit de deelnemers lijst 
   teams.value = []
-  // teams.value.forEach((tm, index) => {
-  //   removeTeam(index)
-  // })
 }
 
 function resetAll() {
@@ -156,9 +154,9 @@ function getTeam(tm) {
   if (idx < 0) {
     // nee, dus toevoegen
     // addPlayers(tm)   // spelers toevoegen eventueel
-    if (teams.value.length<8){
+    if (teams.value.length < 8) {
       teams.value.push(tm);
-     }
+    }
   }
 }
 
@@ -177,16 +175,10 @@ function delTeam(tm) {
   }
 }
 
-
-
 function cleanTeamName(thisTeam) {
   // vervang elk mogelijke koppel teken door /
   return thisTeam.replace(/[^a-zA-Z]+/g, "/");
 }
-
-// function removeTeam(index) {
-//   teams.value.splice(index, 1)
-// }
 
 const filteredTeams = computed(() => teams.value.map((t) => t.trim()).filter((t) => t));
 
