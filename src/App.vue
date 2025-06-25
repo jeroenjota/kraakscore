@@ -156,7 +156,9 @@ function getTeam(tm) {
   if (idx < 0) {
     // nee, dus toevoegen
     // addPlayers(tm)   // spelers toevoegen eventueel
-    teams.value.push(tm);
+    if (teams.value.length<8){
+      teams.value.push(tm);
+     }
   }
 }
 
