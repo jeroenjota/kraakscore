@@ -21,6 +21,7 @@
           <div v-else>
             <h3>Ronde: {{ (index + 1) }}</h3>
           </div>
+          <!-- {{ groupMatches[1] }} -->
           <MatchTable :matches="groupMatches[1][index]" :teams="groups[1]"
             @update-result="(i, a, b) => updateGroupResult(1, index, i, a, b)" />
         </div>
@@ -37,19 +38,20 @@
           </div>
         </div>
       </div>
+      <!-- <div>{{ finalMatches }}</div> -->
       <div class="schema"
         v-if="finalMatches.length === 2 && finalMatches[0].teamL && finalMatches[0].teamR && finalMatches[1].teamL && finalMatches[1].teamR">
-        <h2 class="text-2xl font-bold mb-2">Finales</h2>
+        <h2 class="text-2xl font-bold mb-2 text-center">Finales</h2>
 
         <div class="mb-4">
-          <h3 class="text-lg font-semibold">Finale</h3>
+          <h3 class="text-xl font-semibold">Finale</h3>
           <MatchTable matchType="finale" :matches="[finalMatches[0]]"
             :teams="[finalMatches[0].teamL, finalMatches[0].teamR]"
             @update-result="(i, a, b) => updateFinalResult(i, a, b)" />
         </div>
 
         <div>
-          <h3 class="text-lg font-semibold">Wedstrijd om 3e plaats</h3>
+          <h3 class="text-lg font-semibold">Om 3e plaats</h3>
           <MatchTable matchType="3ePlaats" :matches="[finalMatches[1]]"
             :teams="[finalMatches[1].teamL, finalMatches[1].teamR]"
             @update-result="(i, a, b) => updateFinalResult(i + 1, a, b)" />
@@ -57,7 +59,7 @@
       </div>
 
     </div>
-    <!--  minder danm 8 teams -->
+    <!--  minder dan 7 teams -->
     <div v-else class="schema">
       <h2 class="text-xl font-bold">Schema</h2>
       <div v-for="(ronde, index) in matches" :key="index">
@@ -120,10 +122,12 @@ function splitIntoGroups(teamList) {
   return [shuffled.slice(0, half), shuffled.slice(half)];
 }
 
-function generateMatches(tms) {
+function generateMatches(tms, grp) {
+  // console.log("grp:", grp)
   const inputTeams = [...tms]
   if (inputTeams.length % 2 !== 0) {
-    inputTeams.push('BYE')
+    inputTeams.push('VRIJ')
+
   }
   const schedule = [];
   const totalRounds = inputTeams.length - 1;
@@ -134,16 +138,15 @@ function generateMatches(tms) {
     //  console.log("Ronde: ", round)
     const matches = []
     for (let i = 0; i < halfSize; i++) {
-      const teamL = inputTeams[i];
-      const teamR = inputTeams[inputTeams.length - 1 - i];
-      if (teamL !== "BYE" && teamR !== "BYE") {
-        // randomScores NOT FOR PRODUCTION
-        let sc1 =
-          matches.push({ tafel: i + 1, teamL, teamR, scoreL: null, scoreR: null });
-        //  console.log("Match: ", i, teamL, teamR)
+      let teamL = inputTeams[i];
+      let teamR = inputTeams[inputTeams.length - 1 - i];
+      if (teamL==="VRIJ") {
+        teamL = teamR
+        teamR = "VRIJ"
       }
+      let sc1 =
+        matches.push({ tafel: i + 1 + (2*grp), teamL, teamR, scoreL: null, scoreR: null });
     }
-    //  console.log("Matches: ", matches)
     baseRounds.push(matches)
     inputTeams.splice(1, 0, inputTeams.pop());
   }
@@ -199,7 +202,9 @@ function calculateStandings(teamsList, matchesList) {
   }));
   for (const round of matchesList) {
     for (const match of round) {
-      if (match.scoreL == null || match.scoreR == null) continue;
+      if ((match.scoreL === null && match.scoreR === null)) {
+        continue;
+      }
       const teamL = table.find((t) => t.name === match.teamL);
       const teamR = table.find((t) => t.name === match.teamR);
       if (!teamL || !teamR) continue;
@@ -208,6 +213,7 @@ function calculateStandings(teamsList, matchesList) {
       teamL.goalsAgainst += match.scoreR;
       teamR.goalsFor += match.scoreR;
       teamR.goalsAgainst += match.scoreL;
+      // console.log("TeamR:", teamR.name)
       if (match.scoreL > 0 || match.scoreR > 0) {
         teamL.played += 1
         teamR.played += 1
@@ -249,8 +255,15 @@ function updateFinalists() {
 
   const standingsA = calculateStandings(groups.value[0], groupMatches.value[0]);
   const standingsB = calculateStandings(groups.value[1], groupMatches.value[1]);
-  standingsA.forEach((match, index) => {
-    ttlPlayed += match.played
+  // console.log("groupmatches",groupMatches.value[1][0])
+  groupMatches.value[1].forEach((match, index)=>{
+    // beetsje een trucje oom het aantl gepeelde wedstrijden te tellen
+    if (match[0].teamR === "VRIJ") ttlPlayed +=2
+    if (match[1].teamR === "VRIJ") ttlPlayed +=2
+    // ook de 'VRIJ" rondes moeten meetellen
+  })
+  standingsA.forEach((team, index) => {
+    ttlPlayed += team.played
   })
   standingsB.forEach((match, index) => {
     ttlPlayed += match.played
@@ -274,6 +287,7 @@ function updateFinalists() {
 
   finalMatches.value[1].teamL = standingsA[1].name; // tweede groep A
   finalMatches.value[1].teamR = standingsB[1].name; // tweede groep B
+  saveToLocalStorage()
 }
 
 function saveToLocalStorage() {
@@ -315,7 +329,7 @@ function loadFromLocalStorage() {
     // console.log("Opgehaald: matches:", matches.value)
     matches.value = JSON.parse(m);
   }
-  if (fm) {
+  if (fm) {finalMatches
     finalMatches.value = JSON.parse(fm);
     // console.log("finales:", finalMatches.value)
   }
@@ -327,11 +341,12 @@ function loadFromLocalStorage() {
 // }
 
 onMounted(() => {
-  if (teams.value.length >= 8) {
+  if (teams.value.length >= 7) {
     groups.value = splitIntoGroups(teams.value);
-    groupMatches.value = groups.value.map((group) => generateMatches(group));
-  } else {
-    matches.value = generateMatches(teams.value);
+    // console.log("groep.value", groups.value)
+    groupMatches.value = groups.value.map((group, index) => generateMatches(group, index));
+  } else{
+    matches.value = generateMatches(teams.value,0);
     //  console.log("matches:" ,  matches.value)
   }
   loadFromLocalStorage();

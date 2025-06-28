@@ -32,7 +32,7 @@ const finalMatches = ref([
 // Ophalen en parsen van data uit localStorage
 function getMatchesFromStorage() {
   const teams = JSON.parse(localStorage.getItem("teams"));
-  gesplitst = teams.length >= 8
+  gesplitst = teams.length >= 7
   const g = localStorage.getItem("tournamentGroups");
   const gm = localStorage.getItem("tournamentGroupMatches");
   const m = localStorage.getItem("tournamentMatches");
@@ -139,7 +139,7 @@ function exportPdf() {
   } else {
     // GroupTournooi()
     // eerst de standen in de groepen
-
+    let savYpos = yPos
     groupMatches.value.forEach((gm, index) => {
       const xPos = 12 + (pageWidth / 2 - 12) * index
       doc.setFontSize(18);
@@ -184,7 +184,7 @@ function exportPdf() {
       yPos += 4
       doc.line(14, yPos, pageWidth - 14, yPos);
       doc.setFontSize(18);
-      doc.text(`Tussentand`, pageWidth / 2, (yPos += 8), { align: "center" });
+      doc.text(`Tussenstand`, pageWidth / 2, (yPos += 8), { align: "center" });
       doc.setFontSize(12);
       autoTable(doc, {
         theme: "striped",
@@ -197,10 +197,12 @@ function exportPdf() {
         tableLineWidth: 1,
         margin: { left: xPos },
       });
+
+      if (savYpos <  doc.lastAutoTable.finalY + 4) savYpos = doc.lastAutoTable.finalY + 4
     })
     // finales
     if (finalBekend()) {
-      yPos = doc.lastAutoTable.finalY + 4
+      yPos = savYpos
       let xPos = (pageWidth - 120) / 2
       doc.line(14, yPos, pageWidth - 14, yPos);
       doc.setFontSize(18);
@@ -218,9 +220,9 @@ function exportPdf() {
           uitslag.push(finMatch.teamR)
           uitslag.push(finMatch.teamL)
         }
-        obj = [`Finale:`, finMatch.teamL + " vs " + finMatch.teamR, `${finMatch.scoreL} - ${finMatch.scoreR}`];
+        obj = [`Finale:`, finMatch.teamL + " vs " + finMatch.teamR, `${finMatch.scoreL || ""} - ${finMatch.scoreR || ""}`];
         if (i > 0) {
-          obj = [`3e Plaats:`, finMatch.teamL + " vs " + finMatch.teamR, `${finMatch.scoreL} - ${finMatch.scoreR}`];
+          obj = [`3e Plaats:`, finMatch.teamL + " vs " + finMatch.teamR, `${finMatch.scoreL || ""} - ${finMatch.scoreR || ""}`];
         }
         table.push(obj)
       }

@@ -197,10 +197,10 @@ function startTournament() {
     // Init groepen alvast bij 8+ teams, kan later handig zijn
     addTeamsToList() // voeg eventueel nieuwe teams aan de standaardlijst toe
 
-    if (filteredTeams.value.length >= 8) {
+    if (filteredTeams.value.length >= 7) {
       // optioneel: hier alvast iets opslaan of voorbereiden
       // bv. // console.log('Init groepen voor finale logica')
-      alert("Er zijn 8 spelers, er worden willekeurig twee groepen aangemaakt")
+      alert("Er zijn meer dan 6 teams, er worden willekeurig twee groepen aangemaakt")
     }
     if (confirm("Schema nu aanmaken?")) {
       tournamentStarted.value = true;

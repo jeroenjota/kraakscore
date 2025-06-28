@@ -8,13 +8,13 @@
         <td style="width:5%; text-align: center;" class="border px-2">vs</td>
         <td style="width:25%; text-align: left;" class="border px-2">{{ match.teamR }}</td>
         <td style="width:15%; text-align: left;" class="border px-2">
-          <input style="width:100%; margin:0" type="number" v-model.number="scores[index].scoreL"
-            @change="update(index)" @keypress="blokkeerLetters" />
+          <input style="width:100%; margin:0" type="number"v-model.number="scores[index].scoreL" min="0"
+            @change="update(index)" @keypress="blokkeerLetters" :disabled="hasVRIJ(index)"/>
         </td>
         <td style="width:3%; text-align: center;" class="border px-2">-</td>
         <td style="width:15%; text-align: left;" class="border px-2">
-          <input style="width:100%; margin:0" type="number" v-model.number="scores[index].scoreR"
-            @change="update(index)" @keypress="blokkeerLetters" />
+          <input style="width:100%; margin:0" type="number" v-model.number="scores[index].scoreR" min="0"
+            @change="update(index)" @keypress="blokkeerLetters" :disabled="hasVRIJ(index)"/>
         </td>
       </tr>
     </tbody>
@@ -49,10 +49,15 @@ watchEffect(() => {
   // console.log("Scores:", scores.value)
 })
 
+function hasVRIJ(match){
+  let VRIJ = props.matches[match].teamL === "VRIJ" ||  props.matches[match].teamR === "VRIJ"
+  return VRIJ
+}
+
 function update(index) {
   const { scoreL, scoreR } = scores.value[index]
   if (scoreL !== '' && scoreR !== '') {
-    //  console.log('update-result', index, Number(scoreL), Number(scoreR))
+    console.log('update-result', index, Number(scoreL), Number(scoreR))
     emit('update-result', index, Number(scoreL), Number(scoreR))
   }
 }
