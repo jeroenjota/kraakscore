@@ -1,6 +1,6 @@
 <template>
 
-  <table class="w-full rondes table">
+  <table class="w-full rondes table" :id="matchType">
     <tbody>
       <tr v-for="(match, index) in matches" :key="index">
         <td style="width:5%; text-align: center;" class="border px-2">T{{ match.tafel }}</td>
@@ -29,7 +29,11 @@ const { blokkeerLetters } = useInputFilters();
 
 const props = defineProps({
   matches: Array,
-  teams: Array
+  teams: Array,
+  matchType: {
+    type: String,
+  }
+
 })
 
 const emit = defineEmits(['update-result'])
@@ -48,7 +52,7 @@ watchEffect(() => {
 function update(index) {
   const { scoreL, scoreR } = scores.value[index]
   if (scoreL !== '' && scoreR !== '') {
-    // console.log('update-result', index, Number(scoreL), Number(scoreR))
+    //  console.log('update-result', index, Number(scoreL), Number(scoreR))
     emit('update-result', index, Number(scoreL), Number(scoreR))
   }
 }

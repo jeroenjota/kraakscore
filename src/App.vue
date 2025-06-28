@@ -1,14 +1,19 @@
 <template>
   <div class="max-w-4xl mx-auto space-y-4 maindiv rounded">
     <div class="kop">
-      <h1 class="text-2xl font-bold">
-        Laurierboom Kraakscore
-        <p class="copyright">©2025 Jota Services
-          <button @click="resetAll" class="bg-red-500 text-white px-4 py-2 rounded"
-            style="margin-left:2px; width:120px; font-size: 1.4em;" v-if="tournamentStarted">Reset</button>
-        </p>
+      <div class="titelregel flex justify-between ">
+        <h1 class="text-2xl font-bold">
+          Laurierboom Kraakscore
+          <p class="copyright">©2025 Jota Services </p>
+        </h1>
+        <div class="knoppen flex justify-center" v-if="tournamentStarted">
+          <button @click="resetAll" class="bg-red-500 text-white px-2 rounded mt-2"
+            style="margin-left:2px; width:auto; height:30px; font-size: .9em;">Reset</button>
+          <Pdf />
 
-      </h1>
+        </div>
+      </div>
+
     </div>
     <div class="toprow" v-if="!tournamentStarted">
       <!-- Teams sectie -->
@@ -73,6 +78,7 @@
 import { ref, computed, watch, onMounted } from "vue";
 
 import Tournament from "./components/Tournament.vue";
+import Pdf from './components/Pdf.vue'
 
 
 
@@ -90,7 +96,7 @@ function teamSelected(tm) {
 
 function editTeam(i) {
   // plaats de team naam in het input veld
-  // console.log(i, "teams:", teams.value[i], "tournamentStarted:", tournamentStarted);
+  //  console.log(i, "teams:", teams.value[i], "tournamentStarted:", tournamentStarted);
   if (!tournamentStarted.value) {
     newTeam.value = teams.value[i];
     // tijdelijk weghalen uit array
@@ -141,7 +147,7 @@ function addTeam() {
 }
 
 function addAll() {
-  // console.log("addAll ... ")
+  //  console.log("addAll ... ")
   lastTeams.value.forEach((tm, index) => {
     getTeam(tm)
   })
@@ -193,8 +199,8 @@ function startTournament() {
 
     if (filteredTeams.value.length >= 8) {
       // optioneel: hier alvast iets opslaan of voorbereiden
-      // bv. console.log('Init groepen voor finale logica')
-      alert("Er zijn 8 spelers, er worden willekeurig twee groepen aangemaat")
+      // bv. // console.log('Init groepen voor finale logica')
+      alert("Er zijn 8 spelers, er worden willekeurig twee groepen aangemaakt")
     }
     if (confirm("Schema nu aanmaken?")) {
       tournamentStarted.value = true;
@@ -211,9 +217,9 @@ function addTeamsToList() {
     if (confirm("Nieuwe teams toevoegen aan standaardlijst?")) {
       // voeg teams toe aan lastTeams als ze (nog) niet bestaan
       teams.value.forEach((tm, index) => {
-        // console.log("Add team:", tm)
+        //  console.log("Add team:", tm)
         if (!lastTeams.value.includes(tm)) {
-          // console.log("gelukt:", tm)
+          //  console.log("gelukt:", tm)
 
           lastTeams.value.push(tm);
         }

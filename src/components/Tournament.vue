@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div id="tournament">
     <div v-if="groups.length === 2">
       <div class="schema">
         <div v-for="(ronde, index) in groupMatches[0]" :key="index">
@@ -26,32 +26,32 @@
         </div>
       </div>
       <div class="stand">
+
         <h2 class="text-xl font-semibold">Stand</h2>
         <div class="flex justify-center gap-2">
           <div class="">
-            <h2>Groep A</h2>
             <GroupStandings group="A" :teams="groups[0]" :matches="groupMatches[0]" />
           </div>
           <div class="">
-            <h2>Groep B</h2>
             <GroupStandings group="B" :teams="groups[1]" :matches="groupMatches[1]" />
           </div>
         </div>
       </div>
-
       <div class="schema"
         v-if="finalMatches.length === 2 && finalMatches[0].teamL && finalMatches[0].teamR && finalMatches[1].teamL && finalMatches[1].teamR">
         <h2 class="text-2xl font-bold mb-2">Finales</h2>
 
         <div class="mb-4">
           <h3 class="text-lg font-semibold">Finale</h3>
-          <MatchTable :matches="[finalMatches[0]]" :teams="[finalMatches[0].teamL, finalMatches[0].teamR]"
+          <MatchTable matchType="finale" :matches="[finalMatches[0]]"
+            :teams="[finalMatches[0].teamL, finalMatches[0].teamR]"
             @update-result="(i, a, b) => updateFinalResult(i, a, b)" />
         </div>
 
         <div>
           <h3 class="text-lg font-semibold">Wedstrijd om 3e plaats</h3>
-          <MatchTable :matches="[finalMatches[1]]" :teams="[finalMatches[1].teamL, finalMatches[1].teamR]"
+          <MatchTable matchType="3ePlaats" :matches="[finalMatches[1]]"
+            :teams="[finalMatches[1].teamL, finalMatches[1].teamR]"
             @update-result="(i, a, b) => updateFinalResult(i + 1, a, b)" />
         </div>
       </div>
@@ -67,7 +67,7 @@
       </div>
       <div class="stand">
         <h2 class="text-xl font-bold text-left">Stand</h2>
-        <GroupStandings :teams="teams" :matches="matches" />
+        <GroupStandings group="" :teams="teams" :matches="matches" />
       </div>
     </div>
 
@@ -107,6 +107,13 @@ function shuffle(array) {
   return array.sort(() => Math.random() - 0.5);
 }
 
+function getRandomScore(min, max) {
+  const minCeiled = Math.ceil(min);
+  const maxFloored = Math.floor(max);
+  return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled); // The maximum is inclusive and the minimum is inclusive
+}
+
+
 function splitIntoGroups(teamList) {
   const shuffled = shuffle([...teamList]);
   const half = Math.ceil(shuffled.length / 2);
@@ -122,45 +129,47 @@ function generateMatches(tms) {
   const totalRounds = inputTeams.length - 1;
   const halfSize = inputTeams.length / 2;
   const baseRounds = [];
-  // console.log(inputTeams)
+  //  console.log(inputTeams)
   for (let round = 0; round < totalRounds; round++) {
-    // console.log("Ronde: ", round)
+    //  console.log("Ronde: ", round)
     const matches = []
     for (let i = 0; i < halfSize; i++) {
       const teamL = inputTeams[i];
       const teamR = inputTeams[inputTeams.length - 1 - i];
       if (teamL !== "BYE" && teamR !== "BYE") {
-        matches.push({ tafel: i + 1, teamL, teamR, scoreL: null, scoreR: null });
-        // console.log("Match: ", i, teamL, teamR)
+        // randomScores NOT FOR PRODUCTION
+        let sc1 =
+          matches.push({ tafel: i + 1, teamL, teamR, scoreL: null, scoreR: null });
+        //  console.log("Match: ", i, teamL, teamR)
       }
     }
-    // console.log("Matches: ", matches)
+    //  console.log("Matches: ", matches)
     baseRounds.push(matches)
     inputTeams.splice(1, 0, inputTeams.pop());
   }
-  // console.log("baseRounds", baseRounds)
+  //  console.log("baseRounds", baseRounds)
   const fullSchedule = [];
 
-  // console.log("repeatRounds:", repeatRounds)
+  //  console.log("repeatRounds:", repeatRounds)
 
   for (let i = 0; i < repeatRounds.value; i++) {
     const roundCopy = JSON.parse(JSON.stringify(baseRounds));
-    // console.log("roundCopy", roundCopy)
+    //  console.log("roundCopy", roundCopy)
 
     fullSchedule.push(...roundCopy);
-    // console.log("fullSchedule", fullSchedule)
+    //  console.log("fullSchedule", fullSchedule)
 
   }
   schedule.value = fullSchedule
-  // console.log("Schedule:", schedule.value)
+  //  console.log("Schedule:", schedule.value)
   return schedule.value;
 }
 
 function updateGroupResult(groupIndex, matchIndex, tableIndex, scoreL, scoreR) {
-  // console.log("index:", groupIndex, matchIndex, tableIndex, scoreL, scoreR)
+  //  console.log("index:", groupIndex, matchIndex, tableIndex, scoreL, scoreR)
   groupMatches.value[groupIndex][matchIndex][tableIndex].scoreL = scoreL;
   groupMatches.value[groupIndex][matchIndex][tableIndex].scoreR = scoreR;
-  // console.log("groupMatches.value:",groupMatches.value[0][0][0])
+  //  console.log("groupMatches.value:",groupMatches.value[0][0][0])
   saveToLocalStorage();
   updateFinalists();
 }
@@ -181,6 +190,7 @@ function calculateStandings(teamsList, matchesList) {
   const table = teamsList.map((name) => ({
     name,
     points: 0,
+    played: 0,
     wins: 0,
     draws: 0,
     losses: 0,
@@ -198,6 +208,10 @@ function calculateStandings(teamsList, matchesList) {
       teamL.goalsAgainst += match.scoreR;
       teamR.goalsFor += match.scoreR;
       teamR.goalsAgainst += match.scoreL;
+      if (match.scoreL > 0 || match.scoreR > 0) {
+        teamL.played += 1
+        teamR.played += 1
+      }
 
       if (match.scoreL > match.scoreR) {
         teamL.points += 3;
@@ -213,7 +227,8 @@ function calculateStandings(teamsList, matchesList) {
         teamL.draws++;
         teamR.draws++;
       }
-      // console.log("match:", match)
+
+      //  console.log("match:", match)
     }
 
   }
@@ -223,24 +238,34 @@ function calculateStandings(teamsList, matchesList) {
     const goalDiffB = b.goalsFor - b.goalsAgainst;
     return goalDiffB - goalDiffA;
   });
-
+  // console.log(table)
   return table;
 }
 
 function updateFinalists() {
   // Alleen bij 2 groepen
   if (groups.value.length !== 2) return;
+  let ttlPlayed = 0
 
   const standingsA = calculateStandings(groups.value[0], groupMatches.value[0]);
   const standingsB = calculateStandings(groups.value[1], groupMatches.value[1]);
-
+  standingsA.forEach((match, index) => {
+    ttlPlayed += match.played
+  })
+  standingsB.forEach((match, index) => {
+    ttlPlayed += match.played
+  })
   // Controleer of er al uitslagen zijn (minimaal 1 wedstrijd per groep gespeeld)
   if (
+    ttlPlayed < 24 ||
     standingsA.length === 0 ||
     standingsB.length === 0 ||
     standingsA.every((t) => t.points === 0 && t.wins === 0 && t.draws === 0) ||
     standingsB.every((t) => t.points === 0 && t.wins === 0 && t.draws === 0)
   ) {
+    finalMatches.value[0].teamL = ''
+    finalMatches.value[0].teamR = ''
+    // console.log("Geen finale tonen")
     return; // nog geen finale omdat er geen uitslagen zijn
   }
 
@@ -253,35 +278,46 @@ function updateFinalists() {
 
 function saveToLocalStorage() {
   localStorage.setItem("tournamentGroups", JSON.stringify(groups.value));
-  // console.log("Opgeslagen: Groepen:" , groups.value)
-  localStorage.setItem(
-    "tournamentGroupMatches",
-    JSON.stringify(groupMatches.value)
-  );
-  // console.log("Opgeslagen: groupMatches.value", groupMatches.value)
+  //  console.log("Opgeslagen: Groepen:" , groups.value)
+  //  console.log("Opgeslagen: groupMatches.value", groupMatches.value)
+  localStorage.setItem("tournamentGroupMatches", JSON.stringify(groupMatches.value));
+  //  console.log("Opgeslagen: groupMatches.value", groupMatches.value)
   localStorage.setItem("tournamentMatches", JSON.stringify(matches.value));
-  // console.log("Opgeslagen: matches.value", matches.value)
-
+  //  console.log("Opgeslagen: matches.value", matches.value)
   localStorage.setItem("tournamentFinalMatches", JSON.stringify(finalMatches.value));
-  // console.log("Opgeslagen: finalMatches.value", finalMatches.value)
+  //  console.log("Opgeslagen: finalMatches.value", finalMatches.value)
+  // console.log(totalMatchesPlayed())
+}
 
+function totalMatchesPlayed() {
+  let ttlPlayed = 0
+  teams.value.forEach((tm, index) => {
+    //  console.log("team:",tm)
+    ttlPlayed += tm.played
+  })
+
+  return ttlPlayed
 }
 
 function loadFromLocalStorage() {
+
   const g = localStorage.getItem("tournamentGroups");
   const gm = localStorage.getItem("tournamentGroupMatches");
   const m = localStorage.getItem("tournamentMatches");
   const fm = localStorage.getItem("tournamentFinalMatches");
   if (g && gm) {
+    // console.log("Opgehaald: groepen:", g.length, gm.length)
     groups.value = JSON.parse(g);
     // console.log("Opgehaald: groepen:", groups.value)
     groupMatches.value = JSON.parse(gm);
     // console.log("Opgehaald: groupMatches:", groupMatches.value)
   } else if (m) {
+    // console.log("Opgehaald: matches:", matches.value)
     matches.value = JSON.parse(m);
   }
   if (fm) {
     finalMatches.value = JSON.parse(fm);
+    // console.log("finales:", finalMatches.value)
   }
 }
 
@@ -296,10 +332,10 @@ onMounted(() => {
     groupMatches.value = groups.value.map((group) => generateMatches(group));
   } else {
     matches.value = generateMatches(teams.value);
-    // console.log("matches:" ,  matches.value)
+    //  console.log("matches:" ,  matches.value)
   }
   loadFromLocalStorage();
-  // console.log("matches:" ,  matches.value)
+  //  console.log("matches:" ,  matches.value)
   updateFinalists();
 });
 </script>

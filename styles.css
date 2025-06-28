@@ -110,6 +110,10 @@ td.team {
   min-height: 300px;
 }
 
+.testkleur {
+  color: rgb(5, 93, 165);
+}
+
 .maindiv {
   background-color: rgb(27, 122, 230);
   padding: 1px;
