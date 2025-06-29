@@ -50,36 +50,36 @@ const props = defineProps({
 function getMatchesFromStorage() {
   const teams = JSON.parse(localStorage.getItem("teams"));
   gesplitst = props.groepsToernooi
-  console.log("gesplistst", gesplitst)
+//  console.log("gesplistst", gesplitst)
   const g = localStorage.getItem("tournamentGroups");
   const gm = localStorage.getItem("tournamentGroupMatches");
   const m = localStorage.getItem("tournamentMatches");
   const fm = localStorage.getItem("tournamentFinalMatches");
   if (gesplitst) {
     groups.value = JSON.parse(g);
-    //  console.log("Opgehaald: groepen:", groups.value)
+//    //  console.log("Opgehaald: groepen:", groups.value)
     groupMatches.value = JSON.parse(gm);
-    //  console.log("Opgehaald: gro upMatches:", matches.value)
+//    //  console.log("Opgehaald: gro upMatches:", matches.value)
   } else {
-    //  console.log("Single toernooi")
+//    //  console.log("Single toernooi")
     rounds.value = JSON.parse(m);
-    //  console.log("Opgehaald: matches:", rounds.value)
+//    //  console.log("Opgehaald: matches:", rounds.value)
   }
   if (fm) {
     finalMatches.value = JSON.parse(fm);
-    //  console.log("finales:", finalMatches.value)
+//    //  console.log("finales:", finalMatches.value)
   }
 }
 
 function finalBekend() {
   const isBekend = finalMatches.value.length === 2 && finalMatches.value[0].teamL && finalMatches.value[0].teamR && finalMatches.value[1].teamL && finalMatches.value[1].teamR
-  console.log("Bekend: ", isBekend, finalMatches.value[0].teamL, finalMatches.value[0].teamR)
+//  console.log("Bekend: ", isBekend, finalMatches.value[0].teamL, finalMatches.value[0].teamR)
   return isBekend
 }
 
 function finalPlayed() {
   const isPlayed = (finalMatches.value[0].scoreL || finalMatches.value[0].scoreR) && (finalMatches.value[1].scoreLL || finalMatches.value[1].scoreR)
-  console.log("Played: ", isPlayed)
+//  console.log("Played: ", isPlayed)
   return isPlayed
 }
 
@@ -122,9 +122,9 @@ function exportPdf() {
       }
       // laatste tabel centreren
       if (index === rounds.value.length - 1) {
-        console.log("Index", index, xPos)
+//        console.log("Index", index, xPos)
         xPos = (pageWidth - tblWidth) / 2
-        console.log("Index", index, xPos)
+//        console.log("Index", index, xPos)
         doc.addImage(imgCafe, 'jpeg', marge, yPos, 40, 30)
         doc.addImage(imgBoom, 'jpeg', pageWidth - marge - 30, yPos, 30, 30)
       }
@@ -142,7 +142,7 @@ function exportPdf() {
         table.push(obj);
       });
       head[0] = `ronde ${(index + 1)}`
-      console.log(`Ronde: ${(index + 1)}, yPos: ${yPos}`)
+//      console.log(`Ronde: ${(index + 1)}, yPos: ${yPos}`)
       autoTable(doc, {
         theme: "grid",
         tableLineWidth: 1,
@@ -222,7 +222,7 @@ function exportPdf() {
       gm.forEach((round, idx) => {
         table = [];
         round.forEach((match, idx) => {
-          //  console.log("Match:" , match)
+//          //  console.log("Match:" , match)
           let obj = []
           if ((match.scoreL || match.scoreR) || match.teamR === 'VRIJ') {
             obj = [`T${(match.tafel)}`, match.teamL + " vs " + match.teamR, `${match.scoreL} - ${match.scoreR}`];

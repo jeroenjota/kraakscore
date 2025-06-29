@@ -96,7 +96,7 @@ function teamSelected(tm) {
 
 function editTeam(i) {
   // plaats de team naam in het input veld
-  //  console.log(i, "teams:", teams.value[i], "tournamentStarted:", tournamentStarted);
+//  //  console.log(i, "teams:", teams.value[i], "tournamentStarted:", tournamentStarted);
   if (!tournamentStarted.value) {
     newTeam.value = teams.value[i];
     // tijdelijk weghalen uit array
@@ -147,7 +147,7 @@ function addTeam() {
 }
 
 function addAll() {
-  //  console.log("addAll ... ")
+//  //  console.log("addAll ... ")
   lastTeams.value.forEach((tm, index) => {
     getTeam(tm)
   })
@@ -199,7 +199,7 @@ function startTournament() {
 
     if (filteredTeams.value.length >= 7) {
       // optioneel: hier alvast iets opslaan of voorbereiden
-      // bv. // console.log('Init groepen voor finale logica')
+//      // bv. // console.log('Init groepen voor finale logica')
       groepsToernooi = confirm("Er zijn meer dan 6 teams, wil je twee groepen aanmaken?")
     }
     if (confirm("Schema nu aanmaken?")) {
@@ -217,9 +217,9 @@ function addTeamsToList() {
     if (confirm("Nieuwe teams toevoegen aan standaardlijst?")) {
       // voeg teams toe aan lastTeams als ze (nog) niet bestaan
       teams.value.forEach((tm, index) => {
-        //  console.log("Add team:", tm)
+//        //  console.log("Add team:", tm)
         if (!lastTeams.value.includes(tm)) {
-          //  console.log("gelukt:", tm)
+//          //  console.log("gelukt:", tm)
 
           lastTeams.value.push(tm);
         }
