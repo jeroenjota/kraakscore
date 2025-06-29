@@ -120,8 +120,8 @@ function exportPdf() {
       } else {
 
       }
-      // laatste tabel centreren
-      if (index === rounds.value.length - 1) {
+      // laatste tabel centreren als er een oneven aantal rondes is
+      if (index === rounds.value.length - 1 && rounds.value.length % 2 !== 0) {
 //        console.log("Index", index, xPos)
         xPos = (pageWidth - tblWidth) / 2
 //        console.log("Index", index, xPos)
@@ -163,11 +163,18 @@ function exportPdf() {
         saveY = yPos
       }
     });
+    xPos = marge
     yPos = doc.lastAutoTable.finalY + 2
     doc.line(marge, yPos, pageWidth - marge, yPos);
     doc.setFontSize(18);
     let kopTxt = "Tussenstand"
-    if (countRondeMatch === countPlayed) kopTxt = "Eindstand"
+    if (countRondeMatch === countPlayed) {
+      kopTxt = "Eindstand"
+      doc.addImage(imgBeker, 'jpeg', marge, yPos+8, 40,50)
+      doc.addImage(imgKaarten, 'jpeg', pageWidth-40-marge, yPos+8, 40,50)
+
+    }
+
     doc.text(kopTxt, pageWidth / 2, (yPos += 8), { align: "center" });
     doc.setFontSize(12);
     autoTable(doc, {
@@ -200,9 +207,6 @@ function exportPdf() {
         }
       },
     });
-    doc.addImage(imgBeker, 'jpeg', marge, yPos, xPos - marge - 4, (xPos - marge - 4) / 2 * 3)
-    doc.addImage(imgKaarten, 'jpeg', xPos + tblWidth + 4, yPos, xPos - marge - 4, (xPos - marge - 4) / 2 * 3)
-
     // yPos = doc.lastAutoTable.finalY 
     // if (yPos < 200) doc.addImage(imgCafe, 'jpeg', (pageWidth - tblWidth) / 2, yPos, tblWidth, 280 - yPos)
 

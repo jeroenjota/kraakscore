@@ -6,6 +6,10 @@ body {
 }
 .kop {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+
+}
+.kop h1 {
+  margin-left: 2px;
 }
 p.copyright {
   font-size: .5em;
