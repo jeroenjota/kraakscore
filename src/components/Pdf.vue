@@ -13,11 +13,18 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { ref } from "vue";
-import raam from '../assets/raam.jpg'
 
+import imgRaam from '../assets/raam.jpg'
+import imgCafe from '../assets/laurierboom.jpeg'
+import imgBoom from '../assets/cafe.jpg'
 
-// import imgRaam from '../assets/raam.jpg'
-// import imgCafe from '../assets/cafe.jpg'
+let img1 = new Image()
+img1.src = imgRaam
+let img2 = new Image()
+img2.src = imgCafe
+let img3 = new Image()
+img3.src = imgBoom
+
 let gesplitst = false
 const rounds = ref([]);
 const matches = ref([]);
@@ -75,72 +82,84 @@ function finalPlayed() {
 function exportPdf() {
   getMatchesFromStorage();
   const doc = new jsPDF();
-  let countPlayed = 0
+  let countPlayed = 0;
+  let countRondeMatch = 0;
   const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
-
+  const tblWidth = 90
+  const marge = 12
   const head = ["ronde", "match", "score"];
-  let yPos = 14;
-  let nextYpos = 0
+  let yPos = marge;
+  let saveY = 0
   doc.setFont("times");
   doc.setFontSize(18);
   const datum = new Date().toLocaleDateString("nl-NL");
   // doc.setTextColor("#ffffff")
   doc.text("Overzicht kraaktoernooi van " + datum, pageWidth / 2, yPos, { align: "center" });
   yPos += 2
-  doc.line(14, yPos, pageWidth - 14, yPos);
+  doc.line(marge, yPos, pageWidth - marge, yPos);
   let table = new Array();
   if (!gesplitst) {
     // single Tournooi
     // doc.line(14, yPos - 6, pageWidth - 14, yPos - 6);
-    doc.text("Ronde uitslagen", pageWidth / 2, yPos += 6, { align: "center" });
-    yPos +=2
-    let startY = yPos+2
+    doc.text("Ronde uitslagen", pageWidth / 2, yPos += 8, { align: "center" });
+    yPos += 4
+    saveY = yPos
+    let xPos = marge
+    countRondeMatch = rounds.value.length * rounds.value[0].length
     rounds.value.forEach((r, index) => {
-      let marge = 14
+      xPos = marge
       if (index % 2 !== 0) {
-        marge = pageWidth / 2 + marge / 2
-        yPos = startY
+        xPos = pageWidth / 2 + marge / 2
+        yPos = saveY
       } else {
 
       }
+      // laatste tabel centreren
+      if (index === rounds.value.length - 1) {
+        console.log("Index", index, xPos)
+        xPos = (pageWidth - tblWidth) / 2
+        console.log("Index", index, xPos)
+      }
+      // bouw de ronde score tabel
       table = [];
       r.forEach((match, idx) => {
         let obj = []
-        if (match.scoreL || match.scoreR) {
+        if ((match.scoreL || match.scoreR) || match.teamR === 'VRIJ') {
           obj = [`Tafel ${(idx + 1)}`, match.teamL + " vs " + match.teamR, `${match.scoreL} - ${match.scoreR}`];
+          countPlayed += 1
         } else {
           obj = [`Tafel ${(idx + 1)}`, match.teamL + " vs " + match.teamR, ""];
         }
         table.push(obj);
-        countPlayed += 1
-
       });
       head[0] = `ronde ${(index + 1)}`
-      
+      console.log(`Ronde: ${(index + 1)}, yPos: ${yPos}`)
       autoTable(doc, {
         theme: "grid",
         tableLineWidth: 1,
         head: [head],
         headStyles: { fillColor: [0, 100, 139] },
         styles: { font: "times" },
-        startY: yPos ,
+        startY: yPos,
         columnStyles: {
           2: { halign: "right" },
           3: { halign: "right" },
         },
         tableWidth: 90,
         body: table,
-        margin: { left: marge },
+        margin: { left: xPos },
       })
       if (index % 2 !== 0) {
-        yPos += table.length * 10 + 1;
-        startY = yPos
+        yPos += (table.length + 1) * 8
+        saveY = yPos
       }
     });
-    yPos  = doc.lastAutoTable.finalY
-    doc.line(14, yPos, pageWidth - 14, yPos);
+    yPos = doc.lastAutoTable.finalY + 2
+    doc.line(marge, yPos, pageWidth - marge, yPos);
     doc.setFontSize(18);
-    doc.text(`Stand`, pageWidth / 2, (yPos += 8), { align: "center" });
+    let kopTxt = "Tussenstand"
+    if (countRondeMatch === countPlayed) kopTxt = "Eindstand"
+    doc.text(kopTxt, pageWidth / 2, (yPos += 8), { align: "center" });
     doc.setFontSize(12);
     autoTable(doc, {
       theme: "striped",
@@ -149,34 +168,42 @@ function exportPdf() {
       headStyles: { fillColor: [158, 207, 240], textColor: [0, 0, 139] },
       html: "#standTabel",
       columnStyles: { 3: { halign: "center" } },
-      tableWidth: 120,
+      tableWidth: tblWidth,
       tableLineWidth: 1,
-      margin: { left: (pageWidth - 120) / 2 },
+      margin: { left: (pageWidth - tblWidth) / 2 },
     });
+    doc.addImage(img1, 'jpeg', marge, yPos, xPos - marge - 4, (xPos - marge - 4) / 3 * 2)
+    doc.addImage(img2, 'jpeg', xPos + tblWidth + 4, yPos, xPos - marge - 4, (xPos - marge - 4) / 2 * 3)
+
+    yPos = doc.lastAutoTable.finalY + 4
+    if (yPos < 200) doc.addImage(img3, 'jpeg', (pageWidth - tblWidth) / 2, yPos, tblWidth, 280 - yPos)
 
   } else {
     // GroupTournooi()
     // eerst de standen in de groepen
-    let savYpos = yPos
+    saveY = yPos
+    let kopPosY = 0
+    let kopTxt = ""
+    countRondeMatch = groupMatches.value.length * groupMatches.value[0].length * groupMatches.value[0][0].length
     groupMatches.value.forEach((gm, index) => {
-      const xPos = 12 + (pageWidth / 2 - 12) * index
+      const xPos = marge + (pageWidth / 2 - marge) * index
       doc.setFontSize(18);
-      yPos = 24
+      yPos = marge * 2
       doc.text(`Groep ${(index + 1)}`, xPos, yPos)
+      yPos += 2
       gm.forEach((round, idx) => {
         table = [];
         round.forEach((match, idx) => {
           //  console.log("Match:" , match)
           let obj = []
-          if (match.scoreL || match.scoreR) {
-            obj = [`T${(idx + 1)}`, match.teamL + " vs " + match.teamR, `${match.scoreL} - ${match.scoreR}`];
+          if ((match.scoreL || match.scoreR) || match.teamR === 'VRIJ') {
+            obj = [`T${(match.tafel)}`, match.teamL + " vs " + match.teamR, `${match.scoreL} - ${match.scoreR}`];
+            countPlayed += 1
           } else {
-            obj = [`T ${(idx + 1)}`, match.teamL + " vs " + match.teamR, ""];
+            obj = [`T${(match.tafel)}`, match.teamL + " vs " + match.teamR, ""];
           }
           table.push(obj);
-
         });
-        //  console.log("Breedte: ", pageWidth)
         head[0] = `R${(idx + 1)}`
         autoTable(doc, {
           theme: "grid",
@@ -192,17 +219,19 @@ function exportPdf() {
             1: { cellWidth: 57 },
             2: { halign: "center", cellWidth: 25 },
           },
-          tableWidth: pageWidth / 2 - 15,  // 90mm
+          tableWidth: tblWidth,  // 90mm
           body: table,
           margin: { left: xPos },
         });
         yPos += table.length * 10 + 4;
       })
       // groeps standen
-      yPos += 4
-      doc.line(14, yPos, pageWidth - 14, yPos);
+      yPos += 2
+      doc.line(marge, yPos, pageWidth - marge, yPos);
       doc.setFontSize(18);
-      doc.text(`Tussenstand`, pageWidth / 2, (yPos += 8), { align: "center" });
+      kopPosY = yPos += 8
+      kopTxt = "Tussenstand groepen"
+      if (countRondeMatch === countPlayed) kopTxt = "Eindstand groepen"
       doc.setFontSize(12);
       autoTable(doc, {
         theme: "striped",
@@ -211,20 +240,23 @@ function exportPdf() {
         headStyles: { fillColor: [158, 207, 240], textColor: [0, 0, 139] },
         html: "#standTabel" + String.fromCharCode(65 + index),
         columnStyles: { 3: { halign: "center" } },
-        tableWidth: pageWidth / 2 - 16,
+        tableWidth: tblWidth,
         tableLineWidth: 1,
         margin: { left: xPos },
       });
 
-      if (savYpos < doc.lastAutoTable.finalY + 4) savYpos = doc.lastAutoTable.finalY + 4
+      if (saveY < doc.lastAutoTable.finalY + 4) saveY = doc.lastAutoTable.finalY + 4
     })
+    doc.setFontSize(18)
+    doc.text(kopTxt, pageWidth / 2, (kopPosY), { align: "center" });
+    doc.setFontSize(12)
     // finales
     if (finalBekend()) {
-      yPos = savYpos
-      let xPos = (pageWidth - 120) / 2
-      doc.line(14, yPos, pageWidth - 14, yPos);
+      yPos = saveY
+      let xPos = (pageWidth - tblWidth - 30) / 2
+      doc.line(marge, yPos, pageWidth - marge, yPos);
       doc.setFontSize(18);
-      doc.text(`Finale`, pageWidth / 2, (yPos += 8), { align: "center" });
+      doc.text(`Finales`, pageWidth / 2, (yPos += 8), { align: "center" });
       doc.setFontSize(12);
       table = []
       let obj = []
@@ -245,21 +277,23 @@ function exportPdf() {
         table.push(obj)
       }
       const finhead = ["match", "spelers", "uitslag"];
+      yPos += 2
       autoTable(doc, {
         head: [finhead],
         theme: "striped",
         styles: { font: "times", fontSize: 14 },
-        startY: (yPos += 2),
+        startY: yPos,
         headStyles: { fillColor: [5, 93, 165], textColor: [255, 255, 255] }, columnStyles: { 3: { halign: "center" } },
-        tableWidth: 120,
+        tableWidth: tblWidth + 30,
         tableLineWidth: 1,
         body: table,
         margin: { left: xPos },
       });
       yPos = doc.lastAutoTable.finalY
-
       // uitslag
       if (finalPlayed()) {
+        yPos += 4
+        doc.line(marge, yPos, pageWidth - marge, yPos);
         doc.setFontSize(18);
         doc.text(``, pageWidth / 2, (yPos += 8), { align: "center" });
         table = []
@@ -271,19 +305,20 @@ function exportPdf() {
           table.push(obj)
           // doc.text(`${(index +1)}: ${team}`, pageWidth / 2-20, (yPos += 12), { align: "left" });
         })
-        xPos = (pageWidth - 80) / 2
+        xPos = (pageWidth - tblWidth) / 2
+        yPos += 2
         autoTable(doc, {
           head: [["Eindstand", "Team"]],
           theme: "plain",
           styles: { font: "times", fontSize: 14 },
-          startY: (yPos += 2),
+          startY: yPos,
           headStyles: { fillColor: [0, 128, 0], textColor: [255, 255, 139] },
-          tableWidth: 80,
+          tableWidth: tblWidth,
           tableLineWidth: 1,
           body: table,
           columnStyles: {
             0: { cellWidth: 35 },
-            1: { cellWidth: 45 },
+            1: { cellWidth: 55 },
           },
           margin: { left: xPos },
           bodyStyles: {
@@ -292,20 +327,23 @@ function exportPdf() {
           didParseCell: function (data) {
             if (data.section === "body" && data.row.index === 0) {
               if (data.column.index === 1) {
+                data.cell.styles.fontSize = 20;
+              }
+            }
+            if (data.section === "body" && data.row.index === 1) {
+              if (data.column.index === 1) {
                 data.cell.styles.fontSize = 18;
               }
             }
-
-            if ((data.row.section === 'head' || data.row.section === 'foot') && data.column.dataKey === "expenses") {
-              data.cell.text = '' // Use an icon in didDrawCell instead
-            }
-
-            if (data.row.index === 0 && data.row.section === 'body' && data.column.dataKey === 'city') {
-              data.cell.text = 'とうきょう'
+            if (data.section === "body" && data.row.index === 2) {
+              if (data.column.index === 1) {
+                data.cell.styles.fontSize = 16;
+              }
             }
           },
-
         })
+        doc.addImage(img1, 'jpeg', marge, yPos, xPos - marge - 4, doc.lastAutoTable.finalY - yPos)
+        doc.addImage(img2, 'jpeg', xPos + tblWidth + 4, yPos, xPos - marge - 4, doc.lastAutoTable.finalY - yPos)
 
       }
       // var img = new Image();
@@ -313,6 +351,11 @@ function exportPdf() {
       // doc.addImage(img, 'jpg', xPos, 20, 80, 40)
     }
   }
+  // footer
+  let savFntSize = doc.fontSize
+  doc.setFontSize(8)
+  doc.text(`©2025 jota services`, pageWidth / 2, 290, { align: "center" });
+  doc.setFontSize(savFntSize)
   doc.save("kraaktoernooi.pdf");
 }
 
