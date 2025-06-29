@@ -28,11 +28,17 @@ const finalMatches = ref([
   { teamL: null, teamR: null, scoreL: null, scoreR: null }, // 3e plaats
 ]);
 
-
+const props = defineProps({
+    groepsToernooi: {
+    type: Boolean,
+    default: false
+  },
+})
 // Ophalen en parsen van data uit localStorage
 function getMatchesFromStorage() {
   const teams = JSON.parse(localStorage.getItem("teams"));
-  gesplitst = teams.length >= 7
+  gesplitst = props.groepsToernooi
+  console.log("gesplistst", gesplitst)
   const g = localStorage.getItem("tournamentGroups");
   const gm = localStorage.getItem("tournamentGroupMatches");
   const m = localStorage.getItem("tournamentMatches");

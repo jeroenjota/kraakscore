@@ -9,7 +9,7 @@
         <div class="knoppen flex justify-center" v-if="tournamentStarted">
           <button @click="resetAll" class="bg-red-500 text-white px-2 rounded mt-2"
             style="margin-left:2px; width:auto; height:30px; font-size: .9em;">Reset</button>
-          <Pdf />
+          <Pdf :groepsToernooi="groepsToernooi"/>
 
         </div>
       </div>
@@ -66,7 +66,7 @@
         title="Bij 8 spelers worden willekeurig twee groepen aangemaakt">Start toernooi</button>
     </div>
 
-    <Tournament v-if="tournamentStarted" :initialTeams="filteredTeams" :repeatRounds="repeatRounds"
+    <Tournament v-if="tournamentStarted" :initialTeams="filteredTeams" :repeatRounds="repeatRounds" :groepsToernooi="groepsToernooi"
       @reset="handleReset" />
 
 
@@ -80,7 +80,7 @@ import { ref, computed, watch, onMounted } from "vue";
 import Tournament from "./components/Tournament.vue";
 import Pdf from './components/Pdf.vue'
 
-
+let groepsToernooi = false
 
 const newTeam = ref("");
 const teams = ref([]);
@@ -200,7 +200,7 @@ function startTournament() {
     if (filteredTeams.value.length >= 7) {
       // optioneel: hier alvast iets opslaan of voorbereiden
       // bv. // console.log('Init groepen voor finale logica')
-      alert("Er zijn meer dan 6 teams, er worden willekeurig twee groepen aangemaakt")
+      groepsToernooi = confirm("Er zijn meer dan 6 teams, wil je twee groepen aanmaken?")
     }
     if (confirm("Schema nu aanmaken?")) {
       tournamentStarted.value = true;

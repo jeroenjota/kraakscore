@@ -90,6 +90,10 @@ const props = defineProps({
   repeatRounds: {
     type: Number,
     default: 1
+  },
+  groepsToernooi: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -341,7 +345,7 @@ function loadFromLocalStorage() {
 // }
 
 onMounted(() => {
-  if (teams.value.length >= 7) {
+  if (props.groepsToernooi) {
     groups.value = splitIntoGroups(teams.value);
     // console.log("groep.value", groups.value)
     groupMatches.value = groups.value.map((group, index) => generateMatches(group, index));
