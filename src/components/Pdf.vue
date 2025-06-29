@@ -15,15 +15,20 @@ import autoTable from "jspdf-autotable";
 import { ref } from "vue";
 
 import imgRaam from '../assets/raam.jpg'
-import imgCafe from '../assets/laurierboom.jpeg'
-import imgBoom from '../assets/cafe.jpg'
+import imgBoom from '../assets/laurierboom.jpeg'
+import imgCafe from '../assets/cafe.jpg'
+import imgKraak from '../assets/kraken.jpeg'  // kraken
+import imgKaarten from '../assets/kaarten.png'
+import imgBeker from '../assets/beker.jpg'
 
-let img1 = new Image()
-img1.src = imgRaam
-let img2 = new Image()
-img2.src = imgCafe
-let img3 = new Image()
-img3.src = imgBoom
+// let imgRaam = new Image()
+// imgRaam.src = img1
+// let imgBoom = new Image()
+// imgBoom.src = img2
+// let imgCafe = new Image()
+// imgCafe.src = img3
+// let imgKraak = new Image()
+// imgKraak.src = img4
 
 let gesplitst = false
 const rounds = ref([]);
@@ -93,10 +98,11 @@ function exportPdf() {
   doc.setFont("times");
   doc.setFontSize(18);
   const datum = new Date().toLocaleDateString("nl-NL");
-  // doc.setTextColor("#ffffff")
+  doc.addImage(imgRaam, 'jpeg', marge, marge - 6, 35, 18)
+  doc.addImage(imgKraak, 'jpeg', pageWidth - marge - 35, marge - 6, 35, 18)
   doc.text("Overzicht kraaktoernooi van " + datum, pageWidth / 2, yPos, { align: "center" });
   yPos += 2
-  doc.line(marge, yPos, pageWidth - marge, yPos);
+  doc.line(marge + 40, yPos, pageWidth - marge - 40, yPos);
   let table = new Array();
   if (!gesplitst) {
     // single Tournooi
@@ -119,7 +125,10 @@ function exportPdf() {
         console.log("Index", index, xPos)
         xPos = (pageWidth - tblWidth) / 2
         console.log("Index", index, xPos)
+        doc.addImage(imgCafe, 'jpeg', marge, yPos, 40, 30)
+        doc.addImage(imgBoom, 'jpeg', pageWidth - marge - 30, yPos, 30, 30)
       }
+      // plaatjes toevoegen
       // bouw de ronde score tabel
       table = [];
       r.forEach((match, idx) => {
@@ -165,18 +174,37 @@ function exportPdf() {
       theme: "striped",
       styles: { font: "times", fontSize: 14 },
       startY: (yPos += 2),
-      headStyles: { fillColor: [158, 207, 240], textColor: [0, 0, 139] },
+      headStyles: { fillColor: [0, 128, 0], textColor: [255, 255, 139] },
       html: "#standTabel",
-      columnStyles: { 3: { halign: "center" } },
+      columnStyles: { 2: { halign: "center" } },
       tableWidth: tblWidth,
       tableLineWidth: 1,
       margin: { left: (pageWidth - tblWidth) / 2 },
+      didParseCell: function (data) {
+        if (countRondeMatch === countPlayed) {
+          if (data.section === "body" && data.row.index === 0) {
+            if (data.column.index === 1) {
+              data.cell.styles.fontSize = 20;
+            }
+          }
+          if (data.section === "body" && data.row.index === 1) {
+            if (data.column.index === 1) {
+              data.cell.styles.fontSize = 18;
+            }
+          }
+          if (data.section === "body" && data.row.index === 2) {
+            if (data.column.index === 1) {
+              data.cell.styles.fontSize = 16;
+            }
+          }
+        }
+      },
     });
-    doc.addImage(img1, 'jpeg', marge, yPos, xPos - marge - 4, (xPos - marge - 4) / 3 * 2)
-    doc.addImage(img2, 'jpeg', xPos + tblWidth + 4, yPos, xPos - marge - 4, (xPos - marge - 4) / 2 * 3)
+    doc.addImage(imgBeker, 'jpeg', marge, yPos, xPos - marge - 4, (xPos - marge - 4) / 2 * 3)
+    doc.addImage(imgKaarten, 'jpeg', xPos + tblWidth + 4, yPos, xPos - marge - 4, (xPos - marge - 4) / 2 * 3)
 
-    yPos = doc.lastAutoTable.finalY + 4
-    if (yPos < 200) doc.addImage(img3, 'jpeg', (pageWidth - tblWidth) / 2, yPos, tblWidth, 280 - yPos)
+    // yPos = doc.lastAutoTable.finalY 
+    // if (yPos < 200) doc.addImage(imgCafe, 'jpeg', (pageWidth - tblWidth) / 2, yPos, tblWidth, 280 - yPos)
 
   } else {
     // GroupTournooi()
@@ -188,7 +216,7 @@ function exportPdf() {
     groupMatches.value.forEach((gm, index) => {
       const xPos = marge + (pageWidth / 2 - marge) * index
       doc.setFontSize(18);
-      yPos = marge * 2
+      yPos = marge * 2.5
       doc.text(`Groep ${(index + 1)}`, xPos, yPos)
       yPos += 2
       gm.forEach((round, idx) => {
@@ -342,8 +370,8 @@ function exportPdf() {
             }
           },
         })
-        doc.addImage(img1, 'jpeg', marge, yPos, xPos - marge - 4, doc.lastAutoTable.finalY - yPos)
-        doc.addImage(img2, 'jpeg', xPos + tblWidth + 4, yPos, xPos - marge - 4, doc.lastAutoTable.finalY - yPos)
+        doc.addImage(imgBeker, 'jpeg', marge, yPos, xPos - marge - 4, doc.lastAutoTable.finalY - yPos)
+        doc.addImage(imgKaarten, 'jpeg', xPos + tblWidth + 4, yPos, xPos - marge - 4, doc.lastAutoTable.finalY - yPos)
 
       }
       // var img = new Image();
