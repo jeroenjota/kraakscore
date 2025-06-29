@@ -29,7 +29,7 @@ const finalMatches = ref([
 ]);
 
 const props = defineProps({
-    groepsToernooi: {
+  groepsToernooi: {
     type: Boolean,
     default: false
   },
@@ -61,7 +61,7 @@ function getMatchesFromStorage() {
 
 function finalBekend() {
   const isBekend = finalMatches.value.length === 2 && finalMatches.value[0].teamL && finalMatches.value[0].teamR && finalMatches.value[1].teamL && finalMatches.value[1].teamR
-  console.log("Bekend: ", isBekend, finalMatches.value[0].teamL , finalMatches.value[0].teamR)
+  console.log("Bekend: ", isBekend, finalMatches.value[0].teamL, finalMatches.value[0].teamR)
   return isBekend
 }
 
@@ -93,8 +93,16 @@ function exportPdf() {
     // single Tournooi
     // doc.line(14, yPos - 6, pageWidth - 14, yPos - 6);
     doc.text("Ronde uitslagen", pageWidth / 2, yPos += 6, { align: "center" });
+    yPos +=2
+    let startY = yPos+2
     rounds.value.forEach((r, index) => {
-      yPos += 4
+      let marge = 14
+      if (index % 2 !== 0) {
+        marge = pageWidth / 2 + marge / 2
+        yPos = startY
+      } else {
+
+      }
       table = [];
       r.forEach((match, idx) => {
         let obj = []
@@ -108,24 +116,28 @@ function exportPdf() {
 
       });
       head[0] = `ronde ${(index + 1)}`
+      
       autoTable(doc, {
         theme: "grid",
         tableLineWidth: 1,
         head: [head],
         headStyles: { fillColor: [0, 100, 139] },
         styles: { font: "times" },
-        startY: yPos,
+        startY: yPos ,
         columnStyles: {
           2: { halign: "right" },
           3: { halign: "right" },
         },
-        tableWidth: 120,
+        tableWidth: 90,
         body: table,
-        margin: { left: (pageWidth - 120) / 2 },
+        margin: { left: marge },
       })
-      yPos += table.length * 9 + 1;
+      if (index % 2 !== 0) {
+        yPos += table.length * 10 + 1;
+        startY = yPos
+      }
     });
-    yPos += 4
+    yPos  = doc.lastAutoTable.finalY
     doc.line(14, yPos, pageWidth - 14, yPos);
     doc.setFontSize(18);
     doc.text(`Stand`, pageWidth / 2, (yPos += 8), { align: "center" });
@@ -204,7 +216,7 @@ function exportPdf() {
         margin: { left: xPos },
       });
 
-      if (savYpos <  doc.lastAutoTable.finalY + 4) savYpos = doc.lastAutoTable.finalY + 4
+      if (savYpos < doc.lastAutoTable.finalY + 4) savYpos = doc.lastAutoTable.finalY + 4
     })
     // finales
     if (finalBekend()) {
