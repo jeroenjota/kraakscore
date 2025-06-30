@@ -35,7 +35,7 @@
           <h2 class="font-semibold" @click.ctrl="removeAll"">Teams:</h2>
           <ul class="list-number list-outside" style="margin-left: 8px">
             <li v-for="(team, index) in teams" :key="index" @click.exact="editTeam(index)"
-              @click.ctrl="removeTeam(index)" >
+              @click.ctrl="removeTeam(index)" v-swipe-delete="() => removeTeam(index)">
               {{ index + 1 }}: {{ team }}
             </li>
           </ul>
@@ -53,7 +53,7 @@
         <h2 @click.exact="addAll" @click.ctrl="delAll">Opgeslagen teams</h2>
         <ul class="dbl">
           <li v-for="(tm, index) in lastTeams" :key="index">
-            <p @click.exact="getTeam(tm)" @click.ctrl="delTeam(tm)" :class="teamSelected(tm) ? 'teamSelected' : ''">
+            <p @click.exact="getTeam(tm)" @click.ctrl="delTeam(tm)" v-swipe-delete="() => delTeam(tm)":class="teamSelected(tm) ? 'teamSelected' : ''">
               <span v-if="teamSelected(tm)">&#10004;</span> {{ tm }}
             </p>
             <!-- voeg een team toe aan de deelnemerslijst (klik) of haal hem weg uit de standaardlijst (ctrl+klik)-->
@@ -79,9 +79,14 @@ import { ref, computed, watch, onMounted } from "vue";
 
 import Tournament from "./components/Tournament.vue";
 import Pdf from './components/Pdf.vue'
+// voor swipe
+import swipeDelete from "./directives/swipeDelete";
 
 
 let groepsToernooi = false
+
+
+
 
 const newTeam = ref("");
 const teams = ref([]);
@@ -93,6 +98,26 @@ const repeatRounds = ref(1);
 function teamSelected(tm) {
   const idx = teams.value.indexOf(tm);
   return idx > -1;
+}
+
+function startTouch(e, index){
+  const touch = e.changedTouches[0];
+  touchPos.value = { x: touch.clientX, y: touch.clientY }
+}
+
+function endTouch(e, index){
+  const touch = e.changedTouches[0];
+  const deltaX = touch.clientX - touchPos.value.x;
+  const deltaY = touch.clientY - touchPos.value.y;
+
+  // Eenvoudige swipe detection: horizontaal meer dan 50px en nauwelijks verticaal
+  if (Math.abs(deltaX) > 50 && Math.abs(deltaY) < 30) {
+    if (deltaX < 0) {
+      // Swipe naar links → verwijder
+      removeTeam(index);
+    }
+  }
+
 }
 
 function editTeam(i) {
@@ -137,6 +162,9 @@ function resetAll() {
       localStorage.removeItem("repeatRounds");
     }
   }
+}
+function startSwipe(tm){
+  t_posX = XPathEvaluator
 }
 
 function addTeam() {
@@ -201,13 +229,20 @@ function startTournament() {
   if (filteredTeams.value.length >= 2) {
     // Init groepen alvast bij 8+ teams, kan later handig zijn
     addTeamsToList() // voeg eventueel nieuwe teams aan de standaardlijst toe
-
+    groepsToernooi =false
     if (filteredTeams.value.length >= 7) {
       // optioneel: hier alvast iets opslaan of voorbereiden
 //      // bv. // console.log('Init groepen voor finale logica')
       groepsToernooi = confirm("Er zijn meer dan 6 teams, wil je twee groepen aanmaken?")
     }
-    if (confirm("Schema nu aanmaken?")) {
+    let rndTxt = 'ronde'
+    if (repeatRounds.value>1) rndTxt = 'rondes'
+    let msg = `Het schema wordt gemaakt voor ${repeatRounds.value} ${rndTxt} \nmet ${(filteredTeams.value.length)} teams`
+    if (groepsToernooi) {
+      msg += ', verdeeld over twee groepen'
+    }
+    msg +=`\n\nIs dit de bedoeling?`
+    if (confirm(msg)) {
       tournamentStarted.value = true;
     }
   } else {
