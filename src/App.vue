@@ -16,7 +16,6 @@
 
     </div>
     <div class="toprow" v-if="!tournamentStarted">
-          <p>Teams: {{ teams.length }}</p>
       <!-- Teams sectie -->
       <div class="teams">
         <div class="flex gap-2 text-center">
@@ -33,14 +32,14 @@
         </div>
 
         <div v-if="teams.length > 0" class="teamlist">
-          <h2 class="font-semibold" @click.ctrl="removeAll"">Teams:</h2>
+          <h2 class="font-semibold" @click.ctrl="removeAll">Teams:</h2>
           <ul class="list-number list-outside" style="margin-left: 8px">
             <li v-for="(team, index) in teams" :key="index" @click.exact="editTeam(index)"
-              @click.ctrl="removeTeam(index)" >
+              @click.ctrl="removeTeam(index)">
               {{ index + 1 }}: {{ team }}
             </li>
           </ul>
-          <small>klik = aanpassen, ctrl+klik (swipe)=weghalen</small>
+          <small>klik = aanpassen, ctrl+klik=weghalen</small>
         </div>
 
       </div>
@@ -60,7 +59,7 @@
             <!-- voeg een team toe aan de deelnemerslijst (klik) of haal hem weg uit de standaardlijst (ctrl+klik)-->
           </li>
         </ul>
-        <small>click = Meedoen / ctrl+click (swipe) = Wissen</small>
+        <small>click = Meedoen / ctrl+click = Wissen</small>
       </div>
       <button @click="startTournament" class="bg-green-500 text-white px-2 py-2 rounded"
         style="margin-right:2px; width:200px;" :disabled="tournamentStarted"
@@ -80,7 +79,6 @@ import { ref, computed, watch, onMounted } from "vue";
 
 import Tournament from "./components/Tournament.vue";
 import Pdf from './components/Pdf.vue'
-
 
 let groepsToernooi = false
 
@@ -110,10 +108,6 @@ function removeTeam(i) {
   if (!tournamentStarted.value) {
     teams.value.splice(i, 1);
   }
-}
-
-function startDrag(index){
-
 }
 
 function removeAll() {
