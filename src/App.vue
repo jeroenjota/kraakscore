@@ -32,7 +32,7 @@
         </div>
 
         <div v-if="teams.length > 0" class="teamlist">
-          <h2 class="font-semibold" @click.ctrl="removeAll">Teams:</h2>
+          <h2 class="font-semibold" @click.ctrl="removeAll"">Teams:</h2>
           <ul class="list-number list-outside" style="margin-left: 8px">
             <li v-for="(team, index) in teams" :key="index" @click.exact="editTeam(index)"
               @click.ctrl="removeTeam(index)" v-touch:swipe="removeTeam(index)">
@@ -79,7 +79,6 @@ import { ref, computed, watch, onMounted } from "vue";
 
 import Tournament from "./components/Tournament.vue";
 import Pdf from './components/Pdf.vue'
-import Vue3TouchEvents from "vue3-touch-events";
 
 
 let groepsToernooi = false
@@ -110,6 +109,10 @@ function removeTeam(i) {
   if (!tournamentStarted.value) {
     teams.value.splice(i, 1);
   }
+}
+
+function startDrag(index){
+
 }
 
 function removeAll() {
