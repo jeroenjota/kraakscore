@@ -7,4 +7,3 @@ import "/styles.css";
 // app.use(Vue3TouchEvents)
 // app.mount('#app')
 
-createApp(App).mount('#app')
