@@ -16,6 +16,7 @@
 
     </div>
     <div class="toprow" v-if="!tournamentStarted">
+          <p>Teams: {{ teams.length }}</p>
       <!-- Teams sectie -->
       <div class="teams">
         <div class="flex gap-2 text-center">
@@ -35,7 +36,7 @@
           <h2 class="font-semibold" @click.ctrl="removeAll"">Teams:</h2>
           <ul class="list-number list-outside" style="margin-left: 8px">
             <li v-for="(team, index) in teams" :key="index" @click.exact="editTeam(index)"
-              @click.ctrl="removeTeam(index)" v-touch:swipe="removeTeam(index)">
+              @click.ctrl="removeTeam(index)" >
               {{ index + 1 }}: {{ team }}
             </li>
           </ul>
@@ -53,7 +54,7 @@
         <h2 @click.exact="addAll" @click.ctrl="delAll">Opgeslagen teams</h2>
         <ul class="dbl">
           <li v-for="(tm, index) in lastTeams" :key="index">
-            <p @click.exact="getTeam(tm)" @click.ctrl="delTeam(tm)" v-touch:swipe="delTeam(tm)" :class="teamSelected(tm) ? 'teamSelected' : ''">
+            <p @click.exact="getTeam(tm)" @click.ctrl="delTeam(tm)" :class="teamSelected(tm) ? 'teamSelected' : ''">
               <span v-if="teamSelected(tm)">&#10004;</span> {{ tm }}
             </p>
             <!-- voeg een team toe aan de deelnemerslijst (klik) of haal hem weg uit de standaardlijst (ctrl+klik)-->
