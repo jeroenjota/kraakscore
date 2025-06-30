@@ -46,7 +46,7 @@ watchEffect(() => {
     scoreL: match.scoreL ?? '',
     scoreR: match.scoreR ?? ''
   }))
-  // console.log("Scores:", scores.value)
+//  // console.log("Scores:", scores.value)
 })
 
 function hasVRIJ(match){
@@ -57,7 +57,7 @@ function hasVRIJ(match){
 function update(index) {
   const { scoreL, scoreR } = scores.value[index]
   if (scoreL !== '' && scoreR !== '') {
-    console.log('update-result', index, Number(scoreL), Number(scoreR))
+//    console.log('update-result', index, Number(scoreL), Number(scoreR))
     emit('update-result', index, Number(scoreL), Number(scoreR))
   }
 }

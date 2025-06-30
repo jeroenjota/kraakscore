@@ -32,14 +32,14 @@
         </div>
 
         <div v-if="teams.length > 0" class="teamlist">
-          <h2 class="font-semibold" @click.ctrl="removeAll">Teams:</h2>
+          <h2 class="font-semibold" @click.ctrl="removeAll"">Teams:</h2>
           <ul class="list-number list-outside" style="margin-left: 8px">
             <li v-for="(team, index) in teams" :key="index" @click.exact="editTeam(index)"
-              @click.ctrl="removeTeam(index)">
+              @click.ctrl="removeTeam(index)" v-touch:swipe="removeTeam(index)">
               {{ index + 1 }}: {{ team }}
             </li>
           </ul>
-          <small>klik = aanpassen, ctrl+klik=weghalen</small>
+          <small>klik = aanpassen, ctrl+klik (swipe)=weghalen</small>
         </div>
 
       </div>
@@ -53,13 +53,13 @@
         <h2 @click.exact="addAll" @click.ctrl="delAll">Opgeslagen teams</h2>
         <ul class="dbl">
           <li v-for="(tm, index) in lastTeams" :key="index">
-            <p @click.exact="getTeam(tm)" @click.ctrl="delTeam(tm)" :class="teamSelected(tm) ? 'teamSelected' : ''">
+            <p @click.exact="getTeam(tm)" @click.ctrl="delTeam(tm)" v-touch:swipe="delTeam(tm)" :class="teamSelected(tm) ? 'teamSelected' : ''">
               <span v-if="teamSelected(tm)">&#10004;</span> {{ tm }}
             </p>
             <!-- voeg een team toe aan de deelnemerslijst (klik) of haal hem weg uit de standaardlijst (ctrl+klik)-->
           </li>
         </ul>
-        <small>click = Meedoen / ctrl+click = Wissen</small>
+        <small>click = Meedoen / ctrl+click (swipe) = Wissen</small>
       </div>
       <button @click="startTournament" class="bg-green-500 text-white px-2 py-2 rounded"
         style="margin-right:2px; width:200px;" :disabled="tournamentStarted"
@@ -80,6 +80,7 @@ import { ref, computed, watch, onMounted } from "vue";
 import Tournament from "./components/Tournament.vue";
 import Pdf from './components/Pdf.vue'
 
+
 let groepsToernooi = false
 
 const newTeam = ref("");
@@ -96,7 +97,7 @@ function teamSelected(tm) {
 
 function editTeam(i) {
   // plaats de team naam in het input veld
-  //  console.log(i, "teams:", teams.value[i], "tournamentStarted:", tournamentStarted);
+//  //  console.log(i, "teams:", teams.value[i], "tournamentStarted:", tournamentStarted);
   if (!tournamentStarted.value) {
     newTeam.value = teams.value[i];
     // tijdelijk weghalen uit array
@@ -108,6 +109,10 @@ function removeTeam(i) {
   if (!tournamentStarted.value) {
     teams.value.splice(i, 1);
   }
+}
+
+function startDrag(index){
+
 }
 
 function removeAll() {
@@ -147,7 +152,7 @@ function addTeam() {
 }
 
 function addAll() {
-  //  console.log("addAll ... ")
+//  //  console.log("addAll ... ")
   lastTeams.value.forEach((tm, index) => {
     getTeam(tm)
   })
@@ -199,7 +204,7 @@ function startTournament() {
 
     if (filteredTeams.value.length >= 7) {
       // optioneel: hier alvast iets opslaan of voorbereiden
-      // bv. // console.log('Init groepen voor finale logica')
+//      // bv. // console.log('Init groepen voor finale logica')
       groepsToernooi = confirm("Er zijn meer dan 6 teams, wil je twee groepen aanmaken?")
     }
     if (confirm("Schema nu aanmaken?")) {
@@ -217,9 +222,9 @@ function addTeamsToList() {
     if (confirm("Nieuwe teams toevoegen aan standaardlijst?")) {
       // voeg teams toe aan lastTeams als ze (nog) niet bestaan
       teams.value.forEach((tm, index) => {
-        //  console.log("Add team:", tm)
+//        //  console.log("Add team:", tm)
         if (!lastTeams.value.includes(tm)) {
-          //  console.log("gelukt:", tm)
+//          //  console.log("gelukt:", tm)
 
           lastTeams.value.push(tm);
         }

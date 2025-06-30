@@ -15,15 +15,20 @@ import autoTable from "jspdf-autotable";
 import { ref } from "vue";
 
 import imgRaam from '../assets/raam.jpg'
-import imgCafe from '../assets/laurierboom.jpeg'
-import imgBoom from '../assets/cafe.jpg'
+import imgBoom from '../assets/laurierboom.jpeg'
+import imgCafe from '../assets/cafe.jpg'
+import imgKraak from '../assets/kraken.jpeg'  // kraken
+import imgKaarten from '../assets/kaarten.png'
+import imgBeker from '../assets/beker.jpg'
 
-let img1 = new Image()
-img1.src = imgRaam
-let img2 = new Image()
-img2.src = imgCafe
-let img3 = new Image()
-img3.src = imgBoom
+// let imgRaam = new Image()
+// imgRaam.src = img1
+// let imgBoom = new Image()
+// imgBoom.src = img2
+// let imgCafe = new Image()
+// imgCafe.src = img3
+// let imgKraak = new Image()
+// imgKraak.src = img4
 
 let gesplitst = false
 const rounds = ref([]);
@@ -45,36 +50,36 @@ const props = defineProps({
 function getMatchesFromStorage() {
   const teams = JSON.parse(localStorage.getItem("teams"));
   gesplitst = props.groepsToernooi
-  console.log("gesplistst", gesplitst)
+//  console.log("gesplistst", gesplitst)
   const g = localStorage.getItem("tournamentGroups");
   const gm = localStorage.getItem("tournamentGroupMatches");
   const m = localStorage.getItem("tournamentMatches");
   const fm = localStorage.getItem("tournamentFinalMatches");
   if (gesplitst) {
     groups.value = JSON.parse(g);
-    //  console.log("Opgehaald: groepen:", groups.value)
+//    //  console.log("Opgehaald: groepen:", groups.value)
     groupMatches.value = JSON.parse(gm);
-    //  console.log("Opgehaald: gro upMatches:", matches.value)
+//    //  console.log("Opgehaald: gro upMatches:", matches.value)
   } else {
-    //  console.log("Single toernooi")
+//    //  console.log("Single toernooi")
     rounds.value = JSON.parse(m);
-    //  console.log("Opgehaald: matches:", rounds.value)
+//    //  console.log("Opgehaald: matches:", rounds.value)
   }
   if (fm) {
     finalMatches.value = JSON.parse(fm);
-    //  console.log("finales:", finalMatches.value)
+//    //  console.log("finales:", finalMatches.value)
   }
 }
 
 function finalBekend() {
   const isBekend = finalMatches.value.length === 2 && finalMatches.value[0].teamL && finalMatches.value[0].teamR && finalMatches.value[1].teamL && finalMatches.value[1].teamR
-  console.log("Bekend: ", isBekend, finalMatches.value[0].teamL, finalMatches.value[0].teamR)
+//  console.log("Bekend: ", isBekend, finalMatches.value[0].teamL, finalMatches.value[0].teamR)
   return isBekend
 }
 
 function finalPlayed() {
   const isPlayed = (finalMatches.value[0].scoreL || finalMatches.value[0].scoreR) && (finalMatches.value[1].scoreLL || finalMatches.value[1].scoreR)
-  console.log("Played: ", isPlayed)
+//  console.log("Played: ", isPlayed)
   return isPlayed
 }
 
@@ -93,10 +98,11 @@ function exportPdf() {
   doc.setFont("times");
   doc.setFontSize(18);
   const datum = new Date().toLocaleDateString("nl-NL");
-  // doc.setTextColor("#ffffff")
+  doc.addImage(imgRaam, 'jpeg', marge, marge - 6, 35, 18)
+  doc.addImage(imgKraak, 'jpeg', pageWidth - marge - 35, marge - 6, 35, 18)
   doc.text("Overzicht kraaktoernooi van " + datum, pageWidth / 2, yPos, { align: "center" });
   yPos += 2
-  doc.line(marge, yPos, pageWidth - marge, yPos);
+  doc.line(marge + 40, yPos, pageWidth - marge - 40, yPos);
   let table = new Array();
   if (!gesplitst) {
     // single Tournooi
@@ -114,12 +120,15 @@ function exportPdf() {
       } else {
 
       }
-      // laatste tabel centreren
-      if (index === rounds.value.length - 1) {
-        console.log("Index", index, xPos)
+      // laatste tabel centreren als er een oneven aantal rondes is
+      if (index === rounds.value.length - 1 && rounds.value.length % 2 !== 0) {
+//        console.log("Index", index, xPos)
         xPos = (pageWidth - tblWidth) / 2
-        console.log("Index", index, xPos)
+//        console.log("Index", index, xPos)
+        doc.addImage(imgCafe, 'jpeg', marge, yPos, 40, 30)
+        doc.addImage(imgBoom, 'jpeg', pageWidth - marge - 30, yPos, 30, 30)
       }
+      // plaatjes toevoegen
       // bouw de ronde score tabel
       table = [];
       r.forEach((match, idx) => {
@@ -133,7 +142,7 @@ function exportPdf() {
         table.push(obj);
       });
       head[0] = `ronde ${(index + 1)}`
-      console.log(`Ronde: ${(index + 1)}, yPos: ${yPos}`)
+//      console.log(`Ronde: ${(index + 1)}, yPos: ${yPos}`)
       autoTable(doc, {
         theme: "grid",
         tableLineWidth: 1,
@@ -154,29 +163,52 @@ function exportPdf() {
         saveY = yPos
       }
     });
+    xPos = marge
     yPos = doc.lastAutoTable.finalY + 2
     doc.line(marge, yPos, pageWidth - marge, yPos);
     doc.setFontSize(18);
     let kopTxt = "Tussenstand"
-    if (countRondeMatch === countPlayed) kopTxt = "Eindstand"
+    if (countRondeMatch === countPlayed) {
+      kopTxt = "Eindstand"
+      doc.addImage(imgBeker, 'jpeg', marge, yPos+8, 40,50)
+      doc.addImage(imgKaarten, 'jpeg', pageWidth-40-marge, yPos+8, 40,50)
+
+    }
+
     doc.text(kopTxt, pageWidth / 2, (yPos += 8), { align: "center" });
     doc.setFontSize(12);
     autoTable(doc, {
       theme: "striped",
       styles: { font: "times", fontSize: 14 },
       startY: (yPos += 2),
-      headStyles: { fillColor: [158, 207, 240], textColor: [0, 0, 139] },
+      headStyles: { fillColor: [0, 128, 0], textColor: [255, 255, 139] },
       html: "#standTabel",
-      columnStyles: { 3: { halign: "center" } },
+      columnStyles: { 2: { halign: "center" } },
       tableWidth: tblWidth,
       tableLineWidth: 1,
       margin: { left: (pageWidth - tblWidth) / 2 },
+      didParseCell: function (data) {
+        if (countRondeMatch === countPlayed) {
+          if (data.section === "body" && data.row.index === 0) {
+            if (data.column.index === 1) {
+              data.cell.styles.fontSize = 20;
+            }
+          }
+          if (data.section === "body" && data.row.index === 1) {
+            if (data.column.index === 1) {
+              data.cell.styles.fontSize = 18;
+            }
+          }
+          if (data.section === "body" && data.row.index === 2) {
+            if (data.column.index === 1) {
+              data.cell.styles.fontSize = 16;
+            }
+          }
+        }
+      },
     });
-    doc.addImage(img1, 'jpeg', marge, yPos, xPos - marge - 4, (xPos - marge - 4) / 3 * 2)
-    doc.addImage(img2, 'jpeg', xPos + tblWidth + 4, yPos, xPos - marge - 4, (xPos - marge - 4) / 2 * 3)
-
-    yPos = doc.lastAutoTable.finalY + 4
-    if (yPos < 200) doc.addImage(img3, 'jpeg', (pageWidth - tblWidth) / 2, yPos, tblWidth, 280 - yPos)
+    // yPos = doc.lastAutoTable.finalY 
+    // if (yPos < 200) doc.addImage(imgCafe, 'jpeg', (pageWidth - tblWidth) / 2, yPos, tblWidth, 280 - yPos)
 
   } else {
     // GroupTournooi()
@@ -188,13 +220,13 @@ function exportPdf() {
     groupMatches.value.forEach((gm, index) => {
       const xPos = marge + (pageWidth / 2 - marge) * index
       doc.setFontSize(18);
-      yPos = marge * 2
+      yPos = marge * 2.5
       doc.text(`Groep ${(index + 1)}`, xPos, yPos)
       yPos += 2
       gm.forEach((round, idx) => {
         table = [];
         round.forEach((match, idx) => {
-          //  console.log("Match:" , match)
+//          //  console.log("Match:" , match)
           let obj = []
           if ((match.scoreL || match.scoreR) || match.teamR === 'VRIJ') {
             obj = [`T${(match.tafel)}`, match.teamL + " vs " + match.teamR, `${match.scoreL} - ${match.scoreR}`];
@@ -342,8 +374,8 @@ function exportPdf() {
             }
           },
         })
-        doc.addImage(img1, 'jpeg', marge, yPos, xPos - marge - 4, doc.lastAutoTable.finalY - yPos)
-        doc.addImage(img2, 'jpeg', xPos + tblWidth + 4, yPos, xPos - marge - 4, doc.lastAutoTable.finalY - yPos)
+        doc.addImage(imgBeker, 'jpeg', marge, yPos, xPos - marge - 4, doc.lastAutoTable.finalY - yPos)
+        doc.addImage(imgKaarten, 'jpeg', xPos + tblWidth + 4, yPos, xPos - marge - 4, doc.lastAutoTable.finalY - yPos)
 
       }
       // var img = new Image();
