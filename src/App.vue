@@ -9,7 +9,7 @@
         <div class="knoppen flex justify-center" v-if="tournamentStarted">
           <button @click="resetAll" class="bg-red-500 text-white px-2 rounded mt-2"
             style="margin-left:2px; width:auto; height:30px; font-size: .9em;">Reset</button>
-          <Pdf :groepsToernooi="groepsToernooi"/>
+          <Pdf :groepsToernooi="groepsToernooi" />
 
         </div>
       </div>
@@ -32,14 +32,14 @@
         </div>
 
         <div v-if="teams.length > 0" class="teamlist">
-          <h2 class="font-semibold" @click.ctrl="removeAll">Teams:</h2>
+          <h2 class="font-semibold" @click.ctrl="removeAll" v-longpress="() => removeAll()">Teams:</h2>
           <ul class="list-number list-outside" style="margin-left: 8px">
             <li v-for="(team, index) in teams" :key="index" @click.exact="editTeam(index)"
               @click.ctrl="removeTeam(index)" v-longpress="() => removeTeam(index)">
               {{ index + 1 }}: {{ team }}
             </li>
           </ul>
-          <small>klik = aanpassen, ctrl+klik=weghalen</small>
+          <p class="text-xs">klik: aanpassen, ctrl/long+klik=wissen</p>
         </div>
 
       </div>
@@ -53,21 +53,22 @@
         <h2 @click.exact="addAll" @click.ctrl="delAll">Opgeslagen teams</h2>
         <ul class="dbl">
           <li v-for="(tm, index) in lastTeams" :key="index">
-            <p @click.exact="getTeam(tm)" @click.ctrl="delTeam(tm)" v-longpress="() => delTeam(tm)":class="teamSelected(tm) ? 'teamSelected' : ''">
+            <p @click.exact="getTeam(tm)" @click.ctrl="delTeam(tm)" v-longpress="() => delTeam(tm)"
+              :class="teamSelected(tm) ? 'teamSelected' : ''">
               <span v-if="teamSelected(tm)">&#10004;</span> {{ tm }}
             </p>
             <!-- voeg een team toe aan de deelnemerslijst (klik) of haal hem weg uit de standaardlijst (ctrl+klik)-->
           </li>
         </ul>
-        <small>click = Meedoen / ctrl+click = Wissen</small>
+        <p class="text-xs">click: Meedoen, ctrl/long+click=Wissen</p>
       </div>
       <button @click="startTournament" class="bg-green-500 text-white px-2 py-2 rounded"
         style="margin-right:2px; width:200px;" :disabled="tournamentStarted"
         title="Bij 8 spelers worden willekeurig twee groepen aangemaakt">Start toernooi</button>
     </div>
 
-    <Tournament v-if="tournamentStarted" :initialTeams="filteredTeams" :repeatRounds="repeatRounds" :groepsToernooi="groepsToernooi"
-      @reset="handleReset" />
+    <Tournament v-if="tournamentStarted" :initialTeams="filteredTeams" :repeatRounds="repeatRounds"
+      :groepsToernooi="groepsToernooi" @reset="handleReset" />
 
 
 
@@ -79,9 +80,9 @@ import { ref, computed, watch, onMounted } from "vue";
 
 import Tournament from "./components/Tournament.vue";
 import Pdf from './components/Pdf.vue'
-import swipeDelete from "./directives/swipeDelete";
-import longpress from './directives/longpress.js';
 
+import longpress from './directives/longpress.js';
+//  LET OP er met nog een aparte script sectie worden toegevoegd aan het eind
 
 let groepsToernooi = false
 
@@ -97,13 +98,13 @@ function teamSelected(tm) {
   return idx > -1;
 }
 
-function langDrukken(i){
-  alert( "Lang gedrukt op " + i)
+function langDrukken(i) {
+  alert("Lang gedrukt op " + i)
 
 }
 function editTeam(i) {
   // plaats de team naam in het input veld
-//  //  console.log(i, "teams:", teams.value[i], "tournamentStarted:", tournamentStarted);
+//  //  //  console.log(i, "teams:", teams.value[i], "tournamentStarted:", tournamentStarted);
   if (!tournamentStarted.value) {
     newTeam.value = teams.value[i];
     // tijdelijk weghalen uit array
@@ -121,7 +122,6 @@ function removeAll() {
   // Haal alle teams uit de deelnemers lijst 
   teams.value = []
 }
-
 function resetAll() {
   // reset de deelnemende teams , de scores en het schema
   // alleen als er een schema is ;-)
@@ -140,7 +140,7 @@ function resetAll() {
     }
   }
 }
-function startSwipe(tm){
+function startSwipe(tm) {
   t_posX = XPathEvaluator
 }
 
@@ -157,7 +157,7 @@ function addTeam() {
 }
 
 function addAll() {
-//  //  console.log("addAll ... ")
+//  //  //  console.log("addAll ... ")
   lastTeams.value.forEach((tm, index) => {
     getTeam(tm)
   })
@@ -191,9 +191,26 @@ function delTeam(tm) {
   }
 }
 
+function delAll(){
+    if (confirm("Alle teams verwijderen uit de standaardlijst?")) {
+      lastTeams = []
+      localStorage.setItem("lastTeams", JSON.stringify(lastTeams.value));
+    }
+}
+
 function cleanTeamName(thisTeam) {
   // vervang elk mogelijke koppel teken door /
-  return thisTeam.replace(/[^a-zA-Z]+/g, "/");
+  // en maak hoofdletters van de namen
+    let tm = thisTeam.replace(/[^a-zA-Z]+/g, "/");
+   var splitStr = tm.toLowerCase().split('/');
+   for (var i = 0; i < splitStr.length; i++) {
+       // You do not need to check if i is larger than splitStr length, as your for does that for you
+       // Assign it back to the array
+       splitStr[i] = splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);     
+   }
+   // Directly return the joined string
+   return splitStr.join('/'); 
+
 }
 
 const filteredTeams = computed(() => teams.value.map((t) => t.trim()).filter((t) => t));
@@ -206,19 +223,19 @@ function startTournament() {
   if (filteredTeams.value.length >= 2) {
     // Init groepen alvast bij 8+ teams, kan later handig zijn
     addTeamsToList() // voeg eventueel nieuwe teams aan de standaardlijst toe
-    groepsToernooi =false
+    groepsToernooi = false
     if (filteredTeams.value.length >= 7) {
       // optioneel: hier alvast iets opslaan of voorbereiden
-//      // bv. // console.log('Init groepen voor finale logica')
+//      //      // bv. // console.log('Init groepen voor finale logica')
       groepsToernooi = confirm("Er zijn meer dan 6 teams, wil je twee groepen aanmaken?")
     }
     let rndTxt = 'ronde'
-    if (repeatRounds.value>1) rndTxt = 'rondes'
+    if (repeatRounds.value > 1) rndTxt = 'rondes'
     let msg = `Het schema wordt gemaakt voor ${repeatRounds.value} ${rndTxt} \nmet ${(filteredTeams.value.length)} teams`
     if (groepsToernooi) {
       msg += ', verdeeld over twee groepen'
     }
-    msg +=`\n\nIs dit de bedoeling?`
+    msg += `\n\nIs dit de bedoeling?`
     if (confirm(msg)) {
       tournamentStarted.value = true;
     }
@@ -231,18 +248,14 @@ function addTeamsToList() {
   if (!teams.value.every((tm) => lastTeams.value.includes(tm))) {
     // check for new items
     // nieuwe tiems in loc storage toevoegen?
-    if (confirm("Nieuwe teams toevoegen aan standaardlijst?")) {
-      // voeg teams toe aan lastTeams als ze (nog) niet bestaan
-      teams.value.forEach((tm, index) => {
-//        //  console.log("Add team:", tm)
-        if (!lastTeams.value.includes(tm)) {
-//          //  console.log("gelukt:", tm)
-
+    // voeg teams toe aan lastTeams als ze (nog) niet bestaan
+    teams.value.forEach((tm, index) => {
+      if (!lastTeams.value.includes(tm)) {
+        if (confirm(`${tm} toevoegen aan standaard lijst?`))
           lastTeams.value.push(tm);
-        }
-      });
-      lastTeams.value.sort();
-    }
+      }
+    });
+    lastTeams.value.sort();
     // en lastTeams array opslaan
     localStorage.setItem("lastTeams", JSON.stringify(lastTeams.value));
   }
@@ -279,5 +292,4 @@ export default {
 </script>
 
 
-<style scoped>
-</style>
+<style scoped></style>
