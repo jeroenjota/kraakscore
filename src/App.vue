@@ -35,7 +35,7 @@
           <h2 class="font-semibold" @click.ctrl="removeAll">Teams:</h2>
           <ul class="list-number list-outside" style="margin-left: 8px">
             <li v-for="(team, index) in teams" :key="index" @click.exact="editTeam(index)"
-              @click.ctrl="langDrukken(index)" v-longpress="() => langDrukken(index)">
+              @click.ctrl="removeTeam(index)" v-longpress="() => removeTeam(index)">
               {{ index + 1 }}: {{ team }}
             </li>
           </ul>
@@ -84,12 +84,6 @@ import longpress from './directives/longpress.js';
 
 
 let groepsToernooi = false
-
-directives: {
-  longpress
-}
-
-
 
 const newTeam = ref("");
 const teams = ref([]);
@@ -275,8 +269,15 @@ onMounted(() => {
 
 </script>
 
-<style scoped>
-input {
-  width: 200px;
+<!-- registreer de directive -->
+<script>
+export default {
+  directives: {
+    longpress
+  }
 }
+</script>
+
+
+<style scoped>
 </style>
