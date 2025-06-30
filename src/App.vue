@@ -196,13 +196,20 @@ function startTournament() {
   if (filteredTeams.value.length >= 2) {
     // Init groepen alvast bij 8+ teams, kan later handig zijn
     addTeamsToList() // voeg eventueel nieuwe teams aan de standaardlijst toe
-
+    groepsToernooi =false
     if (filteredTeams.value.length >= 7) {
       // optioneel: hier alvast iets opslaan of voorbereiden
 //      // bv. // console.log('Init groepen voor finale logica')
       groepsToernooi = confirm("Er zijn meer dan 6 teams, wil je twee groepen aanmaken?")
     }
-    if (confirm("Schema nu aanmaken?")) {
+    let rndTxt = 'ronde'
+    if (repeatRounds.value>1) rndTxt = 'rondes'
+    let msg = `Het schema wordt gemaakt voor ${repeatRounds.value} ${rndTxt} \nmet ${(filteredTeams.value.length)} teams`
+    if (groepsToernooi) {
+      msg += ', verdeeld over twee groepen'
+    }
+    msg +=`\n\nIs dit de bedoeling?`
+    if (confirm(msg)) {
       tournamentStarted.value = true;
     }
   } else {
