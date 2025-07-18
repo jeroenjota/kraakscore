@@ -41,14 +41,14 @@ const props = defineProps({
 function getMatchesFromStorage() {
   const teams = JSON.parse(localStorage.getItem("teams"));
   gesplitst = props.groepsToernooi
- console.log("gesplistst", gesplitst)
+//  console.log("gesplistst", gesplitst)
   const g = localStorage.getItem("tournamentGroups");
   const gm = localStorage.getItem("tournamentGroupMatches");
   const m = localStorage.getItem("tournamentMatches");
   const fm = localStorage.getItem("tournamentFinalMatches");
   if (gesplitst) {
     groups.value = JSON.parse(g);
-   //  console.log("Opgehaald: groepen:", groups.value)
+//    //  console.log("Opgehaald: groepen:", groups.value)
     groupMatches.value = JSON.parse(gm);
 //    //  console.log("Opgehaald: gro upMatches:", matches.value)
   } else {
