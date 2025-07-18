@@ -21,15 +21,6 @@ import imgKraak from '../assets/kraken.jpeg'  // kraken
 import imgKaarten from '../assets/kaarten.png'
 import imgBeker from '../assets/beker.jpg'
 
-// let imgRaam = new Image()
-// imgRaam.src = img1
-// let imgBoom = new Image()
-// imgBoom.src = img2
-// let imgCafe = new Image()
-// imgCafe.src = img3
-// let imgKraak = new Image()
-// imgKraak.src = img4
-
 let gesplitst = false
 const rounds = ref([]);
 const matches = ref([]);
@@ -50,14 +41,14 @@ const props = defineProps({
 function getMatchesFromStorage() {
   const teams = JSON.parse(localStorage.getItem("teams"));
   gesplitst = props.groepsToernooi
-//  console.log("gesplistst", gesplitst)
+ console.log("gesplistst", gesplitst)
   const g = localStorage.getItem("tournamentGroups");
   const gm = localStorage.getItem("tournamentGroupMatches");
   const m = localStorage.getItem("tournamentMatches");
   const fm = localStorage.getItem("tournamentFinalMatches");
   if (gesplitst) {
     groups.value = JSON.parse(g);
-//    //  console.log("Opgehaald: groepen:", groups.value)
+   //  console.log("Opgehaald: groepen:", groups.value)
     groupMatches.value = JSON.parse(gm);
 //    //  console.log("Opgehaald: gro upMatches:", matches.value)
   } else {

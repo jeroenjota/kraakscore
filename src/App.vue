@@ -9,7 +9,7 @@
         <div class="knoppen flex justify-center" v-if="tournamentStarted">
           <button @click="resetAll" class="bg-red-500 text-white px-2 rounded mt-2"
             style="margin-left:2px; width:auto; height:30px; font-size: .9em;">Reset</button>
-          <Pdf :groepsToernooi="groepsToernooi.value" />
+          <Pdf :groepsToernooi="groepsToernooi" />
 
         </div>
       </div>
