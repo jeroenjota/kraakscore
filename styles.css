@@ -1,0 +1,199 @@
+@import "tailwindcss";
+
+body {
+  margin:0;
+  padding:0;
+}
+.kop {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+
+}
+.kop h1 {
+  margin-left: 2px;
+}
+p.copyright {
+  font-size: .5em;
+  color: white;
+  text-align: right;
+  position: relative;
+  display: inline-block;
+  font-weight: 100;
+}
+
+table input {
+  border: 1px solid black;
+  border-radius: 5%;
+  margin-left: 10px;
+  text-align: right;
+  width: 100px;
+}
+
+.teams {
+  background-color: beige;
+  border: 1px solid blue;
+  padding: 4px;
+  margin: 5px;
+  width: 45%;
+  display: inline-block;
+  top: 0px;
+  border-radius: 5px;
+}
+.schema {
+  background-color: #f2f8b6;
+  border: 1px solid blue;
+  border-radius: 5px;
+  padding: 6px;
+  margin: 1px 3px;
+
+}
+
+.schema input {
+  background-color: white;
+}
+.stand {
+  background-color: rgb(199, 238, 204);
+  border: 1px solid blue;
+  border-radius: 5px;
+  padding: 2px 5px;
+  margin: 3px;
+  width: 99%;
+  /* display: inline-block; */
+  /* position: absolute; */
+  /* top: 0px; */
+}
+.stand table {
+  margin: 2px auto;
+  text-align: left;
+}
+
+.teamlijst {
+  background-color: rgb(158, 207, 240);
+  border: 1px solid blue;
+  border-radius: 5px;
+  padding: 2px 10px;
+  margin: 4px;
+  width: 52%;
+  display: inline-block;
+  position: absolute;
+  top: 0px;
+  text-align: center;
+
+}
+
+.stand h2{
+  font-size: 1.2em;
+  color:var(--color-blue-500);
+  margin: 0px;
+  padding:0px;
+  text-align: center;
+}
+
+.schema h2{
+  font-size: 1.2em;
+  color:var(--color-blue-500);
+  margin:0px;
+  padding:0px;
+}
+
+.teamnaam {
+  background-color: white;
+  width: 10px;
+}
+
+td.team {
+  min-width: 120px;
+  font-size: 0.9em;
+}
+
+.toprow {
+  background-color: var(--color-blue-500);
+  color: black;
+  text-align: left;
+  margin: 8px;
+  position: relative;
+  border-radius: 5px;
+  min-height: 300px;
+}
+
+.testkleur {
+  color: rgb(5, 93, 165);
+}
+
+.maindiv {
+  background-color: rgb(27, 122, 230);
+  padding: 1px;
+  max-width: 620px;
+  padding-bottom: 4px;
+  margin-top: 6px;
+}
+
+.maindiv h1 {
+  color: white;
+  text-align: center;
+  padding-top: 5px;
+}
+
+ul.dbl{
+  columns: 2;
+  -webkit-columns: 2;
+  -moz-columns: 2;
+  text-align: left;
+}
+
+.teamlist {
+  border: 1px solid darkblue;
+  border-radius:5px;
+  padding:1px;
+  margin: 2px;
+}
+
+.teamSelected {
+  /* text-decoration: line-through;  */
+  color: darkgreen;
+  /* background-color: rgb(116, 206, 116); */
+  /* visibility:hidden; */
+}
+
+button.bg-green-500 {
+  background-color: darkgreen;
+}
+
+button.bg-red-500 {
+  background-color: darkred;
+}
+
+button {
+  border-radius: 5px;
+}
+
+button:disabled {
+  background-color: darkgrey;
+  color:black;
+}
+
+/* tooltip */
+.tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+ 
+  /* Position the tooltip text - see examples below! */
+  position: absolute;
+  z-index: 1;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
