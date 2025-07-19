@@ -82,6 +82,16 @@ import Tournament from "./components/Tournament.vue";
 import Pdf from './components/Pdf.vue'
 
 import longpress from './directives/longpress.js';
+import axios from "axios";
+
+const api = axios.create({
+  baseURL: process.env.VUE_APP_BASE_API || '/api',
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
+});
 
 const groepsToernooi = ref(false)
 
@@ -124,6 +134,9 @@ function resetAll() {
   if (tournamentStarted.value) {
     // nogmaals bevestigen
     if (confirm("Weet je zeker dat je de scores en het schema wilt resetten?")) {
+      if (confirm("Wil je het toernooi opslaan voor later?")) {
+        addToDB();
+      }
       teams.value = [];
       tournamentStarted.value = false
       repeatRounds.value = 1;
@@ -136,6 +149,19 @@ function resetAll() {
     }
   }
 }
+
+const addToDB = () => {
+  // teams
+  const players = teams.value.split('/')
+  console.log("addToDB teams:", players)
+  axios.post(`${process.env.VUE_APP_BASE_API}/teams`, {
+    spelers: players,
+  })
+
+
+
+}
+
 
 function addTeam() {
   if (newTeam.value.trim()) {
@@ -186,7 +212,7 @@ function delTeam(tm) {
 
 function delAll(){
     if (confirm("Alle teams verwijderen uit de standaardlijst?")) {
-      savedTeams = []
+      savedTeams.value = []
       localStorage.setItem("savedTeams", JSON.stringify(savedTeams.value));
     }
 }
