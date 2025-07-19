@@ -30,10 +30,17 @@
           <input id="repeatRounds" type="number" v-model.number="repeatRounds" min="1" max="2"
             class="border p-2 w-12 rounded" style="width:25%;" />
         </div>
-          <select name="" id="toernooien" value=""  class="w-full p-2 border rounded">
-            <option value="" disabled>Eerdere toernooien</option>
-            <option  v-for="tn in toernooien" value="">{{ tn.naam }} op {{ niceDate(tn.datum) }}</option>
+        <div class="flex gap-2 text-center">
+          <div>
+          <select name="" id="toernooien" v-model="toernooi"  class="w-full p-2 border rounded">
+            <option value="Oude toernooien" disabled>Oude toernooien</option>
+            <option  v-for="tn, tnindex in toernooien" :key="tnindex" :value="tn">{{ niceDate(tn.datum) }}</option>
           </select>
+          </div>
+          <div>
+            <button v-if="toernooi!=='Oude toernooien'" class="bg-transparent border-0 p-1" @click="removeTournament(toernooi)"><trash class="h-6 w-6 text-red-500" /></button>
+          </div>
+        </div>
 
         <div v-if="teams.length > 0" class="teamlist">
           <h2 class="font-semibold" @click.ctrl="removeAll" v-longpress="() => removeAll()">Teams:</h2>
@@ -61,12 +68,11 @@
               :class="teamSelected(tm) ? 'teamSelected' : ''">
               <span v-if="teamSelected(tm)">&#10004;</span> {{ tm }}
             </p>
-            <!-- voeg een team toe aan de deelnemerslijst (klik) of haal hem weg uit de standaardlijst (ctrl+klik)-->
           </li>
         </ul>
         <p class="text-xs">click: Meedoen, ctrl/long+click=Wissen</p>
       </div>
-      <button @click="startTournament" class="bg-green-500 text-white px-2 py-2 rounded"
+      <button v-if="teams.length > 1" @click="startTournament" class="bg-green-500 text-white px-2 py-2 rounded"
         style="margin-right:2px; width:200px;" :disabled="tournamentStarted"
         title="Bij 8 spelers worden willekeurig twee groepen aangemaakt">Start toernooi</button>
     </div>
@@ -88,10 +94,15 @@ import Pdf from './components/Pdf.vue'
 import longpress from './directives/longpress.js';
 import axios from 'axios'
 
+
+import {TrashIcon} from '@heroicons/vue/24/solid'
+const trash = TrashIcon 
+
 const api = "http://jota.nl:54321"
 const groepsToernooi = ref(false)
 
 const toernooien = ref([])
+const toernooi = ref('Oude toernooien')
 const newTeam = ref("");
 const teams = ref([]);
 const savedTeams = ref([])
@@ -105,9 +116,7 @@ function teamSelected(tm) {
 }
 
 async function savedToernooien(){
-  console.log("toernooien laden")
   const response = await axios.get(`${api}/toernooien`)
-  console.log (response)
   toernooien.value =response.data
 }
 
@@ -199,8 +208,18 @@ const addToDB = () => {
 
 }
 
-function mysqlDate(date = new Date()) {
-  return date.toISOString().split('T')[0];
+async function removeTournament(tn){
+  if (confirm(`Weet je zeker dat je de gegevens van het kraaktoernooi op ${niceDate(tn.datum)} wil verwijderen?`)){
+    axios.delete(`${api}/toernooien/${tn.id}`)
+      .then(() => {
+        // Verwijder het toernooi uit de lijst
+        toernooien.value = toernooien.value.filter(t => t.id !== tn.id);
+      })
+      .catch((error) => {
+        console.error("Fout bij het verwijderen van toernooi:", error);
+      });
+  }
+
 }
 
 function addTeam() {
