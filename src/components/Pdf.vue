@@ -23,7 +23,7 @@ import imgBeker from '../assets/beker.jpg'
 
 let gesplitst = false
 const rounds = ref([]);
-const matches = ref([]);
+const teams = ref([]);
 const groups = ref([]);
 const groupMatches = ref([]);
 const finalMatches = ref([
@@ -39,7 +39,7 @@ const props = defineProps({
 })
 // Ophalen en parsen van data uit localStorage
 function getMatchesFromStorage() {
-  const teams = JSON.parse(localStorage.getItem("teams"));
+  teams.value = JSON.parse(localStorage.getItem("teams"));
   gesplitst = props.groepsToernooi
 //  console.log("gesplistst", gesplitst)
   const g = localStorage.getItem("tournamentGroups");
@@ -74,6 +74,16 @@ function finalPlayed() {
   return isPlayed
 }
 
+function niceDate(date) {
+  if (!date) return "";
+  const d = new Date(date);
+  return d.toLocaleDateString("nl-NL", {
+    weekday:"long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
 
 function exportPdf() {
   getMatchesFromStorage();
@@ -88,12 +98,20 @@ function exportPdf() {
   let saveY = 0
   doc.setFont("times");
   doc.setFontSize(18);
-  const datum = new Date().toLocaleDateString("nl-NL");
-  doc.addImage(imgRaam, 'jpeg', marge, marge - 6, 35, 18)
-  doc.addImage(imgKraak, 'jpeg', pageWidth - marge - 35, marge - 6, 35, 18)
-  doc.text("Overzicht kraaktoernooi van " + datum, pageWidth / 2, yPos, { align: "center" });
+  const datum = niceDate(Date.now());
+  doc.addImage(imgRaam, 'jpeg', marge, marge - 6, 30, 18)
+  doc.addImage(imgKraak, 'jpeg', pageWidth - marge - 30, marge - 6, 30, 18)
+  doc.text("Kraaktoernooi van " + datum, pageWidth / 2, yPos, { align: "center" });
   yPos += 2
   doc.line(marge + 40, yPos, pageWidth - marge - 40, yPos);
+  yPos+=6
+  let infoStr = `${teams.value.length} teams`;
+  if (gesplitst) {
+    infoStr += `, ${groups.value.length} groepen`;
+  } else {
+    infoStr += `, ${rounds.value.length} rondes`;
+  }
+  doc.text(infoStr, pageWidth/2, yPos, {align: "center"});
   let table = new Array();
   if (!gesplitst) {
     // single Tournooi
