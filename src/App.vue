@@ -186,7 +186,7 @@ function delTeam(tm) {
 
 function delAll(){
     if (confirm("Alle teams verwijderen uit de standaardlijst?")) {
-      savedTeams = []
+      savedTeams.value = []
       localStorage.setItem("savedTeams", JSON.stringify(savedTeams.value));
     }
 }
