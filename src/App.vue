@@ -30,6 +30,10 @@
           <input id="repeatRounds" type="number" v-model.number="repeatRounds" min="1" max="2"
             class="border p-2 w-12 rounded" style="width:25%;" />
         </div>
+          <select name="" id="toernooien" value=""  class="w-full p-2 border rounded">
+            <option value="" disabled>Eerdere toernooien</option>
+            <option  v-for="tn in toernooien" value="">{{ tn.naam }} op {{ niceDate(tn.datum) }}</option>
+          </select>
 
         <div v-if="teams.length > 0" class="teamlist">
           <h2 class="font-semibold" @click.ctrl="removeAll" v-longpress="() => removeAll()">Teams:</h2>
@@ -68,7 +72,7 @@
     </div>
 
     <Tournament v-if="tournamentStarted" :initialTeams="filteredTeams" :repeatRounds="repeatRounds"
-          :groepsToernooi="groepsToernooi" @reset="handleReset" />
+      :groepsToernooi="groepsToernooi" @reset="handleReset" />
 
 
 
@@ -82,19 +86,12 @@ import Tournament from "./components/Tournament.vue";
 import Pdf from './components/Pdf.vue'
 
 import longpress from './directives/longpress.js';
-import axios from "axios";
+import axios from 'axios'
 
-const api = axios.create({
-  baseURL: process.env.VUE_APP_BASE_API || '/api',
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  }
-});
-
+const api = "http://jota.nl:54321"
 const groepsToernooi = ref(false)
 
+const toernooien = ref([])
 const newTeam = ref("");
 const teams = ref([]);
 const savedTeams = ref([])
@@ -107,9 +104,16 @@ function teamSelected(tm) {
   return idx > -1;
 }
 
+async function savedToernooien(){
+  console.log("toernooien laden")
+  const response = await axios.get(`${api}/toernooien`)
+  console.log (response)
+  toernooien.value =response.data
+}
+
 function editTeam(i) {
   // plaats de team naam in het input veld
-//  //  //  console.log(i, "teams:", teams.value[i], "tournamentStarted:", tournamentStarted);
+  //  //  //  console.log(i, "teams:", teams.value[i], "tournamentStarted:", tournamentStarted);
   if (!tournamentStarted.value) {
     newTeam.value = teams.value[i];
     // tijdelijk weghalen uit array
@@ -121,6 +125,16 @@ function removeTeam(i) {
   if (!tournamentStarted.value) {
     teams.value.splice(i, 1);
   }
+}
+
+function niceDate(date) {
+  if (!date) return "";
+  const d = new Date(date);
+  return d.toLocaleDateString("nl-NL", {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
 }
 
 
@@ -152,16 +166,42 @@ function resetAll() {
 
 const addToDB = () => {
   // teams
-  const players = teams.value.split('/')
-  console.log("addToDB teams:", players)
-  axios.post(`${process.env.VUE_APP_BASE_API}/teams`, {
-    spelers: players,
-  })
-
-
+  const theTeams = teams.value.map((team) => {
+    // verdeel in twee namen van de spelers
+    const sp = team.split('/');
+    return {
+      players: sp,
+    };
+  });
+  // console.log("addToDB teams:", theTeams)
+  let payload = {
+    teams: theTeams,
+  };
+  axios.post(`${api}/teams`, payload)
+    .then(() => {
+      console.log("Teams opgeslagen op de server:", theTeams);
+    })
+    .catch((error) => {
+      console.error("Fout bij het opslaan van teams:", error);
+    });
+  // tournament
+  payload = {
+    naam: "Kraken",
+    datum: new Date().toISOString().split('T')[0]
+  }
+  axios.post(`${api}/toernooien`, payload)
+    .then(() => {
+      console.log("Toernooi opgeslagen op de server");
+    })
+    .catch((error) => {
+      console.error("Fout bij het opslaan van toernooi:", error);
+    });
 
 }
 
+function mysqlDate(date = new Date()) {
+  return date.toISOString().split('T')[0];
+}
 
 function addTeam() {
   if (newTeam.value.trim()) {
@@ -176,7 +216,7 @@ function addTeam() {
 }
 
 function addAll() {
-//  //  //  console.log("addAll ... ")
+  //  //  //  console.log("addAll ... ")
   savedTeams.value.forEach((tm, index) => {
     getTeam(tm)
   })
@@ -210,25 +250,25 @@ function delTeam(tm) {
   }
 }
 
-function delAll(){
-    if (confirm("Alle teams verwijderen uit de standaardlijst?")) {
-      savedTeams.value = []
-      localStorage.setItem("savedTeams", JSON.stringify(savedTeams.value));
-    }
+function delAll() {
+  if (confirm("Alle teams verwijderen uit de standaardlijst?")) {
+    savedTeams.value = []
+    localStorage.setItem("savedTeams", JSON.stringify(savedTeams.value));
+  }
 }
 
 function cleanTeamName(thisTeam) {
   // vervang elk mogelijke koppel teken door /
   // en maak hoofdletters van de namen
-   let tm = thisTeam.replace(/[^a-zA-Z]+/g, "/");
-   var splitStr = tm.toLowerCase().split('/');
-   for (var i = 0; i < splitStr.length; i++) {
-       // You do not need to check if i is larger than splitStr length, as your for does that for you
-       // Assign it back to the array
-       splitStr[i] = splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);     
-   }
-   // Directly return the joined string
-   return splitStr.join('/'); 
+  let tm = thisTeam.replace(/[^a-zA-Z]+/g, "/");
+  var splitStr = tm.toLowerCase().split('/');
+  for (var i = 0; i < splitStr.length; i++) {
+    // You do not need to check if i is larger than splitStr length, as your for does that for you
+    // Assign it back to the array
+    splitStr[i] = splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);
+  }
+  // Directly return the joined string
+  return splitStr.join('/');
 
 }
 
@@ -245,7 +285,7 @@ function startTournament() {
     groepsToernooi.value = false
     if (filteredTeams.value.length >= 7) {
       // optioneel: hier alvast iets opslaan of voorbereiden
-//      //      // bv. // console.log('Init groepen voor finale logica')
+      //      //      // bv. // console.log('Init groepen voor finale logica')
       groepsToernooi.value = confirm("Er zijn meer dan 6 teams, wil je twee groepen aanmaken?")
     }
     let rndTxt = 'ronde'
@@ -292,6 +332,7 @@ onMounted(() => {
   if (saved) {
     teams.value = JSON.parse(saved);
   }
+  savedToernooien()
   const tmpTeams = JSON.parse(localStorage.getItem("teams"));
   // const savedPlayers = JSON.parse(localStorage.getItem('players'))
   const oldTeams = JSON.parse(localStorage.getItem("savedTeams"));
