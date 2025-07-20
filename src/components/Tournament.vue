@@ -118,6 +118,19 @@ function getRandomScore(min, max) {
 
 
 function splitIntoGroups(teamList) {
+  // Voor meer dan 6 teams, worden de teams verdeeld in twee groepen
+  // Toernooi van 14 juli 2025
+  // Chris/Ramon, Gerard/Willem, Tijmen/Karlijn, Joost/Wim
+  // Carla/Theo, Jan/Angelo, Ron/Jeroen, Joren/Lize
+
+  if (confirm("Wil je zelf de teams in groepen verdelen?")) {
+    const groupA = prompt("Voer de teams voor Groep A in, gescheiden door een komma:", teamList.slice(0, Math.ceil(teamList.length / 2)).join(","));
+    const groupB = prompt("Voer de teams voor Groep B in, gescheiden door een komma:", teamList.slice(Math.ceil(teamList.length / 2)).join(","));
+    console.log("Group A:", groupA);
+    console.log("Group B:", groupB);
+    return [groupA.split(',').map(t => t.trim()), groupB.split(',').map(t => t.trim())];
+    
+  }
   const shuffled = shuffle([...teamList]);
   const half = Math.ceil(shuffled.length / 2);
   return [shuffled.slice(0, half), shuffled.slice(half)];
