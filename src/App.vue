@@ -2,13 +2,16 @@
   <div class="max-w-4xl mx-auto space-y-4 maindiv rounded">
     <div class="kop">
       <div class="titelregel flex justify-between ">
+        <div>
         <h1 class="text-2xl font-bold">
           Laurierboom Kraakscore
           <p class="copyright">©2025 Jota Services </p>
         </h1>
+        <h2 v-if="tournamentStarted" class="text-sm text-white m-1">Gespeeld op {{ niceDate(thisTNdatum) }} </h2>
+        </div>
         <div class="knoppen flex justify-center" v-if="tournamentStarted">
           <button @click="resetAll" class="bg-red-500 text-white px-2 rounded mt-2"
-            style="margin-left:2px; width:auto; height:30px; font-size: .9em;">Reset</button>
+            style="margin-left:2px; width:auto; height:30px; font-size: .9em;"><span v-if="thisToernooi">Sluiten</span><span v-else>Reset</span></button>
           <Pdf :groepsToernooi="groepsToernooi" />
 
         </div>
@@ -47,7 +50,7 @@
         </div>
 
         <div v-if="teams.length > 0" class="teamlist">
-          <h2 class="font-semibold" @click.ctrl="removeAll" v-longpress="() => removeAll()">Teams:</h2>
+          <h2 class="font-semibold" @click.ctrl="removeTeamsFromToernooi" v-longpress="() => removeTeamsFromToernooi()">Teams:</h2>
           <ul class="list-number list-outside" style="margin-left: 8px">
             <li v-for="(team, index) in teams" :key="index" @click.exact="editTeam(index)"
               @click.ctrl="removeTeam(index)" v-longpress="() => removeTeam(index)">
@@ -82,7 +85,7 @@
     </div>
 
     <Tournament v-if="tournamentStarted" :initialTeams="filteredTeams" :repeatRounds="repeatRounds"
-      :groepsToernooi="groepsToernooi" @reset="handleReset" />
+      :groepsToernooi="groepsToernooi" :toernooiPlayed="thisToernooi !==null" @reset="handleReset" />
 
 
 
@@ -105,6 +108,8 @@ const trash = TrashIcon
 const api = "http://piweb:54321"
 const groepsToernooi = ref(false)
 const thisToernooi = ref(null)
+const thisTNdatum = ref(new Date())
+// const thisTNteams = ref([]) // teams van dit toernooi, nog niet gebruikt
 const toernooien = ref([])
 const toernooi = ref('Oude toernooien')
 const newTeam = ref("");
@@ -150,15 +155,7 @@ function niceDate(date) {
   });
 }
 
-function getLastToernooiId() {
-  // haal de ID vanhet laatste toernooi op
-  if (toernooien.value.length > 0) {
-    return toernooien.value[toernooien.value.length - 1].id;
-  }
-  return null;
-}
-
-function removeAll() {
+function removeTeamsFromToernooi() {
   // Haal alle teams uit de deelnemers lijst 
   teams.value = []
 }
@@ -197,12 +194,13 @@ function resetLocalStorage() {
 
 function selectTournament(tn) {
   thisToernooi.value = tn;
+  console.log("selectTournament", thisToernooi.value);
   // laad de teams van het geselecteerde toernooi
   loadTournament(tn);
 }
 
 async function loadTournament(tn) {
-////  console.log("loadTournament", tn)
+ console.log("loadTournament", tn)
   await axios.get(`${api}/toernooien/${tn}`)
     .then(response => {
       const data = response.data;
@@ -216,6 +214,7 @@ async function loadTournament(tn) {
       groepsToernooi.value = data.groepsToernooi !==0 || false;
       repeatRounds.value = data.repeatRounds || 1;
       // teams
+      thisTNdatum.value = data.datum ? new Date(data.datum) : new Date();
       tournamentStarted.value = true;
     })
     .catch(error => {

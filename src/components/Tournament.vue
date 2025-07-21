@@ -4,12 +4,13 @@
       <div class="schema">
         <div v-for="(ronde, index) in groupMatches[0]" :key="index">
           <div v-if="index < 1">
-            <h2 class="text-xl font-bold text-blue">Groep A</h2>
+            <h2 class="text-xl font-bold text-blue">Groep A {{ toernooiPlayed }}</h2>
           </div>
           <div v-else>
             <h3>Ronde: {{ (index + 1) }}</h3>
           </div>
           <MatchTable :matches="groupMatches[0][index]" :teams="groups[0]"
+            aria-disabled="toernooiPlayed"
             @update-result="(i, a, b) => updateGroupResult(0, index, i, a, b)" />
         </div>
       </div>
@@ -91,7 +92,11 @@ const props = defineProps({
   groepsToernooi: {
     type: Boolean,
     default: false
-  }
+  },
+  toernooiPlayed: {
+    type: Boolean,
+    default: false
+  }   
 });
 
 const emit = defineEmits(["reset"]);
