@@ -105,7 +105,7 @@ import axios from 'axios'
 import { TrashIcon } from '@heroicons/vue/24/solid'
 const trash = TrashIcon
 
-const api = "http://piweb:54321"
+const api = "https://piweb:54321";
 const groepsToernooi = ref(false)
 const thisToernooi = ref(null)
 const thisTNdatum = ref(new Date())
@@ -126,6 +126,7 @@ function teamSelected(tm) {
 
 async function savedToernooien() {
   const response = await axios.get(`${api}/toernooien`)
+  console.log("Toernooien opgehaald:", response.data);
   toernooien.value = response.data
 }
 
