@@ -39,7 +39,7 @@ function setID(group){
 
 const standings = computed(() => {
 
-//  //  console.log("matches:", props.matches)
+  console.log("matches:", props.matches)
 
   return props.teams.map(name => {
     const stats = {

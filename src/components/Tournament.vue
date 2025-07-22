@@ -4,13 +4,13 @@
       <div class="schema">
         <div v-for="(ronde, index) in groupMatches[0]" :key="index">
           <div v-if="index < 1">
-            <h2 class="text-xl font-bold text-blue">Groep A {{ toernooiPlayed }}</h2>
+            <h2 class="text-xl font-bold text-blue">Groep A</h2>
           </div>
           <div v-else>
             <h3>Ronde: {{ (index + 1) }}</h3>
           </div>
           <MatchTable :matches="groupMatches[0][index]" :teams="groups[0]"
-            aria-disabled="toernooiPlayed"
+            :oldToernooi="toernooiPlayed"
             @update-result="(i, a, b) => updateGroupResult(0, index, i, a, b)" />
         </div>
       </div>
@@ -24,6 +24,7 @@
           </div>
           <!-- {{ groupMatches[1] }} -->
           <MatchTable :matches="groupMatches[1][index]" :teams="groups[1]"
+            :oldToernooi="toernooiPlayed"
             @update-result="(i, a, b) => updateGroupResult(1, index, i, a, b)" />
         </div>
       </div>
@@ -45,6 +46,7 @@
           <h3 class="text-xl font-semibold">Finale</h3>
           <MatchTable matchType="finale" :matches="[finalMatches[0]]"
             :teams="[finalMatches[0].teamL, finalMatches[0].teamR]"
+            :oldToernooi="toernooiPlayed"
             @update-result="(i, a, b) => updateFinalResult(i, a, b)" />
         </div>
 
@@ -52,6 +54,7 @@
           <h3 class="text-lg font-semibold">Om 3e plaats</h3>
           <MatchTable matchType="3ePlaats" :matches="[finalMatches[1]]"
             :teams="[finalMatches[1].teamL, finalMatches[1].teamR]"
+            :oldToernooi="toernooiPlayed"
             @update-result="(i, a, b) => updateFinalResult(i + 1, a, b)" />
         </div>
       </div>
@@ -59,7 +62,7 @@
     </div>
     <!--  minder dan 7 teams -->
     <div v-else class="schema">
-      <h2 class="text-xl font-bold">Schema</h2>
+      <h2 class="text-xl font-bold">Schema {{ toernooiPlayed }}</h2>
       <div v-for="(ronde, index) in matches" :key="index">
         <h3>Ronde: {{ (index + 1) }}</h3>
         <MatchTable :matches="matches[index]" :teams="teams"
@@ -196,9 +199,10 @@ function updateGroupResult(groupIndex, matchIndex, tableIndex, scoreL, scoreR) {
   updateFinalists();
 }
 
-function updateSingleResult(index, table, scoreL, scoreR) {
-  matches.value[index][table].scoreL = scoreL;
-  matches.value[index][table].scoreR = scoreR;
+function updateSingleResult(ronde, table, scoreL, scoreR) {
+  console.log("updateSingleResult", ronde, table, scoreL, scoreR)
+  matches.value[ronde][table].scoreL = scoreL;
+  matches.value[ronde][table].scoreR = scoreR;
   saveToLocalStorage();
 }
 
@@ -311,6 +315,7 @@ function updateFinalists() {
 }
 
 function saveToLocalStorage() {
+  localStorage.setItem("matches", JSON.stringify(matches.value));
   localStorage.setItem("tournamentGroups", JSON.stringify(groups.value));
 //  //  console.log("Opgeslagen: Groepen:" , groups.value)
 //  //  console.log("Opgeslagen: groupMatches.value", groupMatches.value)
@@ -340,18 +345,19 @@ function loadFromLocalStorage() {
   const m = localStorage.getItem("tournamentMatches");
   const fm = localStorage.getItem("tournamentFinalMatches");
   if (g && gm) {
-//    // console.log("Opgehaald: groepen:", g.length, gm.length)
+    // console.log("Opgehaald: groepen:", g)
+  //  console.log("Opgehaald: groepen:", g.length, gm.length)
     groups.value = JSON.parse(g);
-//    // console.log("Opgehaald: groepen:", groups.value)
+  //  console.log("Opgehaald: groepen:", groups.value)
     groupMatches.value = JSON.parse(gm);
-//    // console.log("Opgehaald: groupMatches:", groupMatches.value)
+  //  console.log("Opgehaald: groupMatches:", groupMatches.value)
   } else if (m) {
-//    // console.log("Opgehaald: matches:", matches.value)
     matches.value = JSON.parse(m);
+   console.log("Opgehaald: matches:", matches.value)
+
   }
   if (fm) {finalMatches
     finalMatches.value = JSON.parse(fm);
-//    // console.log("finales:", finalMatches.value)
   }
 }
 
