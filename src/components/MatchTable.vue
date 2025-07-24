@@ -54,7 +54,7 @@ watchEffect(() => {
     scoreL: match.scoreL ?? '',
     scoreR: match.scoreR ?? ''
   }))
- console.log("Scores::", scores.value)
+//  console.log("Scores::", scores.value)
 })
 
 function hasVRIJ(match){
@@ -63,13 +63,13 @@ function hasVRIJ(match){
 }
 
 function update(index) {
-  console.log("update index:", index, "scores:", scores.value)
+  // console.log("update index:", index, "scores:", scores.value)
   const { scoreL, scoreR } = scores.value[index]
   if (scoreL !== '' && scoreR !== '') {
     emit('update-result', index, Number(scoreL), Number(scoreR))
   }
 }
 onMounted(() => {
-  console.log("MatchTable mounted with matches:", props.matches)
+  // console.log("MatchTable mounted with matches:", props.matches)
 })
 </script>

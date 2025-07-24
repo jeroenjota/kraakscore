@@ -39,7 +39,7 @@ const props = defineProps({
 })
 // Ophalen en parsen van data uit localStorage
 function getMatchesFromStorage() {
-  teams.value = JSON.parse(localStorage.getItem("teams"));
+  teams.value = JSON.parse(localStorage.getItem("tournamentTeams"));
   gesplitst = props.groepsToernooi
 //  console.log("gesplistst", gesplitst)
   const g = localStorage.getItem("tournamentGroups");
