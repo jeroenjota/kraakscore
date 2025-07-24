@@ -40,7 +40,7 @@
         </div>
       </div>
       <!-- <div>{{ finalMatches }}</div> -->
-      <div class="schema"
+      <div class="finale"
         v-if="finalMatches.length === 2 && finalMatches[0].teamL && finalMatches[0].teamR && finalMatches[1].teamL && finalMatches[1].teamR">
         <div>
           <h3 class="text-xl font-semibold">Finale</h3>
@@ -62,7 +62,7 @@
     </div>
     <!--  minder dan 7 teams -->
     <div v-else class="schema">
-      <h2 class="text-xl font-bold">Schema {{ toernooiPlayed }}</h2>
+      <h2 class="text-xl font-bold">Schema</h2>
       <div v-for="(ronde, index) in matches" :key="index">
         <h3>Ronde: {{ (index + 1) }}</h3>
         <MatchTable :matches="matches[index]" :teams="toernooiTeams"

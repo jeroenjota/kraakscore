@@ -4,8 +4,8 @@
 
 <template>
   <div>
-    <button @click="exportPdf" class="bg-green-500 text-white px-2 rounded mt-2"
-      style="margin-left:2px; width:auto; height:30px; font-size: .9em;">Afdrukken</button>
+    <button @click="exportPdf" class="bg-blue-500 text-white px-2 rounded mt-1 mr-2"
+      style="margin-left:2px; width:auto; height:30px; font-size: .9em;">Print</button>
   </div>
 </template>
 

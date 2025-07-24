@@ -5,7 +5,8 @@
           <h1 class="text-2xl font-bold">
             <span v-if="thisToernooi">Kraaktoernooi</span>
             <span v-else> 
-            Laurierboom Kraakscore
+              <span class="boom">Laurierboom</span>
+            Kraakscore
             </span>
           </h1>
           <div v-if="!thisToernooi && !tournamentStarted" class="items-center ">
@@ -23,9 +24,9 @@
             </button>
           </div>
         <div class="knoppen flex justify-center" v-if="tournamentStarted">
-          <button @click="resetAll" class="bg-red-500 text-white px-2 rounded mt-2"
-            style="margin-left:2px; width:auto; height:30px; font-size: .9em;"><span v-if="thisToernooi">OK</span><span
-              v-else>Reset</span></button>
+          <button @click="resetAll" class="bg-red-800 text-white px-2 rounded mt-1"
+            style="margin-left:2px; margin-right: 2px; width:auto; height:30px; font-size: .9em;"><span v-if="thisToernooi">OK</span><span
+              v-else>Klaar</span></button>
           <Pdf :groepsToernooi="groepsToernooi" />
 
         </div>
@@ -39,8 +40,8 @@
         <div class="flex gap-2 text-center">
           <input v-model="newTeam" @keyup.enter="addTeam" placeholder="Teamnaam" class="p-1 border teamnaam rounded"
             style="width:50%;" :disabled="toernooiTeams.length > 7" />
-          <button @click="addTeam" class="bg-blue-500 text-white px-4 py-2 rounded" style="width:50%;"
-            :disabled="toernooiTeams.length > 7">Meedoen</button>
+          <button @click="addTeam" class="bg-green-800 text-white px-4 py-2 rounded" style="width:50%;"
+            :disabled="toernooiTeams.length > 7 || newTeam.trim() === ''">OK</button>
         </div>
 
         <div class="flex gap-2 items-center p-1">
@@ -84,7 +85,7 @@
         </ul>
         <p class="text-xs">click: Meedoen, ctrl/long+click=Wissen</p>
       </div>
-      <button v-if="toernooiTeams.length > 1" @click="startTournament" class="bg-green-500 text-white px-2 py-2 rounded"
+      <button v-if="toernooiTeams.length > 1" @click="startTournament" class="bg-green-800 text-white px-2 py-2 rounded"
         style="margin-right:2px; width:200px;" :disabled="tournamentStarted"
         title="Bij 8 spelers worden willekeurig twee groepen aangemaakt">Start toernooi</button>
     </div>
@@ -187,6 +188,7 @@ function resetAll() {
 function resetLocalStorage() {
   // reset de local storage
   localStorage.removeItem("tournamentTeams");
+  localStorage.removeItem("matches");
   localStorage.removeItem("tournamentGroups");
   localStorage.removeItem("tournamentGroupMatches");
   localStorage.removeItem("tournamentMatches");
