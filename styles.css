@@ -6,7 +6,7 @@ body {
 }
 .kop {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-
+  margin-bottom: 0px;
 }
 .kop h1 {
   margin-left: 2px;
@@ -120,7 +120,7 @@ td.team {
 }
 
 .maindiv {
-  background-color: rgb(27, 122, 230);
+  background-color:darkgreen; 
   padding: 1px;
   max-width: 620px;
   padding-bottom: 4px;
@@ -131,6 +131,7 @@ td.team {
   color: white;
   text-align: center;
   padding-top: 5px;
+  margin-bottom: 0%;
 }
 
 ul.dbl{

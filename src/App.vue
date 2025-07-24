@@ -109,8 +109,8 @@ import axios from 'axios'
 
 import { TrashIcon } from '@heroicons/vue/24/solid'
 const trash = TrashIcon
-
-const api = "http://piweb:54321";
+import.meta.env.VITE_API_URL
+const api = import.meta.env.VITE_API_URL || 'http://piweb:54321';
 const groepsToernooi = ref(false)
 const thisToernooi = ref(null)
 const thisTNdatum = ref(new Date())
