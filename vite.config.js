@@ -7,7 +7,7 @@ dotenv.config();
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: "/kraakscore",
+  base: "/laurierboom/dist/",
   plugins: [
     vue(),
     tailwindcss(),
