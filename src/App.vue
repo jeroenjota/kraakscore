@@ -9,7 +9,7 @@
             Kraakscore
             </span>
           </h1>
-          <div v-if="!thisToernooi && !tournamentStarted" class="items-center ">
+          <div v-if="!thisToernooi && !tournamentStarted && serverAvailable" class="items-center ">
             <select name="" id="toernooien" v-model="toernooi" class="p-1 border bg-white rounded m-1 ">
               <option value="Oude toernooien" disabled>Oude toernooien</option>
               <option @click="selectTournament(tn.id)" v-for="tn, tnindex in toernooien" :key="tnindex" :value="tn">
@@ -19,7 +19,7 @@
           <p v-if="!thisToernooi"  class="copyright">©2025 Jota Services </p>
           <div v-if="toernooi !== 'Oude toernooien'" class="titel regel flex justify-left ">
             <h2 class="text-sm text-white m-1">Gespeeld op {{ niceDate(thisTNdatum) }}</h2>
-            <button class="bg-transparent border-0 p-1" @click="removeTournament(toernooi)" text="Verwijder toernooi">
+            <button v-if="serverAvailable" class="bg-transparent border-0 p-1" @click="removeTournament(toernooi)" text="Verwijder toernooi">
               <trash class="h-6 w-6 text-white" />
             </button>
           </div>
@@ -110,7 +110,9 @@ import axios from 'axios'
 
 import { TrashIcon } from '@heroicons/vue/24/solid'
 const trash = TrashIcon
-import.meta.env.VITE_API_URL
+
+const serverAvailable = ref(false);
+
 const api = import.meta.env.VITE_API_URL || 'http://piweb:54321';
 const groepsToernooi = ref(false)
 const thisToernooi = ref(null)
@@ -120,7 +122,7 @@ const toernooien = ref([])
 const toernooi = ref('Oude toernooien')
 const newTeam = ref("");
 const toernooiTeams = ref([]);
-const savedTeams = ref([])
+const savedTeams = ref([]);
 
 const tournamentStarted = ref(false);
 const repeatRounds = ref(1);
@@ -172,7 +174,7 @@ function resetAll() {
   // alleen als er een schema is ;-)
   if (tournamentStarted.value) {
     // nogmaals bevestigen
-    if (!thisToernooi.value) {
+    if (!thisToernooi.value && serverAvailable.value ) {
       if (confirm("Wil je het toernooi opslaan voor later?")) {
         saveToApi();
       }
@@ -245,7 +247,10 @@ function saveToApi() {
 }
 
 async function standardTeamsToApi() {
-  // standaard eams
+  // standaard teams
+  
+  if (!serverAvailable.value ) return
+
   const bewaardeTeams = savedTeams.value.map((team) => {
     // verdeel in twee namen van de spelers
     const sp = team.split('/');
@@ -267,7 +272,11 @@ async function standardTeamsToApi() {
 }
 
 async function saveTournament() {
+
+  if (!serverAvailable.value ) return
+
   // tournament
+
   const tnTeams = localStorage.getItem("tournamentTeams");
   const matches = localStorage.getItem("tournamentMatches");
   const groups = localStorage.getItem("tournamentGroups");
@@ -295,6 +304,9 @@ async function saveTournament() {
 }
 
 async function removeTournament(tn) {
+
+  if (!serverAvailable.value ) return
+
   if (confirm(`Weet je zeker dat je de gegevens van het kraaktoernooi op ${niceDate(tn.datum)} wil verwijderen?`)) {
     axios.delete(`${api}/toernooien/${tn.id}`)
       .then(() => {
@@ -481,7 +493,22 @@ async function getSavedTeamsFromApi() {
     });
 }
 
-onMounted(() => {
+async function isServerActive(){
+  // controleer of de server beschikbaar is
+ try {
+    const res = await axios.get(`${api}/ping`, { timeout: 1000 });
+    if (res.status === 200) {
+      serverAvailable.value = true;
+    }
+  } catch (error) {
+    console.warn('API server niet bereikbaar:', error.message);
+    serverAvailable.value = false;
+  }
+}
+
+onMounted( () => {
+  console.log("api = ", api);
+  isServerActive(); // kijk o de server beschikbaar is
   const saved = localStorage.getItem("savedTeams");
   if (saved) {
     // console.log("Teams gevonden in localStorage:", saved);

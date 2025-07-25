@@ -5,7 +5,7 @@
 <template>
   <div>
     <button @click="exportPdf" class="bg-blue-500 text-white px-2 rounded mt-1 mr-2"
-      style="margin-left:2px; width:auto; height:30px; font-size: .9em;">Print</button>
+      style="margin-left:2px; width:auto; height:30px; font-size: .9em;"><printer class="h-6 w-6 text-white" /></button>
   </div>
 </template>
 
@@ -20,6 +20,11 @@ import imgCafe from '../assets/cafe.jpg'
 import imgKraak from '../assets/kraken.jpeg'  // kraken
 import imgKaarten from '../assets/kaarten.png'
 import imgBeker from '../assets/beker.jpg'
+
+import {PrinterIcon } from '@heroicons/vue/24/solid'
+const printer = PrinterIcon
+
+
 
 let gesplitst = false
 const rounds = ref([]);
