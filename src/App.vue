@@ -344,14 +344,14 @@ async function saveTournament() {
   // console.log("saveToApi tournamentTeams:", tnTeams, "groups:", groups, "groupMatches:", groupMatches, "finalMatches:", finalMatches)
   const toernooi = {
     datum: new Date().toISOString().split('T')[0],
-    teams: tnTeams || '',
-    matches: matches || '',
-    groups: groups || '',
-    groupMatches: groupMatches || '',
-    finalMatches: finalMatches || '',
+    teams: tnTeams ? JSON.parse(tnTeams) : [],
+    matches: matches ? JSON.parse(matches) : [],
+    groups: groups ? JSON.parse(groups) : [],
+    groupMatches: groupMatches ? JSON.parse(groupMatches) : [],
+    finalMatches: finalMatches ? JSON.parse(finalMatches) : [],
     groepsToernooi: groepsToernooi.value || false,
     repeatRounds: repeatRounds.value || 1,
-  }
+  };
   await axios.post(`${api}/toernooien`, toernooi)
     .then(() => {
       ////      console.log("Toernooi opgeslagen op de server");
@@ -491,7 +491,6 @@ async function startTournament() {
     groepsToernooi.value = false
     if (filteredTeams.value.length >= 7) {
       // optioneel: hier alvast iets opslaan of voorbereiden
-      ////      //      //      // bv. // console.log('Init groepen voor finale logica')
       groepsToernooi.value = confirm("Er zijn meer dan 6 teams, wil je twee groepen aanmaken?")
     }
     let rndTxt = 'ronde'
