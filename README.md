@@ -1,15 +1,14 @@
 # Kraakscore
 
 The app is for (card) tournaments between couples or individuals. Could also be used for other tournaments where point scoring is involved.
-> The app uses localstorage to save results and player/couple names. The system only saves the current tournament data. So not suitable for longterm analyses etc.
-Localstorage is not meant for this.
+> The app uses localstorage to save results and player/couple names. The system saves the current tournament data in localStorage, util you press the "[*OK*]" button. Then it will ask you if you want to save to the backend. This is still very experimental. The data are not suitable for longterm analyses etc.
 
 The app was developped for *Café de Laurierboom*, **the best bar in Amsterdam** where we play a '**Kraak**' tournament every two weeks.
 
 ## Usage
 If there are old data from a previous tournament, Click [*reset*]. All tournament data will be deleted, the saved teams/players will still be available. (As long as your browsers LocalStorage is not reset)
 
-For new teams or players, fill in the name(s) of the player/teams in the **Teamname** field and press enter (or click "[*Meedoen*]" )
+For new teams or players, fill in the name(s) of the player/teams in the **Teamname** field and press enter (or click "[*OK*]" )
 Saved teams & players can be selected from the list in the **Opgeslagen teams** section
 
 You need at least two participants (*duh!*)

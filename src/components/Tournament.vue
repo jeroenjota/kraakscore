@@ -124,7 +124,6 @@ function getRandomScore(min, max) {
   return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled); // The maximum is inclusive and the minimum is inclusive
 }
 
-
 function splitIntoGroups(teamList) {
   // Voor meer dan 6 toernooiTeams, worden de teams verdeeld in twee groepen
   // Toernooi van 14 juli 2025
