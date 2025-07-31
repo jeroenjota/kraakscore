@@ -9,9 +9,8 @@
           <div v-else>
             <h3>Ronde: {{ (index + 1) }}</h3>
           </div>
-          <MatchTable :matches="groupMatches[0][index]" :teams="groups[0]"
-            :oldToernooi="toernooiPlayed"
-            @update-result="(i, a, b) => updateGroupResult(0, index, i, a, b)" />
+          <MatchTable :matches="groupMatches[0][index]" :teams="groups[0]" :oldToernooi="toernooiPlayed"
+            :edit-mode="editMode" @update-result="(i, a, b) => updateGroupResult(0, index, i, a, b)" />
         </div>
       </div>
       <div class="schema">
@@ -23,9 +22,8 @@
             <h3>Ronde: {{ (index + 1) }}</h3>
           </div>
           <!-- {{ groupMatches[1] }} -->
-          <MatchTable :matches="groupMatches[1][index]" :teams="groups[1]"
-            :oldToernooi="toernooiPlayed"
-            @update-result="(i, a, b) => updateGroupResult(1, index, i, a, b)" />
+          <MatchTable :matches="groupMatches[1][index]" :teams="groups[1]" :oldToernooi="toernooiPlayed"
+            :edit-mode="editMode" @update-result="(i, a, b) => updateGroupResult(1, index, i, a, b)" />
         </div>
       </div>
       <div class="stand">
@@ -45,16 +43,14 @@
         <div>
           <h3 class="text-xl font-semibold">Finale</h3>
           <MatchTable matchType="finale" :matches="[finalMatches[0]]"
-            :teams="[finalMatches[0].teamL, finalMatches[0].teamR]"
-            :oldToernooi="toernooiPlayed"
+            :teams="[finalMatches[0].teamL, finalMatches[0].teamR]" :oldToernooi="toernooiPlayed" :edit-mode="editMode"
             @update-result="(i, a, b) => updateFinalResult(i, a, b)" />
         </div>
 
         <div>
           <h3 class="text-lg font-semibold">Om 3e plaats</h3>
           <MatchTable matchType="3ePlaats" :matches="[finalMatches[1]]"
-            :teams="[finalMatches[1].teamL, finalMatches[1].teamR]"
-            :oldToernooi="toernooiPlayed"
+            :teams="[finalMatches[1].teamL, finalMatches[1].teamR]" :oldToernooi="toernooiPlayed" :edit-mode="editMode"
             @update-result="(i, a, b) => updateFinalResult(i + 1, a, b)" />
         </div>
       </div>
@@ -62,10 +58,10 @@
     </div>
     <!--  minder dan 7 teams -->
     <div v-else class="schema">
-      <h2 class="text-xl font-bold">Schema</h2>
+      <h2 class="text-xl font-bold">Schema {{ editMode }}</h2>
       <div v-for="(ronde, index) in matches" :key="index">
         <h3>Ronde: {{ (index + 1) }}</h3>
-        <MatchTable :matches="matches[index]" :teams="toernooiTeams"
+        <MatchTable :matches="matches[index]" :teams="toernooiTeams" :oldToernooi="toernooiPlayed" :edit-mode="editMode"
           @update-result="(i, a, b) => updateSingleResult(index, i, a, b)" />
       </div>
       <div class="stand">
@@ -99,7 +95,10 @@ const props = defineProps({
   toernooiPlayed: {
     type: Boolean,
     default: false
-  }   
+  },
+  editMode: {
+    type: Boolean
+  }
 });
 
 const emit = defineEmits(["reset"]);
@@ -113,6 +112,8 @@ const finalMatches = ref([
   { teamL: null, teamR: null, scoreL: null, scoreR: null }, // finale
   { teamL: null, teamR: null, scoreL: null, scoreR: null }, // 3e plaats
 ]);
+
+console.log("Edit mode in Tournament:", props.editMode);
 
 function shuffle(array) {
   return array.sort(() => Math.random() - 0.5);
@@ -133,10 +134,10 @@ function splitIntoGroups(teamList) {
   // if (confirm("Wil je zelf de teams in groepen verdelen?")) {
   //   const groupA = prompt("Voer de teams voor Groep A in, gescheiden door een komma:", teamList.slice(0, Math.ceil(teamList.length / 2)).join(","));
   //   const groupB = prompt("Voer de teams voor Groep B in, gescheiden door een komma:", teamList.slice(Math.ceil(teamList.length / 2)).join(","));
- //   console.log("Group A:", groupA);
- //   console.log("Group B:", groupB);
+  //   console.log("Group A:", groupA);
+  //   console.log("Group B:", groupB);
   //   return [groupA.split(',').map(t => t.trim()), groupB.split(',').map(t => t.trim())];
-    
+
   // }
   const shuffled = shuffle([...teamList]);
   const half = Math.ceil(shuffled.length / 2);
@@ -161,12 +162,12 @@ function generateMatches(tms, grp) {
     for (let i = 0; i < halfSize; i++) {
       let teamL = inputTeams[i];
       let teamR = inputTeams[inputTeams.length - 1 - i];
-      if (teamL==="VRIJ") {
+      if (teamL === "VRIJ") {
         teamL = teamR
         teamR = "VRIJ"
       }
       let sc1 =
-        matches.push({ tafel: i + 1 + (2*grp), teamL, teamR, scoreL: null, scoreR: null });
+        matches.push({ tafel: i + 1 + (2 * grp), teamL, teamR, scoreL: null, scoreR: null });
     }
     baseRounds.push(matches)
     inputTeams.splice(1, 0, inputTeams.pop());
@@ -199,7 +200,7 @@ function updateGroupResult(groupIndex, matchIndex, tableIndex, scoreL, scoreR) {
 }
 
 function updateSingleResult(ronde, table, scoreL, scoreR) {
-//  // console.log("updateSingleResult", ronde, table, scoreL, scoreR)
+  //  // console.log("updateSingleResult", ronde, table, scoreL, scoreR)
   matches.value[ronde][table].scoreL = scoreL;
   matches.value[ronde][table].scoreR = scoreR;
   saveToLocalStorage();
@@ -276,13 +277,13 @@ function updateFinalists() {
 
   const standingsA = calculateStandings(groups.value[0], groupMatches.value[0]);
   const standingsB = calculateStandings(groups.value[1], groupMatches.value[1]);
-//  // console.log("standingsA:", standingsA)
-//  // console.log("standingsB:", standingsB)
+  //  // console.log("standingsA:", standingsA)
+  //  // console.log("standingsB:", standingsB)
   // console.log("groupmatches",groupMatches.value[1][0])
-  groupMatches.value[1].forEach((match, index)=>{
+  groupMatches.value[1].forEach((match, index) => {
     // beetsje een trucje oom het aantl gepeelde wedstrijden te tellen
-    if (match[0].teamR === "VRIJ") ttlPlayed +=2
-    if (match[1].teamR === "VRIJ") ttlPlayed +=2
+    if (match[0].teamR === "VRIJ") ttlPlayed += 2
+    if (match[1].teamR === "VRIJ") ttlPlayed += 2
     // ook de 'VRIJ" rondes moeten meetellen
   })
   standingsA.forEach((team, index) => {
@@ -314,8 +315,8 @@ function updateFinalists() {
 }
 
 function saveToLocalStorage() {
-//  // console.log("Opslaan in localStorage")
-//  // console.log("toernooiTeams.value:", toernooiTeams.value)
+  //  // console.log("Opslaan in localStorage")
+  //  // console.log("toernooiTeams.value:", toernooiTeams.value)
   localStorage.setItem("tournamentTeams", JSON.stringify(toernooiTeams.value));
   localStorage.setItem("matches", JSON.stringify(matches.value));
   localStorage.setItem("tournamentGroups", JSON.stringify(groups.value));
@@ -343,27 +344,28 @@ function totalMatchesPlayed() {
 function loadFromLocalStorage() {
   const t = localStorage.getItem("tournamentTeams");
   if (t) {
-//    // console.log("Opgehaald: toernooiTeams:", t)
+    //    // console.log("Opgehaald: toernooiTeams:", t)
     toernooiTeams.value = JSON.parse(t);
-//    // console.log("Opgehaald: toernooiTeams:", toernooiTeams.value)
+    //    // console.log("Opgehaald: toernooiTeams:", toernooiTeams.value)
   }
   const g = localStorage.getItem("tournamentGroups");
   const gm = localStorage.getItem("tournamentGroupMatches");
   const m = localStorage.getItem("tournamentMatches");
   const fm = localStorage.getItem("tournamentFinalMatches");
   if (g && gm) {
-//    // console.log("Opgehaald: groepen:", g)
-//  //  console.log("Opgehaald: groepen:", g.length, gm.length)
+    //    // console.log("Opgehaald: groepen:", g)
+    //  //  console.log("Opgehaald: groepen:", g.length, gm.length)
     groups.value = JSON.parse(g);
-//  //  console.log("Opgehaald: groepen:", groups.value)
+    //  //  console.log("Opgehaald: groepen:", groups.value)
     groupMatches.value = JSON.parse(gm);
-//  //  console.log("Opgehaald: groupMatches:", groupMatches.value)
+    //  //  console.log("Opgehaald: groupMatches:", groupMatches.value)
   } else if (m) {
     matches.value = JSON.parse(m);
-//   console.log("Opgehaald: matches:", matches.value)
+    //   console.log("Opgehaald: matches:", matches.value)
 
   }
-  if (fm) {finalMatches
+  if (fm) {
+    finalMatches
     finalMatches.value = JSON.parse(fm);
   }
 }
@@ -374,12 +376,17 @@ function loadFromLocalStorage() {
 // }
 
 onMounted(() => {
+  if (!props.toernooiPlayed) {
+    props.editMode = true
+  }
+  console.log("Played in Tournament:", props.toernooiPlayed);
+  console.log("EditMode: ", props.editMode)
   if (props.groepsToernooi) {
     groups.value = splitIntoGroups(toernooiTeams.value);
     // console.log("groep.value", groups.value)
     groupMatches.value = groups.value.map((group, index) => generateMatches(group, index));
-  } else{
-    matches.value = generateMatches(toernooiTeams.value,0);
+  } else {
+    matches.value = generateMatches(toernooiTeams.value, 0);
     //  console.log("matches:" ,  matches.value)
   }
   loadFromLocalStorage();

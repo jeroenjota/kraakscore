@@ -4,7 +4,7 @@
 
 <template>
   <div>
-    <button @click="exportPdf" class="bg-blue-500 text-white px-2 rounded mt-1 mr-2"
+    <button @click="exportPdf" class="bg-blue-500 text-white px-2 rounded mt-1 mr-2" v-tooltip="'Afdrukken naar PDF'"
       style="margin-left:2px; width:auto; height:30px; font-size: .9em;"><printer class="h-6 w-6 text-white" /></button>
   </div>
 </template>
@@ -69,13 +69,13 @@ function getMatchesFromStorage() {
 
 function finalBekend() {
   const isBekend = finalMatches.value.length === 2 && finalMatches.value[0].teamL && finalMatches.value[0].teamR && finalMatches.value[1].teamL && finalMatches.value[1].teamR
-  console.log("Bekend: ", isBekend, finalMatches.value[0].teamL, finalMatches.value[0].teamR)
+  // console.log("Bekend: ", isBekend, finalMatches.value[0].teamL, finalMatches.value[0].teamR)
   return isBekend
 }
 
 function finalPlayed() {
   const isPlayed = (finalMatches.value[0].scoreL || finalMatches.value[0].scoreR) && (finalMatches.value[1].scoreLL || finalMatches.value[1].scoreR)
-  console.log("Played: ", isPlayed)
+  // console.log("Played: ", isPlayed)
   return isPlayed
 }
 
@@ -136,9 +136,9 @@ function exportPdf() {
       }
       // laatste tabel centreren als er een oneven aantal rondes is
       if (index === rounds.value.length - 1 && rounds.value.length % 2 !== 0) {
-        console.log("Index", index, xPos)
+        // console.log("Index", index, xPos)
         xPos = (pageWidth - tblWidth) / 2
-        console.log("Index", index, xPos)
+        // console.log("Index", index, xPos)
         doc.addImage(imgCafe, 'jpeg', marge, yPos, 40, 30)
         doc.addImage(imgBoom, 'jpeg', pageWidth - marge - 30, yPos, 30, 30)
       }
@@ -156,7 +156,7 @@ function exportPdf() {
         table.push(obj);
       });
       head[0] = `ronde ${(index + 1)}`
-      console.log(`Ronde: ${(index + 1)}, yPos: ${yPos}`)
+      // console.log(`Ronde: ${(index + 1)}, yPos: ${yPos}`)
       autoTable(doc, {
         theme: "grid",
         tableLineWidth: 1,
