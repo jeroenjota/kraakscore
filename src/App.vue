@@ -10,9 +10,10 @@
           </span>
         </h1>
         <div v-if="!thisToernooi && !tournamentStarted && serverAvailable" class="items-center ">
-          <select name="" id="toernooien" v-model="toernooi" class="p-1 border bg-white rounded m-1 ">
+          <select id="toernooien" v-model="toernooi" class="p-1 border bg-white rounded m-1 "
+            @change="handleSelectTournament">
             <option value="Oude toernooien" disabled>Oude toernooien</option>
-            <option @click="selectTournament(tn.id)" v-for="tn, tnindex in toernooien" :key="tnindex" :value="tn">
+            <option v-for="tn, tnindex in toernooien" :key="tnindex" :value="tn">
               {{ niceDate(tn.datum) }}</option>
           </select>
         </div>
@@ -136,14 +137,14 @@ function teamSelected(tm) {
 
 async function getSavedToernooien() {
   const response = await axios.get(`${api}/toernooien`)
-  // console.log("Toernooien opgehaald:", response.data);
+  //  // console.log("Toernooien opgehaald:", response.data);
   toernooien.value = response.data
   toernooi.value = 'Oude toernooien'
 }
 
 function editTeam(i) {
   // plaats de team naam in het input veld
-  ////  //  //  //  console.log(i, "toernooiTeams:", toernooiTeams.value[i], "tournamentStarted:", tournamentStarted);
+  // console.log(i, "toernooiTeams:", toernooiTeams.value[i], "tournamentStarted:", tournamentStarted);
   if (!tournamentStarted.value) {
     newTeam.value = toernooiTeams.value[i];
     // tijdelijk weghalen uit array
@@ -193,8 +194,6 @@ function allMatchesPlayed() {
   );
 }
 
-
-
 function removeTeamsFromToernooi() {
   // Haal alle toernooiTeams uit de deelnemers lijst 
   toernooiTeams.value = []
@@ -203,9 +202,9 @@ function resetAll() {
   // reset de deelnemende toernooiTeams , de scores en het schema
   // alleen als er een schema is ;-)
   if (thisToernooi.value) {
-        resetLocalStorage()
-        toernooi.value = 'Oude toernooien'
-      return
+    resetLocalStorage()
+    toernooi.value = 'Oude toernooien'
+    return
   }
   if (tournamentStarted.value) {
     // nogmaals bevestigen
@@ -252,27 +251,34 @@ function resetLocalStorage() {
   getSavedToernooien()
 }
 
+function handleSelectTournament() {
+  if (toernooi.value && toernooi.value.id) {
+    selectTournament(toernooi.value.id);
+  }
+}
+
+
 function selectTournament(tn) {
   thisToernooi.value = tn;
-  // console.log("selectTournament", thisToernooi.value);
+  console.log("selectTournament", thisToernooi.value);
   // laad de toernooiTeams van het geselecteerde toernooi
   loadTournament(tn);
 }
 
 async function loadTournament(tn) {
-  console.log("loadTournament", tn)
+  //  console.log("loadTournament", tn)
   console.log("Loading tournament data from:", api);
   await axios.get(`${api}/toernooien/${tn}`)
     .then(response => {
       const data = response.data;
-      console.log("Toernooi data:", data);
+      //      // console.log("Toernooi data:", data);
       // sla de toernooi data op in localStorage
       thisToernooi.value = data.id;
       repeatRounds.value = data.repeatRounds || 1;
       // toernooiTeams
       thisTNdatum.value = data.datum ? new Date(data.datum) : new Date();
       groepsToernooi.value = data.groepsToernooi !== 0;
-      console.log("tournamentTeams", data.teams);
+      //      console.log("tournamentTeams", data.teams);
       localStorage.setItem("tournamentTeams", data.teams);
       if (!groepsToernooi.value) {
         localStorage.setItem("tournamentMatches", data.matches);
@@ -306,13 +312,13 @@ async function standardTeamsToApi() {
       players: sp,
     };
   });
-  console.log("saveToApi teams:", bewaardeTeams)
+  // console.log("saveToApi teams:", bewaardeTeams)
   const sendTeams = {
     teams: bewaardeTeams,
   };
   await axios.post(`${api}/standardTeams`, sendTeams)
     .then(() => {
-      //  console.log("Teams ook opgeslagen op de server:", bewaardeTeams);
+      // console.log("Teams ook opgeslagen op de server:", bewaardeTeams);
     })
     .catch((error) => {
       console.error("Fout bij het opslaan van standaard teams:", error);
@@ -325,7 +331,7 @@ function tournamentHasData() {
   const groups = localStorage.getItem("tournamentGroups");
   const groupMatches = localStorage.getItem("tournamentGroupMatches");
   const finalMatches = localStorage.getItem("tournamentFinalMatches");
-  console.log("tournamentHasData tnTeams:", "matches:", matches, "groups:", groups, "groupMatches:", groupMatches, "finalMatches:", finalMatches)
+  //  // console.log("tournamentHasData tnTeams:", "matches:", matches, "groups:", groups, "groupMatches:", groupMatches, "finalMatches:", finalMatches)
   return matches || groups || groupMatches || finalMatches;
 }
 // controleer of er al data is voor dit toernooi
@@ -341,7 +347,7 @@ async function saveTournament() {
   const groups = localStorage.getItem("tournamentGroups");
   const groupMatches = localStorage.getItem("tournamentGroupMatches");
   const finalMatches = localStorage.getItem("tournamentFinalMatches");
-  // console.log("saveToApi tournamentTeams:", tnTeams, "groups:", groups, "groupMatches:", groupMatches, "finalMatches:", finalMatches)
+  //  // console.log("saveToApi tournamentTeams:", tnTeams, "groups:", groups, "groupMatches:", groupMatches, "finalMatches:", finalMatches)
   const toernooi = {
     datum: new Date().toISOString().split('T')[0],
     teams: tnTeams ? JSON.parse(tnTeams) : [],
@@ -354,7 +360,7 @@ async function saveTournament() {
   };
   await axios.post(`${api}/toernooien`, toernooi)
     .then(() => {
-      ////      console.log("Toernooi opgeslagen op de server");
+      //            console.log("Toernooi opgeslagen op de server");
     })
     .catch((error) => {
       console.error("Fout bij het opslaan van toernooi:", error);
@@ -393,7 +399,7 @@ function addTeam() {
 }
 
 function addAll() {
-  ////  //  //  //  console.log("addAll ... ")
+  //    //  //  //  console.log("addAll ... ")
   savedTeams.value.forEach((tm, index) => {
     getTeam(tm)
   })
@@ -459,34 +465,41 @@ watch(filteredTeams, (newTeams) => {
 
 async function startTournament() {
   if (filteredTeams.value.length >= 2) {
-    // Init groepen alvast bij 8+ teams, kan later handig zijn
-    const nu = new Date(Date.now()).toISOString().split('T')[0];
-    const tnID = await axios.get(`${api}/tournamentID?datum=${nu}`)
-      .then(response => {
-        return response.data.id;
-      })
-      .catch(error => {
-        // console.error("Fout bij het ophalen van toernooi ID:", error);
-      });
-    // console.log("tnID:", tnID); 
-    if (tnID) {
-      if (confirm("Een toernooi op deze datum bestaat al, wil je deze overschrijven?")) {
-        // verwijder het oude toernooi
-        await axios.delete(`${api}/toernooien/${tnID}`)
-          .then(() => {
-            // console.log("Oud toernooi verwijderd:", tnID);
-          })
-          .catch(error => {
-            console.error("Fout bij het verwijderen van oud toernooi:", error);
-          });
-      } else {
-        thisToernooi.value = null; // reset toernooi ID
-        resetAll();
-        resetLocalStorage()
-        toernooi.value = 'Oude toernooien'
-        return; // stop hier
-      }
-    }
+
+    // // controleer of er al een toernooi is voor deze datum
+    // const nu = new Date(Date.now()).toISOString().split('T')[0];
+    // const tnID = await axios.get(`${api}/tournamentID?datum=${nu}`)
+    //   .then(response => {
+    //     console.log("Toernooi ID opgehaald:", response.data.id);
+    //     return response.data.id;
+    //   })
+    //   .catch(error => {
+    //     console.error("Fout bij het ophalen van toernooi ID:", error);
+    //   });
+    // console.log("tnID:", tnID);
+    // if (tnID) {
+    //   if (confirm("Een toernooi op deze datum bestaat al, deze wordt overschreven, tenzij je nu annuleert!")) {
+    //     // verwijder het oude toernooi
+    //     await axios.delete(`${api}/toernooien/${tnID}`)
+    //       .then(() => {
+    //         console.log("Oud toernooi verwijderd:", tnID);
+    //         thisToernooi.value = null; // reset toernooi ID
+    //         // resetAll();
+    //         // resetLocalStorage()
+    //         toernooi.value = 'Oude toernooien'
+    //         return; // stop hier
+    //       })
+    //       .catch(error => {
+    //         console.error("Fout bij het verwijderen van oud toernooi:", error);
+    //       });
+    //   } else {
+    //     // stop hier, dus geen toernooi starten
+    //     // laad dit toernooi opnieuw
+    //     await loadTournament(tnID);
+    //     console.log("Toernooi niet gestart, terug naar het toernooi:", tnID);
+    //     return;
+    //   }
+    // }
     addTeamsToList() // voeg eventueel nieuwe teams aan de standaardlijst toe
     groepsToernooi.value = false
     if (filteredTeams.value.length >= 7) {
@@ -537,11 +550,11 @@ function handleReset() {
 }
 
 async function getSavedTeamsFromApi() {
-  ////  console.log("getSavedTeamsFromApi")
+  //    console.log("getSavedTeamsFromApi")
   await axios.get(`${api}/savedTeams`)
     .then(response => {
       const Teams = response.data.sort();
-      ////      console.log("Teams opgehaald van de API:", savedTeams);
+      //            console.log("Teams opgehaald van de API:", savedTeams);
       Teams.forEach((tm, index) => {
         // check of het team al in de lijst staat
         if (!savedTeams.value.includes(tm)) {
@@ -559,6 +572,7 @@ async function isServerActive() {
   // controleer of de server beschikbaar is
   try {
     const res = await axios.get(`${api}/ping`, { timeout: 1000 });
+    console.log("API server beschikbaar:", res.status);
     if (res.status === 200) {
       serverAvailable.value = true;
     }
@@ -568,20 +582,20 @@ async function isServerActive() {
   }
 }
 
-onMounted(() => {
-  console.log("api = ", api);
-  isServerActive(); // kijk o de server beschikbaar is
-  const saved = localStorage.getItem("savedTeams");
-  if (saved) {
-    // console.log("Teams gevonden in localStorage:", saved);
-    savedTeams.value = JSON.parse(saved);
-    standardTeamsToApi(); // zet de standaard teams naar de API
+onMounted(async () => {
+  //  console.log("api = ", api);
+  await isServerActive(); // kijk o de server beschikbaar is
+  if (serverAvailable.value) {
+    // haal de opgeslagen teams op van de API
+    await getSavedTeamsFromApi();
+    await getSavedToernooien();
   } else {
-    // console.log("Geen teams gevonden in localStorage, wacht op API data...");
-    getSavedTeamsFromApi()
+    // haal de opgeslagen teams uit localStorage
+    const saved = localStorage.getItem("savedTeams");
+    if (saved) {
+      savedTeams.value = JSON.parse(saved);
+    }
   }
-  // haal opgeslagen toernooien op
-  getSavedToernooien()
 
 });
 
