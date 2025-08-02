@@ -36,12 +36,28 @@ const finalMatches = ref([
   { teamL: null, teamR: null, scoreL: null, scoreR: null }, // 3e plaats
 ]);
 
+const ranking= ref([]); // Ranking data, if needed
+
 const props = defineProps({
   groepsToernooi: {
     type: Boolean,
     default: false
   },
+  ranking: {
+    type: Array,
+    default: () => []
+  },
+  toernooien: {
+    type: Array,
+    default: () => []
+  }, 
+  datum: {
+    type: String,
+    default: () => new Date().toISOString().split('T')[0]
+  }
 })
+
+const toernooien = ref(props.toernooien).value.sort((a, b) => new Date(a.datum) - new Date(b.datum));
 // Ophalen en parsen van data uit localStorage
 function getMatchesFromStorage() {
   teams.value = JSON.parse(localStorage.getItem("tournamentTeams"));
@@ -79,19 +95,28 @@ function finalPlayed() {
   return isPlayed
 }
 
-function niceDate(date) {
+function niceDate(date, jaar = false) {
   if (!date) return "";
   const d = new Date(date);
   return d.toLocaleDateString("nl-NL", {
-    weekday:"long",
     day: "numeric",
-    month: "long",
-    year: "numeric",
+    month: "short",
+    ...(jaar && { year: "numeric" })
   });
+}
+
+function getRanking() {
+  if (props.ranking.length > 0) {
+    ranking.value = props.ranking;
+  } else {
+    ranking.value = [];
+    // console.log("Geen ranking data beschikbaar")
+  }
 }
 
 function exportPdf() {
   getMatchesFromStorage();
+  const deRanking =  props.ranking.length > 0 ? props.ranking : ranking.value;
   const doc = new jsPDF();
   let countPlayed = 0;
   let countRondeMatch = 0;
@@ -103,7 +128,7 @@ function exportPdf() {
   let saveY = 0
   doc.setFont("times");
   doc.setFontSize(18);
-  const datum = niceDate(Date.now());
+  const datum = niceDate(props.datum, true);
   doc.addImage(imgRaam, 'jpeg', marge, marge - 6, 30, 18)
   doc.addImage(imgKraak, 'jpeg', pageWidth - marge - 30, marge - 6, 30, 18)
   doc.text("Kraaktoernooi van " + datum, pageWidth / 2, yPos, { align: "center" });
@@ -402,6 +427,53 @@ function exportPdf() {
   doc.setFontSize(8)
   doc.text(`©2025 jota services`, pageWidth / 2, 290, { align: "center" });
   doc.setFontSize(savFntSize)
+  // doc.insertPage(1, "after");
+  doc.addPage();
+  doc.setFontSize(18);
+  doc.text("Laurierboom Kraaktoernooi", pageWidth / 2, 20, { align: "center" });
+  doc.setFontSize(16);
+  let txt = "Ranking ";
+  const sem= new Date(datum).getMonth() < 7 ? "eerste" : "tweede";
+  txt += sem;
+  doc.text(`${txt} semester ${new Date(datum).getFullYear()}`, pageWidth / 2, 25, { align: "center" });
+  doc.setFontSize(10);
+  doc.line(marge, 35, pageWidth - marge, 35);
+  autoTable(doc, {
+    head: [["Plaats", "Speler", "Gesp", ...toernooien.map(t => niceDate(t.datum)), "Beste 6"]],
+    body: deRanking.map((r, index) => [
+      r.plaats,
+      r.speler,
+      r.gesp,
+      ...props.toernooien.map(t => r.scores.find(s => s.datum === t.datum)?.punten || "-"),
+      r.totaal || "-"
+    ]),
+    theme: "striped",
+    styles: { font: "times", fontSize: 10 },
+    startY: 40,
+    headStyles: { fillColor: [0, 100, 139] ,fontSize : 12, textColor: [255, 255, 255]},
+    columnStyles: { 2: { halign: "center" } },
+    // tableWidth: tblWidth,
+    tableLineWidth: 1,
+    // margin: { left: (pageWidth - tblWidth) / 2 },
+    // didParseCell: function (data) {
+    //   if (data.section === "body" && data.row.index === 0) {
+    //     if (data.column.index === 1) {
+    //       data.cell.styles.fontSize = 20;
+    //     }
+    //   }
+    //   if (data.section === "body" && data.row.index === 1) {
+    //     if (data.column.index === 1) {
+    //       data.cell.styles.fontSize = 18;
+    //     }
+    //   }
+    //   if (data.section === "body" && data.row.index === 2) {
+    //     if (data.column.index === 1) {
+    //       data.cell.styles.fontSize = 16;
+    //     }
+    //   }
+    // },
+  });
+  yPos = doc.lastAutoTable.finalY + 2;
   doc.save("kraaktoernooi.pdf");
 }
 
