@@ -684,7 +684,7 @@ onMounted(async () => {
     await getSavedToernooien();
     toast.success("Welkom bij Jota's Kraak Score \nGegevens zijn opgehaald van de server", {
       position: "top-center",
-      timeout: 5000,
+      timeout: 3000,
     });
   } else {
     // haal de opgeslagen teams uit localStorage
