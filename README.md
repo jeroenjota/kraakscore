@@ -6,7 +6,9 @@ The app is for (card) tournaments between couples or individuals. Could also be 
 The app was developped for *Café de Laurierboom*, **the best bar in Amsterdam** where we play a '**Kraak**' tournament every two weeks.
 
 ## Usage
-If there are old data from a previous tournament, Click [*reset*]. All tournament data will be deleted, the saved teams/players will still be available. (As long as your browsers LocalStorage is not reset)
+If there are old data from a previous tournament, Click [*reset*]. All tournament data can be saved to the backend API and will then be deleted in de localstorage. The saved teams/players will be available. 
+
+Saved tournaments can be edited (CAREFULL!), printed and deleted with the buttons in de header.
 
 For new teams or players, fill in the name(s) of the player/teams in the **Teamname** field and press enter (or click "[*OK*]" )
 Saved teams & players can be selected from the list in the **Opgeslagen teams** section
