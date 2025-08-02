@@ -8,13 +8,15 @@
         <td style="width:5%; text-align: center;" class="border px-2">vs</td>
         <td style="width:25%; text-align: left;" class="border px-2">{{ match.teamR }}</td>
         <td style="width:15%; text-align: left;" class="border px-2">
-          <input style="width:100%; margin:0" type="number"v-model.number="scores[index].scoreL" min="0"
-            @change="update(index)" @keypress="blokkeerLetters" :disabled="hasVRIJ(index)"/>
+          <input style="width:100%; margin:0" type="number" v-model.number="scores[index].scoreL" min="0" step="10"
+            :disabled="!editMode || hasVRIJ(index)"
+            @change="update(index)" @keypress="blokkeerLetters"/>
+
         </td>
         <td style="width:3%; text-align: center;" class="border px-2">-</td>
         <td style="width:15%; text-align: left;" class="border px-2">
-          <input style="width:100%; margin:0" type="number" v-model.number="scores[index].scoreR" min="0"
-            @change="update(index)" @keypress="blokkeerLetters" :disabled="hasVRIJ(index)"/>
+          <input style="width:100%; margin:0" type="number" v-model.number="scores[index].scoreR" min="0" step="10"
+            @change="update(index)" @keypress="blokkeerLetters" :disabled="!editMode || hasVRIJ(index)"/>
         </td>
       </tr>
     </tbody>
@@ -22,8 +24,9 @@
 </template>
 
 <script setup>
-import { ref, watchEffect } from 'vue'
+import { onMounted, ref, watchEffect } from 'vue'
 import { useInputFilters } from '../composables/useInputFilters';
+
 
 const { blokkeerLetters } = useInputFilters();
 
@@ -32,13 +35,21 @@ const props = defineProps({
   teams: Array,
   matchType: {
     type: String,
+  },
+  editMode: {
+    type: Boolean
   }
 
 })
 
+
+// console.log('Edit mode in MatchTable:', editMode);
+
 const emit = defineEmits(['update-result'])
 
 const scores = ref([])
+
+console.log('Edit mode in MatchTable:', props.editMode);
 
 watchEffect(() => {
   scores.value = props.matches.map(match => ({
@@ -46,7 +57,7 @@ watchEffect(() => {
     scoreL: match.scoreL ?? '',
     scoreR: match.scoreR ?? ''
   }))
-//  // console.log("Scores:", scores.value)
+//  console.log("Scores::", scores.value)
 })
 
 function hasVRIJ(match){
@@ -55,10 +66,13 @@ function hasVRIJ(match){
 }
 
 function update(index) {
+ // console.log("update index:", index, "scores:", scores.value)
   const { scoreL, scoreR } = scores.value[index]
   if (scoreL !== '' && scoreR !== '') {
-//    console.log('update-result', index, Number(scoreL), Number(scoreR))
     emit('update-result', index, Number(scoreL), Number(scoreR))
   }
 }
+onMounted(() => {
+ // console.log("MatchTable mounted with matches:", props.matches)
+})
 </script>

@@ -39,8 +39,6 @@ function setID(group){
 
 const standings = computed(() => {
 
-//  //  console.log("matches:", props.matches)
-
   return props.teams.map(name => {
     const stats = {
       name,
@@ -49,9 +47,9 @@ const standings = computed(() => {
     }
 
     for (const round of props.matches) {
-//      //  console.log("Ronde:", round)
+     //  console.log("Ronde:", round)
       for (const match of round) {
-//        //  console.log("tafel:", match)
+       //  console.log("tafel:", match)
 
         if (match.scoreL == null || match.scoreR == null) continue
 
@@ -60,16 +58,11 @@ const standings = computed(() => {
         if (!isTeamA && !isTeamB) continue
         const goalsFor = isTeamA ? match.scoreL : match.scoreR
         const goalsAgainst = isTeamA ? match.scoreR : match.scoreL
-//        //  console.log("Score: ", goalsFor, goalsAgainst)
+       //  console.log("Score: ", goalsFor, goalsAgainst)
 
         stats.goalsFor += goalsFor
         stats.goalsAgainst += goalsAgainst
         stats.played += 1
-      //   // if (goalsFor > goalsAgainst) stats.wins++
-      //   // else if (goalsFor === goalsAgainst) stats.draws++
-      //   // else stats.losses++
-
-      //   // stats.points = stats.wins * 3 + stats.draws
       }
     }
 

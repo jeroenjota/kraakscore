@@ -4,8 +4,8 @@
 
 <template>
   <div>
-    <button @click="exportPdf" class="bg-green-500 text-white px-2 rounded mt-2"
-      style="margin-left:2px; width:auto; height:30px; font-size: .9em;">Afdrukken</button>
+    <button @click="exportPdf" class="bg-blue-500 text-white px-2 rounded mt-1 mr-2" v-tooltip="'Afdrukken naar PDF'"
+      style="margin-left:2px; width:auto; height:30px; font-size: .9em;"><printer class="h-6 w-6 text-white" /></button>
   </div>
 </template>
 
@@ -20,6 +20,11 @@ import imgCafe from '../assets/cafe.jpg'
 import imgKraak from '../assets/kraken.jpeg'  // kraken
 import imgKaarten from '../assets/kaarten.png'
 import imgBeker from '../assets/beker.jpg'
+
+import {PrinterIcon } from '@heroicons/vue/24/solid'
+const printer = PrinterIcon
+
+
 
 let gesplitst = false
 const rounds = ref([]);
@@ -39,7 +44,7 @@ const props = defineProps({
 })
 // Ophalen en parsen van data uit localStorage
 function getMatchesFromStorage() {
-  teams.value = JSON.parse(localStorage.getItem("teams"));
+  teams.value = JSON.parse(localStorage.getItem("tournamentTeams"));
   gesplitst = props.groepsToernooi
 //  console.log("gesplistst", gesplitst)
   const g = localStorage.getItem("tournamentGroups");
@@ -48,29 +53,29 @@ function getMatchesFromStorage() {
   const fm = localStorage.getItem("tournamentFinalMatches");
   if (gesplitst) {
     groups.value = JSON.parse(g);
-//    //  console.log("Opgehaald: groepen:", groups.value)
+   //  console.log("Opgehaald: groepen:", groups.value)
     groupMatches.value = JSON.parse(gm);
-//    //  console.log("Opgehaald: gro upMatches:", matches.value)
+    //  console.log("Opgehaald: gro upMatches:", matches.value)
   } else {
-//    //  console.log("Single toernooi")
+    //  console.log("Single toernooi")
     rounds.value = JSON.parse(m);
-//    //  console.log("Opgehaald: matches:", rounds.value)
+    //  console.log("Opgehaald: matches:", rounds.value)
   }
   if (fm) {
     finalMatches.value = JSON.parse(fm);
-//    //  console.log("finales:", finalMatches.value)
+    //  console.log("finales:", finalMatches.value)
   }
 }
 
 function finalBekend() {
   const isBekend = finalMatches.value.length === 2 && finalMatches.value[0].teamL && finalMatches.value[0].teamR && finalMatches.value[1].teamL && finalMatches.value[1].teamR
-//  console.log("Bekend: ", isBekend, finalMatches.value[0].teamL, finalMatches.value[0].teamR)
+  // console.log("Bekend: ", isBekend, finalMatches.value[0].teamL, finalMatches.value[0].teamR)
   return isBekend
 }
 
 function finalPlayed() {
   const isPlayed = (finalMatches.value[0].scoreL || finalMatches.value[0].scoreR) && (finalMatches.value[1].scoreLL || finalMatches.value[1].scoreR)
-//  console.log("Played: ", isPlayed)
+  // console.log("Played: ", isPlayed)
   return isPlayed
 }
 
@@ -131,9 +136,9 @@ function exportPdf() {
       }
       // laatste tabel centreren als er een oneven aantal rondes is
       if (index === rounds.value.length - 1 && rounds.value.length % 2 !== 0) {
-//        console.log("Index", index, xPos)
+        // console.log("Index", index, xPos)
         xPos = (pageWidth - tblWidth) / 2
-//        console.log("Index", index, xPos)
+        // console.log("Index", index, xPos)
         doc.addImage(imgCafe, 'jpeg', marge, yPos, 40, 30)
         doc.addImage(imgBoom, 'jpeg', pageWidth - marge - 30, yPos, 30, 30)
       }
@@ -151,7 +156,7 @@ function exportPdf() {
         table.push(obj);
       });
       head[0] = `ronde ${(index + 1)}`
-//      console.log(`Ronde: ${(index + 1)}, yPos: ${yPos}`)
+      // console.log(`Ronde: ${(index + 1)}, yPos: ${yPos}`)
       autoTable(doc, {
         theme: "grid",
         tableLineWidth: 1,
@@ -235,7 +240,7 @@ function exportPdf() {
       gm.forEach((round, idx) => {
         table = [];
         round.forEach((match, idx) => {
-//          //  console.log("Match:" , match)
+          //  console.log("Match:" , match)
           let obj = []
           if ((match.scoreL || match.scoreR) || match.teamR === 'VRIJ') {
             obj = [`T${(match.tafel)}`, match.teamL + " vs " + match.teamR, `${match.scoreL} - ${match.scoreR}`];
