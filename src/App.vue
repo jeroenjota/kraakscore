@@ -5,7 +5,7 @@
         <h1 class="text-2xl font-bold">
           <span v-if="thisToernooi">Kraaktoernooi</span>
           <span v-else>
-            <span class="boom">Boom Kraakscore</span>
+            <span class="boom">LaurierBoom Kraak</span>
           </span>
         </h1>
         <div v-if="!thisToernooi && !tournamentStarted && serverAvailable" class="items-center ">
@@ -15,9 +15,10 @@
             <option v-for="tn, tnindex in toernooien" :key="tnindex" :value="tn">
               {{ niceDate(tn.datum) }}</option>
           </select>
-          <span @click="toggleShowRanking" v-tooltip="'Toon ranking'" class="text-white">
-            Ranking:
-          </span>
+          <button @click="toggleShowRanking" v-tooltip="'Toon ranking'" class="text-white bg-blue-800 px-2 rounded mt-2 mr-0 p-2">
+            <span v-if="showRanking">Terug</span>
+            <span v-else>Ranking</span>
+          </button>
           <select @change="setPeriode()" class="p-1 bg-white border rounded m-1" name="semester" id="semester"
             v-model="currentSemester">
             <option v-for="semester in getSemesters()" :key="semester" :value="semester">
@@ -171,8 +172,8 @@ function setPeriode() {
   vanaf.value = `${year}-${startMonth}-01`;
   tot.value = `${year}-${semester === '1' ? '06' : '12'}-31`;
   filterToernooien()
-  console.log("Periode ingesteld van", vanaf.value, "tot", tot.value);
-  console.log("Toernooien na filteren:", filteredToernooien.value);
+  // console.log("Periode ingesteld van", vanaf.value, "tot", tot.value);
+  // console.log("Toernooien na filteren:", filteredToernooien.value);
   filterRankingByPeriod();
 }
 
@@ -657,7 +658,7 @@ async function startTournament() {
     let rndTxt = 'ronde'
     if (repeatRounds.value > 1) rndTxt = 'rondes'
     let msg = `Het schema wordt gemaakt voor ${repeatRounds.value} ${rndTxt} \nmet ${(filteredTeams.value.length)} teams`
-    if (groepsToernooi) {
+    if (groepsToernooi.value) {
       msg += ', verdeeld over twee groepen'
     }
     msg += `\n\nIs dit de bedoeling?`
