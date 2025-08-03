@@ -1,7 +1,7 @@
 <template>
 
   <div class="relative flex flex-col w-full h-full overflow-scroll text-gray-700 bg-white shadow-md bg-clip-border ">
-    <h1 class="text-xl font-bold mb-2 bg-blue-800">Ranking na {{ toernooien.length }} toernooien van {{ niceDate(vanaf) }} tot {{ niceDate(tot, true) }}</h1>
+    <h1 class="text-xl font-bold mb-2 bg-blue-800">Ranking na {{ toernooien.length }} toernooien in het {{ getSemester(vanaf, true) }}</h1>
     <table class="border-2 border-collapse border-gray-800 text-sm  rounded " id="rankingTable">
       <thead>
         <tr class="border-2">
@@ -33,6 +33,7 @@
 
 <script setup>
 // import { defineProps } from 'vue';
+import { computed } from 'vue';
 
 const props = defineProps({
   ranking: {
@@ -53,7 +54,22 @@ const props = defineProps({
   }
 });
 
-const toernooienSorted = props.toernooien.sort((a, b) => new Date(a.datum) - new Date(b.datum));
+
+const toernooien = computed(() => {
+  return props.toernooien.filter(t => new Date(t.datum) >= new Date(props.vanaf) && new Date(t.datum) <= new Date(props.tot)).sort((b, a) => new Date(b.datum) - new Date(a.datum));
+});
+
+function getSemester(date, jaar) {
+  const d = new Date(date);
+  console.log("Jaar:", d);
+  const month = d.getMonth() + 1; // Months are zero-indexed
+  let result = month <= 6 ? '1e semester' : '2e semester';
+  if (jaar) {
+
+    result += ` ${d.getFullYear()}`;
+  }
+  return result;
+}
 
 function toonPlaats(index) {
   if (index === 0) return props.ranking[0].plaats
