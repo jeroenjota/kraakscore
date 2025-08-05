@@ -375,6 +375,7 @@ function loadFromLocalStorage() {
 //   emit("reset");
 // }
 
+
 onMounted(() => {
   if (!props.toernooiPlayed) {
     props.editMode = true

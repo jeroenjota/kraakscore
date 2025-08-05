@@ -1,0 +1,97 @@
+import autoTable from "jspdf-autotable";
+import { niceDate, getSemesterText } from "../dateUtils";
+
+function toonPlaats(ranking, index) {
+  if (index === 0) return ranking[0].plaats
+  if (ranking[index].plaats !== ranking[index - 1].plaats) {
+    return ranking[index].plaats
+  }
+  return ''
+}
+
+function gespeeld(ranking, index) {
+  let gespeeld = 0;
+  ranking[index].scores.forEach((res) => {
+    if (res.punten !== 0) gespeeld++;
+  });
+  return gespeeld || 0;
+}
+
+
+export function rankingPDF(doc, ranking, toernooien, datum) {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const marge = 20;
+  let yPos = 10;
+  doc.setFont("times");
+  const formattedDate = niceDate(datum, true);
+  console.log("Datum voor PDF:", formattedDate, datum);
+  doc.setFontSize(18);
+  doc.text("Laurierboom Kraaktoernooi", pageWidth / 2, 20, { align: "center" });
+  doc.setFontSize(16);
+  let txt = "Ranking " + getSemesterText(datum, true);
+  if (toernooien.length > 0) {
+    txt += ` na ${toernooien.length} toernooien`;
+  } else {
+    txt += " (geen toernooien)";
+  }
+
+  doc.text(`${txt}`, pageWidth / 2, 25, { align: "center" });
+  doc.setFontSize(10);
+  doc.line(marge, 35, pageWidth - marge, 35);
+  autoTable(doc, {
+    head: [["Pl", "Speler", "Gesp", ...toernooien.map(t => niceDate(t.datum)), "Beste 6"]],
+    body: ranking.map((r, index) => [
+      toonPlaats(ranking , index),
+      r.speler,
+      gespeeld(ranking, index),
+      ...toernooien.map(t => r.scores.find(s => s.datum === t.datum)?.punten || "-"),
+      r.totaal || "-"
+    ]),
+    theme: "striped",
+    startY: 40,
+    headStyles: {
+      fillColor: [0, 100, 139],
+      fontSize: 12,
+      textColor: [255, 255, 255],
+      halign: "center",
+      valign: "bottom"
+    },
+    styles: { font: "times", fontSize: 10, halign: "center", cellWidth: "auto" },
+
+    columnStyles: {
+      1: { cellWidth: 25, halign: "left", valign: "middle" },
+    },
+    didParseCell: function (data) {
+      // For the header row, column index 1 = "Speler"
+      if (data.section === 'head' && data.column.index === 1) {
+        data.cell.styles.halign = 'left';
+      }
+      if (data.section === 'body' && (data.column.index === 1 || data.column.index === 0 || data.column.index === data.table.columns.length - 1)) {
+        data.cell.styles.fontSize = 14;
+        const colIndex = data.column.index;
+        const rowIndex = data.row.index;
+
+        // Eerste rij altijd vet (plaats 1)
+        const highScore = ranking[0]?.totaal; 
+        const currentTotaal = ranking[rowIndex]?.totaal;
+        const prevTotaal = highScore
+        const isTopRow = rowIndex === 0;
+        const sameAsAbove = currentTotaal === prevTotaal;
+
+        const isNameCol = colIndex === 1;
+        const isTotaalCol = colIndex === data.table.columns.length - 1;
+
+        if ((isTopRow || sameAsAbove) && (isNameCol || isTotaalCol)) {
+          data.cell.styles.fontStyle = 'bold';
+        }
+      }
+    },
+    tableLineWidth: 1,
+  });
+  // yPos = doc.lastAutoTable.finalY + 2;
+  // const blobPDF = doc.output("blob");
+  // window.open(URL.createObjectURL(blobPDF));
+  // const fileName = `Ranking_${datum}.pdf`;
+  // doc.save(fileName);
+  // doc.output("dataurlnewwindow");
+} 

@@ -1,30 +1,15 @@
-<template>
-  <div>
-    <button @click="exportPdf" class="bg-blue-500 text-white px-2 rounded mt-1 mr-2" v-tooltip="'Afdrukken naar PDF'"
-      style="margin-left:2px; width:auto; height:30px; font-size: .9em;">
-      <printer class="h-6 w-6 text-white" />
-    </button>
-  </div>
-</template>
+import {autoTable} from "jspdf-autotable";
 
-<script setup>
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import { rankingPDF } from "../utils/pdf/rankingPDF.js";
-import { ref, computed } from "vue";
+import imgRaam from '../../assets/raam.jpg'
+import { ref } from 'vue'
+import imgBoom from '../../assets/laurierboom.jpeg'
+import imgCafe from '../../assets/cafe.jpg'
+import imgKraak from '../../assets/kraken.jpeg'  // kraken
+import imgKaarten from '../../assets/kaarten.png'
+import imgBeker from '../../assets/beker.jpg'
 
-import imgRaam from '../assets/raam.jpg'
-import imgBoom from '../assets/laurierboom.jpeg'
-import imgCafe from '../assets/cafe.jpg'
-import imgKraak from '../assets/kraken.jpeg'  // kraken
-import imgKaarten from '../assets/kaarten.png'
-import imgBeker from '../assets/beker.jpg'
 
-import { niceDate, getSemesterText } from '../utils/dateUtils.js'
-
-import { PrinterIcon } from '@heroicons/vue/24/solid'
-const printer = PrinterIcon
-
+import { niceDate, getSemesterText } from "../dateUtils";
 
 
 let gesplitst = false
@@ -38,43 +23,10 @@ const finalMatches = ref([
 ]);
 
 
-const props = defineProps({
-  groepsToernooi: {
-    type: Boolean,
-    default: false
-  },
-  ranking: {
-    type: Array,
-  },
-  toernooien: {
-    type: Array,
-  },
-  datum: {
-    type: Date,
-    default: () => new Date().toISOString().split('T')[0]
-  }
-})
-const toernooien = computed(() => {
-  return [...props.toernooien].sort((a, b) => new Date(a.datum) - new Date(b.datum));
-});
-
-const ranking = computed(() => {
-  return [...props.ranking].sort((a, b) => a.plaats - b.plaats);
-});
-
-function toonPlaats(index) {
-  if (index === 0) return ranking.value[0].plaats
-  if (ranking.value[index].plaats !== ranking.value[index - 1].plaats) {
-    return ranking.value[index].plaats
-  }
-  return ''
-}
-
-
 // Ophalen en parsen van data uit localStorage
 function getMatchesFromStorage() {
   teams.value = JSON.parse(localStorage.getItem("tournamentTeams"));
-  gesplitst = props.groepsToernooi
+  gesplitst = false
   //  console.log("gesplistst", gesplitst)
   const g = localStorage.getItem("tournamentGroups");
   const gm = localStorage.getItem("tournamentGroupMatches");
@@ -96,6 +48,14 @@ function getMatchesFromStorage() {
   }
 }
 
+function gespeeld(index) {
+  let gespeeld = 0;
+  ranking.value[index].scores.forEach((res) => {
+    if (res.punten !== 0) gespeeld++;
+  });
+  return gespeeld || 0;
+}
+
 function finalBekend() {
   const isBekend = finalMatches.value.length === 2 && finalMatches.value[0].teamL && finalMatches.value[0].teamR && finalMatches.value[1].teamL && finalMatches.value[1].teamR
   // console.log("Bekend: ", isBekend, finalMatches.value[0].teamL, finalMatches.value[0].teamR)
@@ -108,10 +68,8 @@ function finalPlayed() {
   return isPlayed
 }
 
-
-function exportPdf() {
+export function fullPDF(doc) {
   getMatchesFromStorage();
-  const doc = new jsPDF();
   let countPlayed = 0;
   let countRondeMatch = 0;
   const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
@@ -425,73 +383,69 @@ function exportPdf() {
 
   //  RANKING page
   doc.addPage();
-  rankingPDF(doc, ranking.value, toernooien.value, props.datum);
-  // doc.setFontSize(18);
-  // doc.text("Laurierboom Kraaktoernooi", pageWidth / 2, 20, { align: "center" });
-  // doc.setFontSize(16);
-  // let txt = "Ranking " + getSemesterText(props.datum, true);
-  // if (toernooien.value.length > 0) {
-  //   txt += ` na ${toernooien.value.length} toernooien`;
-  // } else {
-  //   txt += " (geen toernooien)";
-  // }
+  doc.setFontSize(18);
+  doc.text("Laurierboom Kraaktoernooi", pageWidth / 2, 20, { align: "center" });
+  doc.setFontSize(16);
+  let txt = "Ranking " + getSemesterText(props.datum, true);
+  if (toernooien.value.length > 0) {
+    txt += ` na ${toernooien.value.length} toernooien`;
+  } else {
+    txt += " (geen toernooien)";
+  }
 
-  // doc.text(`${txt}`, pageWidth / 2, 25, { align: "center" });
-  // doc.setFontSize(10);
-  // doc.line(marge, 35, pageWidth - marge, 35);
-  // autoTable(doc, {
-  //   head: [["Pl", "Speler", "Gesp", ...toernooien.value.map(t => niceDate(t.datum)), "Beste 6"]],
-  //   body: ranking.value.map((r, index) => [
-  //     toonPlaats(index),
-  //     r.speler,
-  //     gespeeld(index),
-  //     ...toernooien.value.map(t => r.scores.find(s => s.datum === t.datum)?.punten || "-"),
-  //     r.totaal || "-"
-  //   ]),
-  //   theme: "striped",
-  //   startY: 40,
-  //   headStyles: {
-  //     fillColor: [0, 100, 139],
-  //     fontSize: 12,
-  //     textColor: [255, 255, 255],
-  //     halign: "center",
-  //     valign: "bottom"
-  //   },
-  //   styles: { font: "times", fontSize: 10, halign: "center", cellWidth: "auto" },
+  doc.text(`${txt}`, pageWidth / 2, 25, { align: "center" });
+  doc.setFontSize(10);
+  doc.line(marge, 35, pageWidth - marge, 35);
+  autoTable(doc, {
+    head: [["Pl", "Speler", "Gesp", ...toernooien.value.map(t => niceDate(t.datum)), "Beste 6"]],
+    body: ranking.value.map((r, index) => [
+      toonPlaats(index),
+      r.speler,
+      gespeeld(index),
+      ...toernooien.value.map(t => r.scores.find(s => s.datum === t.datum)?.punten || "-"),
+      r.totaal || "-"
+    ]),
+    theme: "striped",
+    startY: 40,
+    headStyles: {
+      fillColor: [0, 100, 139],
+      fontSize: 12,
+      textColor: [255, 255, 255],
+      halign: "center",
+      valign: "bottom"
+    },
+    styles: { font: "times", fontSize: 10, halign: "center", cellWidth: "auto" },
 
-  //   columnStyles: {
-  //     1: { cellWidth: 25, halign: "left", valign: "middle" },
-  //   },
-  //   didParseCell: function (data) {
-  //     // For the header row, column index 1 = "Speler"
-  //     if (data.section === 'head' && data.column.index === 1) {
-  //       data.cell.styles.halign = 'left';
-  //     }
-  //     if (data.section === 'body' && (data.column.index === 1 || data.column.index === 0 || data.column.index === data.table.columns.length - 1)) {
-  //       data.cell.styles.fontSize = 14;
-  //       const colIndex = data.column.index;
-  //       const rowIndex = data.row.index;
+    columnStyles: {
+      1: { cellWidth: 25, halign: "left", valign: "middle" },
+    },
+    didParseCell: function (data) {
+      // For the header row, column index 1 = "Speler"
+      if (data.section === 'head' && data.column.index === 1) {
+        data.cell.styles.halign = 'left';
+      }
+      if (data.section === 'body' && (data.column.index === 1 || data.column.index === 0 || data.column.index === data.table.columns.length - 1)) {
+        data.cell.styles.fontSize = 14;
+        const colIndex = data.column.index;
+        const rowIndex = data.row.index;
 
-  //       // Eerste rij altijd vet (plaats 1)
-  //       const highScore = ranking.value[0]?.totaal; 
-  //       const currentTotaal = ranking.value[rowIndex]?.totaal;
-  //       const prevTotaal = highScore
-  //       const isTopRow = rowIndex === 0;
-  //       const sameAsAbove = currentTotaal === prevTotaal;
+        // Eerste rij altijd vet (plaats 1)
+        const highScore = ranking.value[0]?.totaal; 
+        const currentTotaal = ranking.value[rowIndex]?.totaal;
+        const prevTotaal = highScore
+        const isTopRow = rowIndex === 0;
+        const sameAsAbove = currentTotaal === prevTotaal;
 
-  //       const isNameCol = colIndex === 1;
-  //       const isTotaalCol = colIndex === data.table.columns.length - 1;
+        const isNameCol = colIndex === 1;
+        const isTotaalCol = colIndex === data.table.columns.length - 1;
 
-  //       if ((isTopRow || sameAsAbove) && (isNameCol || isTotaalCol)) {
-  //         data.cell.styles.fontStyle = 'bold';
-  //       }
-  //     }
-  //   },
-  //   tableLineWidth: 1,
-  // });
+        if ((isTopRow || sameAsAbove) && (isNameCol || isTotaalCol)) {
+          data.cell.styles.fontStyle = 'bold';
+        }
+      }
+    },
+    tableLineWidth: 1,
+  });
   yPos = doc.lastAutoTable.finalY + 2;
   doc.save("kraaktoernooi.pdf");
 }
-
-
-</script>
