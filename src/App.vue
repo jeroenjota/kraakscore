@@ -50,14 +50,12 @@
             v-tooltip="'Sluit toernooi'"
             style="margin-left:2px; margin-right: 2px; width:auto; height:30px; font-size: .9em;"><span
               v-if="thisToernooi">OK</span><span v-else>Klaar</span></button>
-<!-- 
-          <div>
+          <!-- <div>
             <button @click="maakPdf" class="bg-blue-500 text-white px-2 rounded mt-1 mr-2"
               v-tooltip="'Afdrukken naar PDF'" style="margin-left:2px; width:auto; height:30px; font-size: .9em;">
               <printer class="h-6 w-6 text-white" />
             </button>
-          </div>
- -->
+          </div> -->
           <Pdf :groepsToernooi="groepsToernooi" :ranking="filteredRanking" :toernooien="filteredToernooien"
             :datum="thisTNdatum" />
 
@@ -145,7 +143,9 @@ import longpress from './directives/longpress.js';
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
 import { fullPDF } from './utils/pdf/tournamentPDF.js'
+import { rankingPDF } from "./utils/pdf/rankingPDF.js";
 import jsPDF from "jspdf";
+
 
 const toast = useToast()
 
@@ -160,8 +160,11 @@ const rankingData = ref([]); // voor de ranking data
 const filteredRanking = ref([]);
 const serverAvailable = ref(false);
 
+const toernooiSaved = ref(false); // om te weten of het toernooi is Opgeslagen
+
 // const api = import.meta.env.VITE_API_URL || 'http://piweb:54321';
-const api = 'http://localhost:54321';
+const api = import.meta.env.VITE_API_URL;
+console.log ("API URL:", api);
 const groepsToernooi = ref(false)
 const thisToernooi = ref(null)
 const thisTNdatum = ref(new Date())
@@ -193,19 +196,27 @@ function setPeriode() {
 }
 
 async function maakPdf() {
-  await saveTournament();
+  await saveTournament("Gegevens opgeslagen, nu PDF aanmaken");
+  filterToernooien();
+  await getRanking();
+  filterRankingByPeriod();
+  const datum = new Date().toISOString().split('T')[0]
   const doc = new jsPDF();
-  fullPDF(doc);
+  fullPDF(doc, datum);
+  doc.addPage();
+  rankingPDF(doc, filteredRanking.value, filteredToernooien.value, thisTNdatum.value);
   doc.save("toernooi.pdf");
 }
 
 function filterToernooien() {
   // Filter de toernooien op basis van de geselecteerde periode
-  filteredToernooien.value = toernooien.value.filter(tn => {
+  filteredToernooien.value = toernooien.value
+    .filter(tn => {
     const date = new Date(stripTime(tn.datum));
     // console.log("Toernooi datum:", tn.datum, "Datum object:", date);
     return date >= new Date(stripTime(vanaf.value)) && date <= new Date(stripTime(tot.value));
-  });
+  })
+  .sort((a, b) => new Date(a.datum) - new Date(b.datum));
   // console.log("Gefilterde toernooien:", filteredToernooien.value);
 }
 
@@ -228,7 +239,7 @@ function setActiveSemester() {
   if (thisTNdatum.value) {
     const date = new Date(thisTNdatum.value);
     currentSemester.value = `${date.getFullYear()}-${Math.ceil((date.getMonth() + 1) / 6)}`;
-    console.log("Huidige semester ingesteld:", currentSemester.value);
+    // console.log("Huidige semester ingesteld:", currentSemester.value);
   } else {
     currentSemester.value = `${new Date().getFullYear()}-${Math.ceil((new Date().getMonth() + 1) / 6)}`;
   }
@@ -318,7 +329,7 @@ async function sluitToernooi() {
   if (tournamentStarted.value) {
     // nogmaals bevestigen
     if (!allMatchesPlayed()) {
-      if (confirm("Nog niet alle matches zijn gespeeld, wil je het toernooi toch sluiten?")) {
+      if (confirm("Nog niet alle matches zijn gespeeld, wil je het toernooi toch sluiten? \nDit kan niet ongedaan worden gemaakt!")) {
         // Niet opgeslagen toernooi wordt dus verwijderd
         resetLocalStorage()
         toernooi.value = 'Toernooien'
@@ -346,16 +357,18 @@ async function sluitToernooi() {
   }
 }
 
-function resetLocalStorage() {
+function resetLocalStorage(inclTeams = true) {
   // reset de local storage
-  localStorage.removeItem("tournamentTeams");
+  if (inclTeams){
+    localStorage.removeItem("tournamentTeams");
+    toernooiTeams.value = [];
+  }
   localStorage.removeItem("matches");
   localStorage.removeItem("tournamentGroups");
   localStorage.removeItem("tournamentGroupMatches");
   localStorage.removeItem("tournamentMatches");
   localStorage.removeItem("tournamentFinalMatches");
   localStorage.removeItem("repeatRounds");
-  toernooiTeams.value = [];
   newTeam.value = "";
   tournamentStarted.value = false;
   groepsToernooi.value = false;
@@ -497,7 +510,7 @@ async function saveTournamentChanges(msg) {
 
 async function saveTournament(msg) {
 
-  if (!serverAvailable.value) return
+  if (!serverAvailable.value || toernooiSaved.value === true) return
 
   // tournament
 
@@ -525,9 +538,11 @@ async function saveTournament(msg) {
           timeout: 3000,
         });
       }
+      toernooiSaved.value = true;
       // console.log("Toernooi opgeslagen op de server");
     })
     .catch((error) => {
+
       toast.error("Fout bij het opslaan van toernooi: " + error.message, {
         position: "top-left",
         timeout: 3000,
@@ -560,7 +575,7 @@ async function removeTournament(tn) {
     resetLocalStorage();
     filterRankingByPeriod();
     filterToernooien();
-    getRanking("Toernooi verwijderd: " + tn.datum);
+    getRanking(`Toernooi van ${niceDate(tn.datum, true)} verwijderd`);
 
   }
 
@@ -645,7 +660,6 @@ watch(filteredTeams, (newTeams) => {
 
 async function startTournament() {
   if (filteredTeams.value.length >= 2) {
-
     // // controleer of er al een toernooi is voor deze datum
     const nu = new Date(Date.now()).toISOString().split('T')[0];
     const tnID = await axios.get(`${api}/tournamentID?datum=${nu}`)
@@ -659,10 +673,11 @@ async function startTournament() {
     //    console.log("tnID:", tnID);
     if (tnID) {
       if (confirm("Een toernooi op deze datum bestaat al, deze wordt overschreven, tenzij je nu annuleert!")) {
+        resetLocalStorage(false) // reset de data in localStorage (just to be sure), maar niet de geselecteerde teams
         // verwijder het oude toernooi
         await axios.delete(`${api}/toernooien/${tnID}`)
           .then(() => {
-            //            console.log("Oud toernooi verwijderd:", tnID);
+            console.log("Oud toernooi verwijderd:", tnID);
             thisToernooi.value = null; // reset toernooi ID
             // sluitToernooi();
             // resetLocalStorage()
@@ -673,15 +688,15 @@ async function startTournament() {
             console.error("Fout bij het verwijderen van oud toernooi:", error);
           });
       } else {
-        // stop hier, dus geen toernooi starten
+        // geen nieuw toernooi starten
         // laad dit toernooi opnieuw
         toernooi.value = nu
         selectTournament(tnID);
-        // await loadTournament(tnID);
         //        console.log("Toernooi niet gestart, terug naar het toernooi:", tnID);
         return;
       }
     }
+    // begin nieuw toernooi
     addTeamsToList() // voeg eventueel nieuwe teams aan de standaardlijst toe
     groepsToernooi.value = false
     if (filteredTeams.value.length >= 7) {
@@ -841,7 +856,6 @@ function filterRankingByPeriod() {
 
 
 onMounted(async () => {
-  //  //  console.log("api = ", api);
   await isServerActive(); // kijk o de server beschikbaar is
   setActiveSemester(); // zet de huidige semester
   if (serverAvailable.value) {

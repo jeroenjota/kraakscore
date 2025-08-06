@@ -25,8 +25,6 @@ import { niceDate, getSemesterText } from '../utils/dateUtils.js'
 import { PrinterIcon } from '@heroicons/vue/24/solid'
 const printer = PrinterIcon
 
-
-
 let gesplitst = false
 const rounds = ref([]);
 const teams = ref([]);
@@ -111,6 +109,7 @@ function finalPlayed() {
 
 function exportPdf() {
   getMatchesFromStorage();
+
   const doc = new jsPDF();
   let countPlayed = 0;
   let countRondeMatch = 0;
@@ -424,9 +423,9 @@ function exportPdf() {
   // doc.insertPage(1, "after");
 
   //  RANKING page
-  doc.addPage();
-  rankingPDF(doc, ranking.value, toernooien.value, props.datum);
-  // doc.setFontSize(18);
+  // doc.addPage();
+  // rankingPDF(doc, ranking.value, toernooien.value, props.datum);
+  // // doc.setFontSize(18);
   // doc.text("Laurierboom Kraaktoernooi", pageWidth / 2, 20, { align: "center" });
   // doc.setFontSize(16);
   // let txt = "Ranking " + getSemesterText(props.datum, true);

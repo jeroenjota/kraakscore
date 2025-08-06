@@ -86,12 +86,26 @@ export function rankingPDF(doc, ranking, toernooien, datum) {
         }
       }
     },
-    tableLineWidth: 1,
   });
+  // centreer de tekst onder de tabel
+  yPos = doc.lastAutoTable.finalY + 10;
+  doc.line(marge, yPos, pageWidth - marge, yPos);
+  yPos += 5;
+  doc.setFontSize(12);
+  const rnkTxt = "Ranking scores: 1e plaats 12, 2e plaats 9, 3e plaats 6, 4e plaats 3, meedoen 1 pnt"
+
+  doc.text(`${rnkTxt} \n(maximaal de beste 6 resultaten)`, pageWidth / 2, yPos, { align: "center" });
+  yPos += 8;
+  doc.line(marge, yPos, pageWidth - marge, yPos);
   // yPos = doc.lastAutoTable.finalY + 2;
   // const blobPDF = doc.output("blob");
   // window.open(URL.createObjectURL(blobPDF));
   // const fileName = `Ranking_${datum}.pdf`;
   // doc.save(fileName);
   // doc.output("dataurlnewwindow");
+  // footer
+  let savFntSize = doc.fontSize
+  doc.setFontSize(8)
+  doc.text(`©2025 jota services`, pageWidth / 2, 290, { align: "center" });
+  doc.setFontSize(savFntSize)
 } 
