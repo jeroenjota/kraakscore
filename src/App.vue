@@ -13,7 +13,7 @@
             @change="handleSelectTournament">
             <option value="Toernooien" disabled>Toernooien</option>
             <option v-for="tn, tnindex in toernooien" :key="tnindex" :value="tn">
-              {{ niceDate(tn.datum) }}</option>
+              {{ niceDate(tn.datum,true) }}</option>
           </select>
           <button @click="toggleShowRanking" v-tooltip="'Ranking'"
             class="text-white bg-blue-800 px-2 rounded mt-2 mr-0 p-2">
