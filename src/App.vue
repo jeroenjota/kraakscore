@@ -51,28 +51,26 @@
           </button>
         </div>
         <div class="knoppen flex justify-center" v-if="tournamentStarted">
-          <button @click="sluitToernooi" class="bg-yellow-300 text-red-800 btn"
-            v-tooltip="'Sluit toernooi af'"
-            ><span
+          <button @click="sluitToernooi" class="bg-yellow-300 text-red-800 btn" v-tooltip="'Sluit toernooi af'"><span
               v-if="thisToernooi">Sluiten</span><span v-else>Opslaan</span></button>
-          <div class="flex gap-2 items-center">
-            <button v-if="!pdfUrl" @click="maakPdf" class="bg-blue-500 text-white btn"
-              v-tooltip="'Afdrukken naar PDF'" >
+          <button v-if="!pdfUrl" @click="maakPdf" class="bg-blue-500 text-white btn" v-tooltip="'Afdrukken naar PDF'">
+            <printer class="h-6 w-6 text-white" />
+          </button>
+          <button v-else style="margin-left:2px; width:auto; height:30px; font-size: .9em;"
+            class="bg-blue-500 text-white btn" v-tooltip="'Open de PDF met uitslag'">
+            <a :href="pdfUrl" target="_blank">
               <printer class="h-6 w-6 text-white" />
-            </button>
-            <button v-else style="margin-left:2px; width:auto; height:30px; font-size: .9em;"  class="bg-blue-500 text-white btn" 
-              v-tooltip="'Open de PDF met uitslag'">
-              <a :href="pdfUrl" target="_blank">
-                <printer class="h-6 w-6 text-white" />
-              </a>
-            </button>
-            <button v-if="pdfUrl" class="bg-green-400 text-red-800 btn" v-tooltip="'Stuur een link naar de PDF met WhatsApp \n(Mits geïnstalleerd)'">
-              <a :href="`https://wa.me/?text=Bekijk de toernooiuitslag ${niceDate(thisTNdatum)}: ${encodeURIComponent(pdfUrl)}`"
-                target="_blank" >
-                    <img height="24" width="24"  src="https://unpkg.com/simple-icons@latest/icons/whatsapp.svg" />
-              </a>
-            </button>
-          </div>
+            </a>
+          </button>
+          <!-- QR knop -->
+          <Qrcode v-if="pdfUrl" :pdfUrl="pdfUrl" />
+          <button v-if="pdfUrl" class="bg-green-400 text-red-800 btn"
+            v-tooltip="'Stuur een link naar de PDF met WhatsApp \n(Mits geïnstalleerd)'">
+            <a :href="`https://wa.me/?text=Bekijk de toernooiuitslag ${niceDate(thisTNdatum)}: ${encodeURIComponent(pdfUrl)}`"
+              target="_blank">
+              <img height="24" width="24" src="https://unpkg.com/simple-icons@latest/icons/whatsapp.svg" />
+            </a>
+          </button>
           <!-- <Pdf v-if="toernooiSaved" groepsToernooi="groepsToernooi" :ranking="filteredRanking" :toernooien="filteredToernooien"
             :datum="thisTNdatum" /> -->
 
@@ -154,7 +152,7 @@
 import { ref, computed, watch, onMounted } from "vue";
 import Ranking from "./components/Ranking.vue";
 import Tournament from "./components/Tournament.vue";
-import Pdf from './components/Pdf.vue'
+// import Pdf from './components/Pdf.vue'
 import { niceDate, getSemesterText, stripTime } from './utils/dateUtils.js'
 import longpress from './directives/longpress.js';
 import axios from 'axios'
@@ -162,7 +160,7 @@ import { useToast } from 'vue-toastification'
 import { uitslagPDF } from './utils/pdf/tournamentPDF.js'
 import { rankingPDF } from "./utils/pdf/rankingPDF.js";
 import jsPDF from "jspdf";
-
+import Qrcode from './components/Qrcode.vue'
 const toast = useToast()
 
 import { PrinterIcon, TrashIcon, PencilSquareIcon, InboxIcon } from '@heroicons/vue/24/solid'
@@ -223,12 +221,12 @@ async function maakPdf() {
   const baseUrl = "https://www.jota.nl/";
   await pdfBestaat(niceDate(datum, true));
   // console.log("PDF URL na controle:", pdfUrl.value);
-//  if (pdfUrl.value>"") {
-    // PDF bestaat al, dus we kunnen de URL gebruiken
-    // console.log("PDF Bestaat: ", pdfUrl.value)
-//    await axios.get(pdfUrl.value)
-//    return;
-//  }
+  //  if (pdfUrl.value>"") {
+  // PDF bestaat al, dus we kunnen de URL gebruiken
+  // console.log("PDF Bestaat: ", pdfUrl.value)
+  //    await axios.get(pdfUrl.value)
+  //    return;
+  //  }
   const doc = new jsPDF();
   // console.log("PDF document wordt aangemaakt, groepstoernooi:", groepsToernooi.value, "Datum:", datum);
   uitslagPDF(doc, datum, groepsToernooi.value);
