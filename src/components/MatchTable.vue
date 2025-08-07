@@ -49,7 +49,7 @@ const emit = defineEmits(['update-result'])
 
 const scores = ref([])
 
-console.log('Edit mode in MatchTable:', props.editMode);
+// console.log('Edit mode in MatchTable:', props.editMode);
 
 watchEffect(() => {
   scores.value = props.matches.map(match => ({

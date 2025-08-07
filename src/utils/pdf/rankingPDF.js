@@ -24,7 +24,7 @@ export function rankingPDF(doc, ranking, toernooien, datum) {
   let yPos = 10;
   doc.setFont("times");
   const formattedDate = niceDate(datum, true);
-  console.log("Datum voor PDF:", formattedDate, datum);
+  // console.log("Datum voor PDF:", formattedDate, datum);
   doc.setFontSize(18);
   doc.text("Laurierboom Kraaktoernooi", pageWidth / 2, 20, { align: "center" });
   doc.setFontSize(16);

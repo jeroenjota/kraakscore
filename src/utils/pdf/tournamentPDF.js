@@ -26,12 +26,12 @@ const finalMatches = ref([
 // Ophalen en parsen van data uit localStorage
 function getMatchesFromStorage() {
   teams.value = JSON.parse(localStorage.getItem("tournamentTeams"));
-  gesplitst = false
   //  console.log("gesplistst", gesplitst)
   const g = localStorage.getItem("tournamentGroups");
   const gm = localStorage.getItem("tournamentGroupMatches");
   const m = localStorage.getItem("tournamentMatches");
   const fm = localStorage.getItem("tournamentFinalMatches");
+  gesplitst = gm.length > 0 || g.length > 0
   if (gesplitst) {
     groups.value = JSON.parse(g);
     //  console.log("Opgehaald: groepen:", groups.value)
@@ -68,7 +68,7 @@ function finalPlayed() {
   return isPlayed
 }
 
-export function fullPDF(doc, datum) {
+export function uitslagPDF(doc, datum) {
 
   getMatchesFromStorage();
   let countPlayed = 0;
@@ -381,5 +381,4 @@ export function fullPDF(doc, datum) {
   doc.text(`©2025 jota services`, pageWidth / 2, 290, { align: "center" });
   doc.setFontSize(savFntSize)
   // doc.insertPage(1, "after");
-  doc.save("kraaktoernooi.pdf");
 }

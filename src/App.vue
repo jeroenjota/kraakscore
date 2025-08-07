@@ -13,12 +13,12 @@
             @change="handleSelectTournament">
             <option value="Toernooien" disabled>Toernooien</option>
             <option v-for="tn, tnindex in toernooien" :key="tnindex" :value="tn">
-              {{ niceDate(tn.datum,true) }}</option>
+              {{ niceDate(tn.datum, true) }}</option>
           </select>
           <button @click="toggleShowRanking" v-tooltip="'Ranking'"
             class="text-white bg-blue-800 px-2 rounded mt-2 mr-0 p-2">
             <span v-if="showRanking">Terug</span>
-            <span v-else >Ranking</span>
+            <span v-else>Ranking</span>
           </button>
           <select @change="setPeriode()" class="p-1 bg-white border rounded m-1" name="semester" id="semester"
             v-model="currentSemester">
@@ -32,6 +32,16 @@
         </div>
         <div v-if="toernooi !== 'Toernooien'" class="titel regel flex justify-left ">
           <h2 class="text-sm text-white m-1">Gespeeld op {{ niceDate(thisTNdatum) }}</h2>
+          <div v-if="pdfUrl">
+            <p>✅ Uitslag is beschikbaar:</p>
+            <a :href="pdfUrl" target="_blank" class="text-blue-600 underline">Bekijk de PDF</a>
+          </div>
+
+          <a v-if="pdfUrl" :href="`https://wa.me/?text=Bekijk de toernooiuitslag: ${encodeURIComponent(pdfUrl)}`" target="_blank"
+            class="inline-block mt-2 bg-green-500 text-white px-4 py-2 rounded">
+            Deel via WhatsApp
+          </a> 
+
           <button v-if="!editMode" v-tooltip="'Bewerk dit toernooi'" class="bg-transparent border-0 p-1"
             @click="toggleEditMode">
             <editIcon class="h-6 w-6 text-blue-100" />
@@ -47,17 +57,17 @@
         </div>
         <div class="knoppen flex justify-center" v-if="tournamentStarted">
           <button @click="sluitToernooi" class="bg-yellow-300 text-red-800 px-2 rounded mt-1"
-            v-tooltip="'Sluit toernooi'"
+            v-tooltip="'Sluit toernooi af'"
             style="margin-left:2px; margin-right: 2px; width:auto; height:30px; font-size: .9em;"><span
               v-if="thisToernooi">OK</span><span v-else>Klaar</span></button>
-          <!-- <div>
-            <button @click="maakPdf" class="bg-blue-500 text-white px-2 rounded mt-1 mr-2"
+          <div>
+            <button v-if="toernooiSaved" @click="maakPdf" class="bg-blue-500 text-white px-2 rounded mt-1 mr-2"
               v-tooltip="'Afdrukken naar PDF'" style="margin-left:2px; width:auto; height:30px; font-size: .9em;">
               <printer class="h-6 w-6 text-white" />
             </button>
-          </div> -->
-          <Pdf :groepsToernooi="groepsToernooi" :ranking="filteredRanking" :toernooien="filteredToernooien"
-            :datum="thisTNdatum" />
+          </div>
+          <!-- <Pdf v-if="toernooiSaved" groepsToernooi="groepsToernooi" :ranking="filteredRanking" :toernooien="filteredToernooien"
+            :datum="thisTNdatum" /> -->
 
         </div>
       </div>
@@ -137,12 +147,12 @@
 import { ref, computed, watch, onMounted } from "vue";
 import Ranking from "./components/Ranking.vue";
 import Tournament from "./components/Tournament.vue";
-import Pdf from './components/Pdf.vue'
-import { niceDate, getSemesterText , stripTime} from './utils/dateUtils.js'
+// import Pdf from './components/Pdf.vue'
+import { niceDate, getSemesterText, stripTime } from './utils/dateUtils.js'
 import longpress from './directives/longpress.js';
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
-import { fullPDF } from './utils/pdf/tournamentPDF.js'
+import { uitslagPDF } from './utils/pdf/tournamentPDF.js'
 import { rankingPDF } from "./utils/pdf/rankingPDF.js";
 import jsPDF from "jspdf";
 
@@ -164,7 +174,7 @@ const toernooiSaved = ref(false); // om te weten of het toernooi is Opgeslagen
 
 // const api = import.meta.env.VITE_API_URL || 'http://piweb:54321';
 const api = import.meta.env.VITE_API_URL;
-console.log ("API URL:", api);
+// console.log ("API URL:", api);
 const groepsToernooi = ref(false)
 const thisToernooi = ref(null)
 const thisTNdatum = ref(new Date())
@@ -179,6 +189,9 @@ const savedTeams = ref([]);
 const editMode = ref(false);
 const tournamentStarted = ref(false);
 const repeatRounds = ref(1);
+
+const pdfUrl = ref(null);
+
 
 const vanaf = ref(new Date().toISOString().split('T')[0]);
 const tot = ref(new Date().toISOString().split('T')[0]);
@@ -200,23 +213,52 @@ async function maakPdf() {
   filterToernooien();
   await getRanking();
   filterRankingByPeriod();
-  const datum = new Date().toISOString().split('T')[0]
+  const datum = thisTNdatum.value || new Date();
   const doc = new jsPDF();
-  fullPDF(doc, datum);
+  uitslagPDF(doc, datum);
   doc.addPage();
   rankingPDF(doc, filteredRanking.value, filteredToernooien.value, thisTNdatum.value);
-  doc.save("toernooi.pdf");
+  const tnNaam = "Kraken " + niceDate(thisTNdatum.value, true) + ".pdf";
+  const blob = doc.output("blob");
+  const formData = new FormData();
+  formData.append("file", blob, tnNaam);
+  await axios.post(`${api}/upload`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+    .then(() => {
+      console.log("PDF succesvol geüpload!", response.data.url);
+      handleUploadComplete(response.data.url); 
+      toast.success("PDF succesvol geüpload!", {
+        position: "top-center",
+        timeout: 3000,
+      });
+    })
+    .catch((error) => {
+      toast.error("Fout bij het uploaden van PDF: " + error.message, {
+        position: "top-left",
+        timeout: 3000,
+      });
+      console.error("Fout bij het uploaden van PDF:", error);
+    });
+   doc.save(tnNaam);
 }
+
+function handleUploadComplete(url) {
+  console.log("PDF geüpload:", url);
+  pdfUrl.value = url; // bv. "/pdfs/uitslag-123.pdf"
+}
+
 
 function filterToernooien() {
   // Filter de toernooien op basis van de geselecteerde periode
   filteredToernooien.value = toernooien.value
     .filter(tn => {
-    const date = new Date(stripTime(tn.datum));
-    // console.log("Toernooi datum:", tn.datum, "Datum object:", date);
-    return date >= new Date(stripTime(vanaf.value)) && date <= new Date(stripTime(tot.value));
-  })
-  .sort((a, b) => new Date(a.datum) - new Date(b.datum));
+      const date = new Date(stripTime(tn.datum));
+      return date >= new Date(stripTime(vanaf.value)) && date <= new Date(stripTime(tot.value));
+    })
+    .sort((a, b) => new Date(a.datum) - new Date(b.datum));
   // console.log("Gefilterde toernooien:", filteredToernooien.value);
 }
 
@@ -343,6 +385,7 @@ async function sluitToernooi() {
       // alle wedstrijden gespeeld, dus opslaan?
       if (serverAvailable.value && tournamentHasData() && !thisToernooi.value) {
         await saveToApi();
+        await maakPdf()
         editMode.value = false
         toernooi.value = 'Toernooien';
         resetLocalStorage()
@@ -359,7 +402,7 @@ async function sluitToernooi() {
 
 function resetLocalStorage(inclTeams = true) {
   // reset de local storage
-  if (inclTeams){
+  if (inclTeams) {
     localStorage.removeItem("tournamentTeams");
     toernooiTeams.value = [];
   }
@@ -389,6 +432,7 @@ async function selectTournament(tn) {
   thisToernooi.value = tn;
   // laad de toernooiTeams van het geselecteerde toernooi
   await loadTournament(tn);
+  toernooiSaved.value = true; // toernooi is geladen, dus opgeslagen
   // console.log("Datum van het toernooi:", thisTNdatum.value);
 }
 
@@ -513,7 +557,8 @@ async function saveTournament(msg) {
   if (!serverAvailable.value || toernooiSaved.value === true) return
 
   // tournament
-
+  thisTNdatum.value = new Date().toISOString().split('T')[0];
+  //  // console.log("saveToApi thisTNdatum:", thisTNdatum.value,
   const tnTeams = localStorage.getItem("tournamentTeams");
   const matches = localStorage.getItem("tournamentMatches");
   const groups = localStorage.getItem("tournamentGroups");
@@ -521,7 +566,7 @@ async function saveTournament(msg) {
   const finalMatches = localStorage.getItem("tournamentFinalMatches");
   //  //  // console.log("saveToApi tournamentTeams:", tnTeams, "groups:", groups, "groupMatches:", groupMatches, "finalMatches:", finalMatches)
   const toernooi = {
-    datum: new Date().toISOString().split('T')[0],
+    datum: thisTNdatum.value,
     teams: tnTeams ? JSON.parse(tnTeams) : [],
     matches: matches ? JSON.parse(matches) : [],
     groups: groups ? JSON.parse(groups) : [],
