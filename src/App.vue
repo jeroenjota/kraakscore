@@ -31,16 +31,11 @@
 
         </div>
         <div v-if="toernooi !== 'Toernooien'" class="titel regel flex justify-left ">
-          <h2 class="text-sm text-white m-1">Gespeeld op {{ niceDate(thisTNdatum) }}</h2>
-          <div v-if="pdfUrl">
-            <p>✅ Uitslag is beschikbaar:</p>
-            <a :href="pdfUrl" target="_blank" class="text-blue-600 underline">Bekijk de PDF</a>
-          </div>
-
-          <a v-if="pdfUrl" :href="`https://wa.me/?text=Bekijk de toernooiuitslag: ${encodeURIComponent(pdfUrl)}`" target="_blank"
-            class="inline-block mt-2 bg-green-500 text-white px-4 py-2 rounded">
-            Deel via WhatsApp
-          </a> 
+          <h2 class="text-sm text-white m-1">Datum: {{ niceDate(thisTNdatum) }}
+            <!-- <button v-if="pdfUrl" class="bg-yellow-300 text-red-800 btn">
+              <a :href="pdfUrl" target="_blank">Druk af</a>
+            </button> -->
+          </h2>
 
           <button v-if="!editMode" v-tooltip="'Bewerk dit toernooi'" class="bg-transparent border-0 p-1"
             @click="toggleEditMode">
@@ -56,14 +51,26 @@
           </button>
         </div>
         <div class="knoppen flex justify-center" v-if="tournamentStarted">
-          <button @click="sluitToernooi" class="bg-yellow-300 text-red-800 px-2 rounded mt-1"
+          <button @click="sluitToernooi" class="bg-yellow-300 text-red-800 btn"
             v-tooltip="'Sluit toernooi af'"
-            style="margin-left:2px; margin-right: 2px; width:auto; height:30px; font-size: .9em;"><span
+            ><span
               v-if="thisToernooi">OK</span><span v-else>Klaar</span></button>
-          <div>
-            <button v-if="toernooiSaved" @click="maakPdf" class="bg-blue-500 text-white px-2 rounded mt-1 mr-2"
-              v-tooltip="'Afdrukken naar PDF'" style="margin-left:2px; width:auto; height:30px; font-size: .9em;">
+          <div class="flex gap-2 items-center">
+            <button v-if="!pdfUrl" @click="maakPdf" class="bg-blue-500 text-white btn"
+              v-tooltip="'Afdrukken naar PDF'" >
               <printer class="h-6 w-6 text-white" />
+            </button>
+            <button v-else style="margin-left:2px; width:auto; height:30px; font-size: .9em;"  class="bg-blue-500 text-white btn" 
+              v-tooltip="'Bekijk of print de PDF uitslag'">
+              <a :href="pdfUrl" target="_blank">
+                <printer class="h-6 w-6 text-white" />
+              </a>
+            </button>
+            <button v-if="pdfUrl" class="bg-green-400 text-red-800 btn" v-tooltip="'Stuur een link naar de PDF met WhatsApp \n(Mits geïnstalleerd)'">
+              <a :href="`https://wa.me/?text=Bekijk de toernooiuitslag ${niceDate(thisTNdatum)}: ${encodeURIComponent(pdfUrl)}`"
+                target="_blank" >
+                    <img height="24" width="24"  src="https://unpkg.com/simple-icons@latest/icons/whatsapp.svg" />
+              </a>
             </button>
           </div>
           <!-- <Pdf v-if="toernooiSaved" groepsToernooi="groepsToernooi" :ranking="filteredRanking" :toernooien="filteredToernooien"
@@ -147,7 +154,7 @@
 import { ref, computed, watch, onMounted } from "vue";
 import Ranking from "./components/Ranking.vue";
 import Tournament from "./components/Tournament.vue";
-// import Pdf from './components/Pdf.vue'
+import Pdf from './components/Pdf.vue'
 import { niceDate, getSemesterText, stripTime } from './utils/dateUtils.js'
 import longpress from './directives/longpress.js';
 import axios from 'axios'
@@ -155,7 +162,6 @@ import { useToast } from 'vue-toastification'
 import { uitslagPDF } from './utils/pdf/tournamentPDF.js'
 import { rankingPDF } from "./utils/pdf/rankingPDF.js";
 import jsPDF from "jspdf";
-
 
 const toast = useToast()
 
@@ -169,7 +175,6 @@ const showRanking = ref(false);
 const rankingData = ref([]); // voor de ranking data
 const filteredRanking = ref([]);
 const serverAvailable = ref(false);
-
 const toernooiSaved = ref(false); // om te weten of het toernooi is Opgeslagen
 
 // const api = import.meta.env.VITE_API_URL || 'http://piweb:54321';
@@ -209,47 +214,96 @@ function setPeriode() {
 }
 
 async function maakPdf() {
+  // console.log("Maak PDF voor toernooi:", thisToernooi.value, "Datum:", thisTNdatum.value);
   await saveTournament("Gegevens opgeslagen, nu PDF aanmaken");
   filterToernooien();
   await getRanking();
   filterRankingByPeriod();
   const datum = thisTNdatum.value || new Date();
+  const baseUrl = "https://www.jota.nl/";
+  await pdfBestaat(niceDate(datum, true));
+  // console.log("PDF URL na controle:", pdfUrl.value);
+  if (pdfUrl.value>"") {
+    // PDF bestaat al, dus we kunnen de URL gebruiken
+    // console.log("PDF Bestaat: ", pdfUrl.value)
+    await axios.get(pdfUrl.value)
+    return;
+  }
   const doc = new jsPDF();
-  uitslagPDF(doc, datum);
+  // console.log("PDF document wordt aangemaakt, groepstoernooi:", groepsToernooi.value, "Datum:", datum);
+  uitslagPDF(doc, datum, groepsToernooi.value);
   doc.addPage();
   rankingPDF(doc, filteredRanking.value, filteredToernooien.value, thisTNdatum.value);
-  const tnNaam = "Kraken " + niceDate(thisTNdatum.value, true) + ".pdf";
+  let tnNaam = "Kraken " + niceDate(thisTNdatum.value, true) + ".pdf";
+  tnNaam = tnNaam.replace(/\s+/g, '_').toLowerCase(); // vervang spaties door streepjes en zet om naar kleine letters
+  savePDF(doc, tnNaam);
+  // const blob = doc.output("blob");
+  // const formData = new FormData();
+  // formData.append("file", blob, tnNaam);
+  // const response = await axios.post(`${api}/upload`, formData, {
+  //   headers: {
+  //     'Content-Type': 'multipart/form-data'
+  //   }
+  // })
+  // console.log("PDF geüpload, response:", response.data);
+  // pdfUrl.value = baseUrl + response.data.url
+  // pdfUrl.value = pdfUrl.value.replace(/\s+/g, '_').toLowerCase(); // vervang spaties door streepjes en zet om naar kleine letters
+  doc.save(tnNaam);
+}
+
+async function savePDF(doc, tnNaam) {
+  // Sla de PDF op op de server
+  const baseUrl = "https://www.jota.nl/";
   const blob = doc.output("blob");
   const formData = new FormData();
   formData.append("file", blob, tnNaam);
-  await axios.post(`${api}/upload`, formData, {
+  const response = await axios.post(`${api}/upload`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data'
     }
   })
-    .then(() => {
-      console.log("PDF succesvol geüpload!", response.data.url);
-      handleUploadComplete(response.data.url); 
-      toast.success("PDF succesvol geüpload!", {
-        position: "top-center",
-        timeout: 3000,
-      });
+  // console.log("PDF geüpload, response:", response.data);
+  pdfUrl.value = baseUrl + response.data.url
+}
+
+async function pdfBestaat(datum) {
+
+  let pdfNaam = `Kraken ${datum}.pdf`;
+  pdfNaam = pdfNaam.replace(/\s+/g, '_').toLowerCase(); // vervang spaties door streepjes en zet om naar kleine letters
+  const pdf = "https://www.jota.nl/laurierboom/uploads/pdfs/" + pdfNaam;
+  await axios.get(`${api}/pdf-exists/${pdfNaam}`)
+    .then(response => {
+      if (response.data.exists) {
+        // console.log("PDF bestaat al:", pdf);
+        pdfUrl.value = pdf;
+        return pdfUrl.value;
+      } else {
+        // console.log("PDF bestaat niet:", pdf);
+        pdfUrl.value = null;
+        return null;
+      }
     })
-    .catch((error) => {
-      toast.error("Fout bij het uploaden van PDF: " + error.message, {
-        position: "top-left",
-        timeout: 3000,
-      });
-      console.error("Fout bij het uploaden van PDF:", error);
+    .catch(error => {
+      console.error("Fout bij het controleren van PDF:", error);
+      return null;
     });
-   doc.save(tnNaam);
-}
+  // console.log("PDF URL:", pdf);
+  // //   const response = await axios.get(`${api}/toernooien`)
 
-function handleUploadComplete(url) {
-  console.log("PDF geüpload:", url);
-  pdfUrl.value = url; // bv. "/pdfs/uitslag-123.pdf"
+  // await axios.get(`${api}/pdf-exists/${pdf}`)
+  //   .then(response => {
+  //     if (response.data.exists) {
+  //       console.log("PDF bestaat al:", pdf);
+  //       return pdf;
+  //     } else {
+  //       return false;
+  //     }
+  //   })
+  //   .catch(error => {
+  //     console.error("Fout bij het controleren van PDF:", error);
+  //     return false;
+  //   });
 }
-
 
 function filterToernooien() {
   // Filter de toernooien op basis van de geselecteerde periode
@@ -272,7 +326,7 @@ function getSemesters() {
   return Array.from(uniqueDates).sort();
 }
 function getCurrentSemester() {
-  console.log("Huidige semester:", currentSemester.value);
+  // console.log("Huidige semester:", currentSemester.value);
   setPeriode();
 }
 
@@ -295,19 +349,19 @@ function teamSelected(tm) {
 
 function toggleEditMode() {
   editMode.value = !editMode.value;
-  //  // console.log("Edit mode toggled:", editMode.value);
+  // console.log("Edit mode toggled:", editMode.value);
 }
 
 async function getSavedToernooien() {
   const response = await axios.get(`${api}/toernooien`)
-  //  // console.log("Toernooien opgehaald:", response.data);
+  // console.log("Toernooien opgehaald:", response.data);
   toernooien.value = response.data
   toernooi.value = 'Toernooien'
 }
 
 function editTeam(i) {
   // plaats de team naam in het input veld
-  //  // console.log(i, "toernooiTeams:", toernooiTeams.value[i], "tournamentStarted:", tournamentStarted);
+  // console.log(i, "toernooiTeams:", toernooiTeams.value[i], "tournamentStarted:", tournamentStarted);
   if (!tournamentStarted.value) {
     newTeam.value = toernooiTeams.value[i];
     // tijdelijk weghalen uit array
@@ -362,7 +416,7 @@ async function sluitToernooi() {
   // reset de deelnemende toernooiTeams , de scores en het schema
   // alleen als er een schema is ;-)
   if (thisToernooi.value) {
-    console.log("Sluit toernooi:", thisToernooi.value);
+    // console.log("Sluit toernooi:", thisToernooi.value);
     resetLocalStorage()
     toernooi.value = 'Toernooien'
     editMode.value = false
@@ -432,13 +486,15 @@ async function selectTournament(tn) {
   thisToernooi.value = tn;
   // laad de toernooiTeams van het geselecteerde toernooi
   await loadTournament(tn);
+  await pdfBestaat(niceDate(thisTNdatum.value, true));
+  // console.log("PDF in Select tournament:", pdfUrl.value);
   toernooiSaved.value = true; // toernooi is geladen, dus opgeslagen
   // console.log("Datum van het toernooi:", thisTNdatum.value);
 }
 
 async function loadTournament(tn) {
-  //  //  console.log("loadTournament", tn)
-  //  // console.log("Loading tournament data from:", api);
+  //  console.log("loadTournament", tn)
+  // console.log("Loading tournament data from:", api);
   await axios.get(`${api}/toernooien/${tn}`)
     .then(response => {
       const data = response.data;
@@ -483,7 +539,7 @@ async function standardTeamsToApi(msg) {
       players: sp,
     };
   });
-  //  // console.log("saveToApi teams:", bewaardeTeams)
+  // console.log("saveToApi teams:", bewaardeTeams)
   const sendTeams = {
     teams: bewaardeTeams,
   };
@@ -513,7 +569,7 @@ function tournamentHasData() {
   const groups = localStorage.getItem("tournamentGroups");
   const groupMatches = localStorage.getItem("tournamentGroupMatches");
   const finalMatches = localStorage.getItem("tournamentFinalMatches");
-  //  //  // console.log("tournamentHasData tnTeams:", "matches:", matches, "groups:", groups, "groupMatches:", groupMatches, "finalMatches:", finalMatches)
+  // console.log("tournamentHasData tnTeams:", "matches:", matches, "groups:", groups, "groupMatches:", groupMatches, "finalMatches:", finalMatches)
   return matches || groups || groupMatches || finalMatches;
 }
 // controleer of er al data is voor dit toernooi
@@ -558,13 +614,13 @@ async function saveTournament(msg) {
 
   // tournament
   thisTNdatum.value = new Date().toISOString().split('T')[0];
-  //  // console.log("saveToApi thisTNdatum:", thisTNdatum.value,
+  // console.log("saveToApi thisTNdatum:", thisTNdatum.value,
   const tnTeams = localStorage.getItem("tournamentTeams");
   const matches = localStorage.getItem("tournamentMatches");
   const groups = localStorage.getItem("tournamentGroups");
   const groupMatches = localStorage.getItem("tournamentGroupMatches");
   const finalMatches = localStorage.getItem("tournamentFinalMatches");
-  //  //  // console.log("saveToApi tournamentTeams:", tnTeams, "groups:", groups, "groupMatches:", groupMatches, "finalMatches:", finalMatches)
+  // console.log("saveToApi tournamentTeams:", tnTeams, "groups:", groups, "groupMatches:", groupMatches, "finalMatches:", finalMatches)
   const toernooi = {
     datum: thisTNdatum.value,
     teams: tnTeams ? JSON.parse(tnTeams) : [],
@@ -639,7 +695,7 @@ function addTeam() {
 }
 
 function addAll() {
-  //  //    //  //  //  console.log("addAll ... ")
+  //    //  console.log("addAll ... ")
   savedTeams.value.forEach((tm, index) => {
     getTeam(tm)
   })
@@ -722,7 +778,7 @@ async function startTournament() {
         // verwijder het oude toernooi
         await axios.delete(`${api}/toernooien/${tnID}`)
           .then(() => {
-            console.log("Oud toernooi verwijderd:", tnID);
+            // console.log("Oud toernooi verwijderd:", tnID);
             thisToernooi.value = null; // reset toernooi ID
             // sluitToernooi();
             // resetLocalStorage()
@@ -798,7 +854,7 @@ function handleReset() {
 }
 
 async function getSavedTeamsFromApi() {
-  //  //    console.log("getSavedTeamsFromApi")
+  //    console.log("getSavedTeamsFromApi")
   await axios.get(`${api}/savedTeams`)
     .then(response => {
       const Lijst = response.data.sort();

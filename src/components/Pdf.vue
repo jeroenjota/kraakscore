@@ -73,7 +73,7 @@ function toonPlaats(index) {
 function getMatchesFromStorage() {
   teams.value = JSON.parse(localStorage.getItem("tournamentTeams"));
   gesplitst = props.groepsToernooi
-  //  console.log("gesplistst", gesplitst)
+  console.log("gesplistst", gesplitst)
   const g = localStorage.getItem("tournamentGroups");
   const gm = localStorage.getItem("tournamentGroupMatches");
   const m = localStorage.getItem("tournamentMatches");
@@ -86,7 +86,7 @@ function getMatchesFromStorage() {
   } else {
     //  console.log("Single toernooi")
     rounds.value = JSON.parse(m);
-    //  console.log("Opgehaald: matches:", rounds.value)
+     console.log("Opgehaald: matches:", rounds.value)
   }
   if (fm) {
     finalMatches.value = JSON.parse(fm);

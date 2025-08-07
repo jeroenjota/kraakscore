@@ -25,20 +25,18 @@ const finalMatches = ref([
 
 // Ophalen en parsen van data uit localStorage
 function getMatchesFromStorage() {
+  console.log("getMatchesFromStorage")
   teams.value = JSON.parse(localStorage.getItem("tournamentTeams"));
   //  console.log("gesplistst", gesplitst)
   const g = localStorage.getItem("tournamentGroups");
   const gm = localStorage.getItem("tournamentGroupMatches");
   const m = localStorage.getItem("tournamentMatches");
   const fm = localStorage.getItem("tournamentFinalMatches");
-  gesplitst = gm.length > 0 || g.length > 0
+  console.log( "gesplitst:", gesplitst, "g:", g, "gm:", gm, "m:", m, "fm:", fm)
   if (gesplitst) {
     groups.value = JSON.parse(g);
-    //  console.log("Opgehaald: groepen:", groups.value)
     groupMatches.value = JSON.parse(gm);
-    //  console.log("Opgehaald: gro upMatches:", matches.value)
   } else {
-    //  console.log("Single toernooi")
     rounds.value = JSON.parse(m);
     //  console.log("Opgehaald: matches:", rounds.value)
   }
@@ -68,9 +66,10 @@ function finalPlayed() {
   return isPlayed
 }
 
-export function uitslagPDF(doc, datum) {
-
+export async function uitslagPDF(doc, datum, groepstoernooi = false) {
+  gesplitst = groepstoernooi
   getMatchesFromStorage();
+  console.log("Gesplitst Na:", gesplitst)
   let countPlayed = 0;
   let countRondeMatch = 0;
   const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();

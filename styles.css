@@ -178,6 +178,18 @@ ul.dbl{
 
 button {
   border-radius: 5px;
+
+
+}
+
+.btn {
+  margin-left:2px; 
+  margin-right: 2px; 
+  padding: 2px;
+  width:auto; 
+  height:30px; 
+  border-radius: 5px;
+  font-size: .9em;
 }
 
 button:disabled {
