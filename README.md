@@ -5,13 +5,14 @@ The app is for (card) tournaments between couples or individuals. Could also be 
 
 The app was developped for *Café de Laurierboom*, **the best bar in Amsterdam** where we play a '**Kraak**' tournament every two weeks.
 
-## NEW feature: Season ranking (WORK IN PROGRESS)
+## NEW feature: Season ranking 
 For each individual player you can analyse the results in the saved tournaments. Points are awarded for the position (1-4) at the end of the tournament. The points are calculated as follows:
 - 1st place: 12 Points
 - 2nd place: 9 Points
 - 3rd place: 6 Points
 - 4th place: 3 Points
 - All other players: 1 Point for participating.
+For now these are fixed numbers, but in the future they might be configurable in the settings.
 The season (6 months) result will be calculated over the best 8 tournament positions of each player. The standings can be calculated at any time using the data in the API.
 
 ## Usage
@@ -40,12 +41,13 @@ CTRL Click on **Teams:** will remove all the chosen teams from the tournament (b
 > For touchscreens, instead of **CTRL-click** you can **longpress**
 
 ### Maximum players
-The maximum number of participants in a tournament is 8. When there are more than 6 players/teams, you get the choice of splitting the tournament up in two groups and play final/third-place matches after the normal rounds.
+The maximum number of teams (normally 2 players) in a tournament is 8. When there are more than 6 players/teams, you get the choice of splitting the tournament up in two groups and play final/third-place matches after the normal rounds.
 
 ### Workflow
 After the schedule is created, you can fill in the scores for each team after each round.
 The Standings will be updated immediatly
-At any time during the tournament you can generate a PDF with the results [*Afdrukken*]. At the end of the tournament the final standings are added to this PDF
+At the end of the tournament you can generate a PDF with the results [*Afdrukken*]. The ranking numbers will also be updated.
+The PDF will be stored on the server and you can share the link to the PDF with WhatsApp, or you can generate a QR-code which the players can scan it download the results PDF.
 #### Groups
 If you want to split up the tournament (possible with more than 6 participants), the app will randomly create groups. The winners of the groups will play the finals, the numbers 2 will play for the third place.
 > There is no scoring input for the numbers 3 and 4, because in **De Laurierboom**, they never win a price ;-)
