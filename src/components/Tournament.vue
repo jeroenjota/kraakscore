@@ -113,7 +113,7 @@ const finalMatches = ref([
   { teamL: null, teamR: null, scoreL: null, scoreR: null }, // 3e plaats
 ]);
 
-console.log("Edit mode in Tournament:", props.editMode);
+// console.log("Edit mode in Tournament:", props.editMode);
 
 function shuffle(array) {
   return array.sort(() => Math.random() - 0.5);
@@ -375,12 +375,13 @@ function loadFromLocalStorage() {
 //   emit("reset");
 // }
 
+
 onMounted(() => {
   if (!props.toernooiPlayed) {
     props.editMode = true
   }
-  console.log("Played in Tournament:", props.toernooiPlayed);
-  console.log("EditMode: ", props.editMode)
+  // console.log("Played in Tournament:", props.toernooiPlayed);
+  // console.log("EditMode: ", props.editMode)
   if (props.groepsToernooi) {
     groups.value = splitIntoGroups(toernooiTeams.value);
     // console.log("groep.value", groups.value)

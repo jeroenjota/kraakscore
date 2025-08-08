@@ -1,25 +1,22 @@
-#!/usr/bin/env sh
+#!/bin/bash
 
-# abort on errors
-set -e
+# === Config ===
+SERVER_USER=jeroen
+SERVER_HOST=piweb
+REMOTE_TEMP_DIR=/home/$SERVER_USER/kraakscore-temp
+REMOTE_TARGET_DIR=/var/www/laurierboom/kraakscore
 
-# build
+# === Stap 1: Build project ===
+echo "🔧 Bouwen van project..."
 npm run build
 
-# navigate into the build output directory
-cd dist
+# === Stap 2: Upload naar tijdelijke map ===
+echo "🚀 Uploaden naar $SERVER_HOST:$REMOTE_TEMP_DIR..."
+ssh $SERVER_USER@$SERVER_HOST "mkdir -p $REMOTE_TEMP_DIR"
+scp -r dist/* $SERVER_USER@$SERVER_HOST:$REMOTE_TEMP_DIR/
 
-# if you are deploying to a custom domain
-# echo 'www.example.com' > CNAME
+# === Stap 3: Verplaats op server met sudo ===
+echo "📦 Verplaatsen naar $REMOTE_TARGET_DIR..."
+ssh $SERVER_USER@$SERVER_HOST "sudo rm -rf $REMOTE_TARGET_DIR/* && sudo mv $REMOTE_TEMP_DIR/* $REMOTE_TARGET_DIR/ && rm -rf $REMOTE_TEMP_DIR"
 
-git init
-git add -A
-git commit -m 'deploy'
-
-# if you are deploying to https://<USERNAME>.github.io
-# git push -f git@github.com:jeroenjota/jeroenjota.github.io.git main
-
-# if you are deploying to https://<USERNAME>.github.io/<REPO>
-git push -f git@github.com:jeroenjota/kraakscore.git master:gh-pages
-
-cd -
+echo "✅ Deploy afgerond!"

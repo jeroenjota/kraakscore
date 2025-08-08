@@ -5,6 +5,15 @@ The app is for (card) tournaments between couples or individuals. Could also be 
 
 The app was developped for *Café de Laurierboom*, **the best bar in Amsterdam** where we play a '**Kraak**' tournament every two weeks.
 
+## NEW feature: Season ranking (WORK IN PROGRESS)
+For each individual player you can analyse the results in the saved tournaments. Points are awarded for the position (1-4) at the end of the tournament. The points are calculated as follows:
+- 1st place: 12 Points
+- 2nd place: 9 Points
+- 3rd place: 6 Points
+- 4th place: 3 Points
+- All other players: 1 Point for participating.
+The season (6 months) result will be calculated over the best 8 tournament positions of each player. The standings can be calculated at any time using the data in the API.
+
 ## Usage
 If there are old data from a previous tournament, Click [*reset*]. All tournament data can be saved to the backend API and will then be deleted in de localstorage. The saved teams/players will be available. 
 

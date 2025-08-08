@@ -5,21 +5,38 @@
         <h1 class="text-2xl font-bold">
           <span v-if="thisToernooi">Kraaktoernooi</span>
           <span v-else>
-            <span class="boom">Laurierboom</span>
-            Kraakscore
+            <span class="boom">LaurierBoom Kraak</span>
           </span>
         </h1>
         <div v-if="!thisToernooi && !tournamentStarted && serverAvailable" class="items-center ">
           <select id="toernooien" v-model="toernooi" class="p-1 border bg-white rounded m-1 "
             @change="handleSelectTournament">
-            <option value="Oude toernooien" disabled>Oude toernooien</option>
+            <option value="Toernooien" disabled>Toernooien</option>
             <option v-for="tn, tnindex in toernooien" :key="tnindex" :value="tn">
-              {{ niceDate(tn.datum) }}</option>
+              {{ niceDate(tn.datum, true) }}</option>
           </select>
+          <button @click="toggleShowRanking" v-tooltip="'Ranking'"
+            class="text-white bg-blue-800 px-2 rounded mt-2 mr-0 p-2">
+            <span v-if="showRanking">Terug</span>
+            <span v-else>Ranking</span>
+          </button>
+          <select @change="setPeriode()" class="p-1 bg-white border rounded m-1" name="semester" id="semester"
+            v-model="currentSemester">
+            <option v-for="semester in getSemesters()" :key="semester" :value="semester">
+              {{ semester }}
+            </option>
+          </select>
+          <!-- <p @click="toggleShowRanking" v-if="!thisToernooi" class="copyright" v-tooltip="'Toon ranking'">©2025 Jota
+            Services</p> -->
+
         </div>
-        <p v-if="!thisToernooi" class="copyright">©2025 Jota Services </p>
-        <div v-if="toernooi !== 'Oude toernooien'" class="titel regel flex justify-left ">
-          <h2 class="text-sm text-white m-1">Gespeeld op {{ niceDate(thisTNdatum) }}</h2>
+        <div v-if="toernooi !== 'Toernooien'" class="titel regel flex justify-left ">
+          <h2 class="text-sm text-white m-1">Datum: {{ niceDate(thisTNdatum) }}
+            <!-- <button v-if="pdfUrl" class="bg-yellow-300 text-red-800 btn">
+              <a :href="pdfUrl" target="_blank">Druk af</a>
+            </button> -->
+          </h2>
+
           <button v-if="!editMode" v-tooltip="'Bewerk dit toernooi'" class="bg-transparent border-0 p-1"
             @click="toggleEditMode">
             <editIcon class="h-6 w-6 text-blue-100" />
@@ -34,10 +51,28 @@
           </button>
         </div>
         <div class="knoppen flex justify-center" v-if="tournamentStarted">
-          <button @click="resetAll" class="bg-yellow-300 text-red-800 px-2 rounded mt-1" v-tooltip="'Sluit toernooi'"
-            style="margin-left:2px; margin-right: 2px; width:auto; height:30px; font-size: .9em;"><span
-              v-if="thisToernooi">OK</span><span v-else>Klaar</span></button>
-          <Pdf :groepsToernooi="groepsToernooi" />
+          <button @click="sluitToernooi" class="bg-yellow-300 text-red-800 btn" v-tooltip="'Sluit toernooi af'"><span
+              v-if="thisToernooi">Sluiten</span><span v-else>Opslaan</span></button>
+          <button v-if="!pdfUrl" @click="maakPdf" class="bg-blue-500 text-white btn" v-tooltip="'Afdrukken naar PDF'">
+            <printer class="h-6 w-6 text-white" />
+          </button>
+          <button v-else style="margin-left:2px; width:auto; height:30px; font-size: .9em;"
+            class="bg-blue-500 text-white btn" v-tooltip="'Open de PDF met uitslag'">
+            <a :href="pdfUrl" target="_blank">
+              <printer class="h-6 w-6 text-white" />
+            </a>
+          </button>
+          <!-- QR knop -->
+          <Qrcode v-if="pdfUrl" :pdfUrl="pdfUrl" />
+          <button v-if="pdfUrl" class="bg-green-400 text-red-800 btn"
+            v-tooltip="'Stuur een link naar de PDF met WhatsApp \n(Mits geïnstalleerd)'">
+            <a :href="`https://wa.me/?text=Bekijk de toernooiuitslag ${niceDate(thisTNdatum)}: ${encodeURIComponent(pdfUrl)}`"
+              target="_blank">
+              <img height="24" width="24" src="https://unpkg.com/simple-icons@latest/icons/whatsapp.svg" />
+            </a>
+          </button>
+          <!-- <Pdf v-if="toernooiSaved" groepsToernooi="groepsToernooi" :ranking="filteredRanking" :toernooien="filteredToernooien"
+            :datum="thisTNdatum" /> -->
 
         </div>
       </div>
@@ -45,7 +80,11 @@
     </div>
     <div class="toprow" v-if="!tournamentStarted">
       <!-- Lijst sectie -->
-      <div class="teams">
+      <div v-if="showRanking" class="ranking">
+        <Ranking :ranking="filteredRanking" :toernooien="filteredToernooien" :vanaf="vanaf" :tot="tot" />
+      </div>
+
+      <div v-if="!showRanking" class="teams">
 
         <div class="flex gap-2 text-center">
           <input v-model="newTeam" @keyup.enter="addTeam" placeholder="Teamnaam" class="p-1 border teamnaam rounded"
@@ -83,7 +122,7 @@
       <!-- Afhankelijk of er al dan niet al een schema is gemaakt -->
 
       <!-- Opgeslagen team lijst -->
-      <div id="savedTeams" class="teamlijst rounded" v-if="!tournamentStarted">
+      <div id="savedTeams" class="teamlijst rounded" v-if="!tournamentStarted && !showRanking">
         <h2 @click.exact="addAll" @click.ctrl="removeAllStandardTeams">Opgeslagen teams</h2>
         <ul class="dbl">
           <li v-for="(tm, index) in savedTeams" :key="index">
@@ -97,12 +136,12 @@
       </div>
       <button v-if="toernooiTeams.length > 1" @click="startTournament" class="bg-green-800 text-white px-2 py-2 rounded"
         style="margin-right:2px; width:200px;" :disabled="tournamentStarted"
-        v-tooltip="'Bij 8 spelers worden willekeurig twee groepen aangemaakt'"
-        >Start toernooi</button>
+        v-tooltip="'Bij 8 spelers worden willekeurig twee groepen aangemaakt'">Start toernooi</button>
     </div>
 
-    <Tournament v-if="tournamentStarted" :initialTeams="filteredTeams" :repeatRounds="repeatRounds" :edit-mode="editMode"
-      :groepsToernooi="groepsToernooi" :toernooiPlayed="thisToernooi !== null" @reset="handleReset" />
+    <Tournament v-if="tournamentStarted" :initialTeams="filteredTeams" :repeatRounds="repeatRounds"
+      :edit-mode="editMode" :groepsToernooi="groepsToernooi" :toernooiPlayed="thisToernooi !== null"
+      @reset="handleReset" />
 
 
 
@@ -111,37 +150,195 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from "vue";
-
+import Ranking from "./components/Ranking.vue";
 import Tournament from "./components/Tournament.vue";
-import Pdf from './components/Pdf.vue'
-
+// import Pdf from './components/Pdf.vue'
+import { niceDate, getSemesterText, stripTime } from './utils/dateUtils.js'
 import longpress from './directives/longpress.js';
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
-
+import { uitslagPDF } from './utils/pdf/tournamentPDF.js'
+import { rankingPDF } from "./utils/pdf/rankingPDF.js";
+import jsPDF from "jspdf";
+import Qrcode from './components/Qrcode.vue'
 const toast = useToast()
 
-import { TrashIcon, PencilSquareIcon, InboxIcon } from '@heroicons/vue/24/solid'
+import { PrinterIcon, TrashIcon, PencilSquareIcon, InboxIcon } from '@heroicons/vue/24/solid'
+
+const printer = PrinterIcon
 const trash = TrashIcon
 const editIcon = PencilSquareIcon
 const inbox = InboxIcon
-
+const showRanking = ref(false);
+const rankingData = ref([]); // voor de ranking data
+const filteredRanking = ref([]);
 const serverAvailable = ref(false);
+const toernooiSaved = ref(false); // om te weten of het toernooi is Opgeslagen
 
 // const api = import.meta.env.VITE_API_URL || 'http://piweb:54321';
-const api = 'https://jota.nl/api';
+const api = import.meta.env.VITE_API_URL;
+// console.log ("API URL:", api);
 const groepsToernooi = ref(false)
 const thisToernooi = ref(null)
 const thisTNdatum = ref(new Date())
+const currentSemester = ref(''); // default value for semester selection
 // const thisTNteams = ref([]) // teams van dit toernooi, nog niet gebruikt
 const toernooien = ref([])
-const toernooi = ref('Oude toernooien')
+const filteredToernooien = ref([]);
+const toernooi = ref('Toernooien')
 const newTeam = ref("");
 const toernooiTeams = ref([]);
 const savedTeams = ref([]);
 const editMode = ref(false);
 const tournamentStarted = ref(false);
 const repeatRounds = ref(1);
+
+const pdfUrl = ref(null);
+
+
+const vanaf = ref(new Date().toISOString().split('T')[0]);
+const tot = ref(new Date().toISOString().split('T')[0]);
+
+function setPeriode() {
+  // Zet de periode van de ranking op basis van de selected semester
+  const [year, semester] = currentSemester.value.split('-');
+  const startMonth = semester === '1' ? '01' : '07';
+  vanaf.value = `${year}-${startMonth}-01`;
+  tot.value = `${year}-${semester === '1' ? '06' : '12'}-31`;
+  filterToernooien()
+  // console.log("Periode ingesteld van", vanaf.value, "tot", tot.value);
+  // console.log("Toernooien na filteren:", filteredToernooien.value);
+  filterRankingByPeriod();
+}
+
+async function maakPdf() {
+  // console.log("Maak PDF voor toernooi:", thisToernooi.value, "Datum:", thisTNdatum.value);
+  await saveTournament("Gegevens opgeslagen, nu PDF aanmaken");
+  filterToernooien();
+  await getRanking();
+  filterRankingByPeriod();
+  const datum = thisTNdatum.value || new Date();
+  const baseUrl = "https://www.jota.nl/";
+  await pdfBestaat(niceDate(datum, true));
+  // console.log("PDF URL na controle:", pdfUrl.value);
+  //  if (pdfUrl.value>"") {
+  // PDF bestaat al, dus we kunnen de URL gebruiken
+  // console.log("PDF Bestaat: ", pdfUrl.value)
+  //    await axios.get(pdfUrl.value)
+  //    return;
+  //  }
+  const doc = new jsPDF();
+  // console.log("PDF document wordt aangemaakt, groepstoernooi:", groepsToernooi.value, "Datum:", datum);
+  uitslagPDF(doc, datum, groepsToernooi.value);
+  doc.addPage();
+  rankingPDF(doc, filteredRanking.value, filteredToernooien.value, thisTNdatum.value);
+  let tnNaam = "Kraken " + niceDate(thisTNdatum.value, true) + ".pdf";
+  tnNaam = tnNaam.replace(/\s+/g, '_').toLowerCase(); // vervang spaties door streepjes en zet om naar kleine letters
+  savePDF(doc, tnNaam);
+  // const blob = doc.output("blob");
+  // const formData = new FormData();
+  // formData.append("file", blob, tnNaam);
+  // const response = await axios.post(`${api}/upload`, formData, {
+  //   headers: {
+  //     'Content-Type': 'multipart/form-data'
+  //   }
+  // })
+  // console.log("PDF geüpload, response:", response.data);
+  // pdfUrl.value = baseUrl + response.data.url
+  // pdfUrl.value = pdfUrl.value.replace(/\s+/g, '_').toLowerCase(); // vervang spaties door streepjes en zet om naar kleine letters
+  doc.save(tnNaam);
+}
+
+async function savePDF(doc, tnNaam) {
+  // Sla de PDF op op de server
+  const baseUrl = "https://www.jota.nl/";
+  const blob = doc.output("blob");
+  const formData = new FormData();
+  formData.append("file", blob, tnNaam);
+  const response = await axios.post(`${api}/upload`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+  // console.log("PDF geüpload, response:", response.data);
+  pdfUrl.value = baseUrl + response.data.url
+}
+
+async function pdfBestaat(datum) {
+
+  let pdfNaam = `Kraken ${datum}.pdf`;
+  pdfNaam = pdfNaam.replace(/\s+/g, '_').toLowerCase(); // vervang spaties door streepjes en zet om naar kleine letters
+  const pdf = "https://www.jota.nl/laurierboom/uploads/pdfs/" + pdfNaam;
+  await axios.get(`${api}/pdf-exists/${pdfNaam}`)
+    .then(response => {
+      if (response.data.exists) {
+        // console.log("PDF bestaat al:", pdf);
+        pdfUrl.value = pdf;
+        return pdfUrl.value;
+      } else {
+        // console.log("PDF bestaat niet:", pdf);
+        pdfUrl.value = null;
+        return null;
+      }
+    })
+    .catch(error => {
+      console.error("Fout bij het controleren van PDF:", error);
+      return null;
+    });
+  // console.log("PDF URL:", pdf);
+  // //   const response = await axios.get(`${api}/toernooien`)
+
+  // await axios.get(`${api}/pdf-exists/${pdf}`)
+  //   .then(response => {
+  //     if (response.data.exists) {
+  //       console.log("PDF bestaat al:", pdf);
+  //       return pdf;
+  //     } else {
+  //       return false;
+  //     }
+  //   })
+  //   .catch(error => {
+  //     console.error("Fout bij het controleren van PDF:", error);
+  //     return false;
+  //   });
+}
+
+function filterToernooien() {
+  // Filter de toernooien op basis van de geselecteerde periode
+  filteredToernooien.value = toernooien.value
+    .filter(tn => {
+      const date = new Date(stripTime(tn.datum));
+      return date >= new Date(stripTime(vanaf.value)) && date <= new Date(stripTime(tot.value));
+    })
+    .sort((a, b) => new Date(a.datum) - new Date(b.datum));
+  // console.log("Gefilterde toernooien:", filteredToernooien.value);
+}
+
+function getSemesters() {
+  const uniqueDates = new Set();
+  toernooien.value.forEach(tn => {
+    const date = new Date(tn.datum);
+    const semester = `${date.getFullYear()}-${Math.ceil((date.getMonth() + 1) / 6)}`;
+    uniqueDates.add(semester);
+  });
+  return Array.from(uniqueDates).sort();
+}
+function getCurrentSemester() {
+  // console.log("Huidige semester:", currentSemester.value);
+  setPeriode();
+}
+
+function setActiveSemester() {
+  // Zet de huidige semester op basis van het huidige toernooi
+  if (thisTNdatum.value) {
+    const date = new Date(thisTNdatum.value);
+    currentSemester.value = `${date.getFullYear()}-${Math.ceil((date.getMonth() + 1) / 6)}`;
+    // console.log("Huidige semester ingesteld:", currentSemester.value);
+  } else {
+    currentSemester.value = `${new Date().getFullYear()}-${Math.ceil((new Date().getMonth() + 1) / 6)}`;
+  }
+  setPeriode();
+}
 
 function teamSelected(tm) {
   const idx = toernooiTeams.value.indexOf(tm);
@@ -155,9 +352,9 @@ function toggleEditMode() {
 
 async function getSavedToernooien() {
   const response = await axios.get(`${api}/toernooien`)
-   // console.log("Toernooien opgehaald:", response.data);
+  // console.log("Toernooien opgehaald:", response.data);
   toernooien.value = response.data
-  toernooi.value = 'Oude toernooien'
+  toernooi.value = 'Toernooien'
 }
 
 function editTeam(i) {
@@ -176,19 +373,12 @@ function removeTeam(i) {
   }
 }
 
-function niceDate(date) {
-  if (!date) return "";
-  const d = new Date(date);
-  return d.toLocaleDateString("nl-NL", {
-    day: "numeric",
-    month: "long",
-    year: "numeric"
-  });
+function toggleShowRanking() {
+  showRanking.value = !showRanking.value;
 }
 
-
-
 function allMatchesPlayed() {
+  // check of alle matches een uislag hebben in de localeStorage
   const gm = localStorage.getItem("tournamentGroupMatches");
   const m = localStorage.getItem("tournamentMatches");
 
@@ -200,16 +390,18 @@ function allMatchesPlayed() {
   if (gm) {
     const groupMatches = JSON.parse(gm);
     return groupMatches.every((group) =>
-      group.every((match) =>
-        isScoreEntered(match.scoreL) && isScoreEntered(match.scoreR)
-      )
+      group.every((match) => {
+        return match.every((tafel) =>
+          isScoreEntered(tafel.scoreL) || isScoreEntered(tafel.scoreR)
+        );
+      })
     );
   }
 
   const matches = JSON.parse(m);
   return matches.every((round) =>
     round.every((match) =>
-      isScoreEntered(match.scoreL) && isScoreEntered(match.scoreR)
+      isScoreEntered(match.scoreL) || isScoreEntered(match.scoreR)
     )
   );
 }
@@ -218,55 +410,60 @@ function removeTeamsFromToernooi() {
   // Haal alle toernooiTeams uit de deelnemers lijst 
   toernooiTeams.value = []
 }
-function resetAll() {
+async function sluitToernooi() {
   // reset de deelnemende toernooiTeams , de scores en het schema
   // alleen als er een schema is ;-)
   if (thisToernooi.value) {
+    // console.log("Sluit toernooi:", thisToernooi.value);
     resetLocalStorage()
-    toernooi.value = 'Oude toernooien'
+    toernooi.value = 'Toernooien'
     editMode.value = false
     return
   }
   if (tournamentStarted.value) {
     // nogmaals bevestigen
     if (!allMatchesPlayed()) {
-      if (confirm("Nog niet alle matches zijn gespeeld, wil je het toernooi toch resetten?")) {
+      if (confirm("Nog niet alle matches zijn gespeeld, wil je het toernooi toch sluiten? \nDit kan niet ongedaan worden gemaakt!")) {
+        // Niet opgeslagen toernooi wordt dus verwijderd
         resetLocalStorage()
-        toernooi.value = 'Oude toernooien'
+        toernooi.value = 'Toernooien'
         editMode.value = false
         return
       } else {
         // terug naar het toernooi
         return
       }
-      //else do nothing, dus terug naar het toernooi
     } else {
       // alle wedstrijden gespeeld, dus opslaan?
       if (serverAvailable.value && tournamentHasData() && !thisToernooi.value) {
-        if (confirm("Wil je het toernooi opslaan voor later?")) {
-          saveToApi();
-          editMode.value = false
-        }
+        await saveToApi();
+        await maakPdf()
+        editMode.value = false
+        toernooi.value = 'Toernooien';
+        resetLocalStorage()
+        return
       }
       if (confirm("Weet je zeker dat het toernooi wilt sluiten?")) {
         resetLocalStorage()
         editMode.value = false
-        toernooi.value = 'Oude toernooien'
+        toernooi.value = 'Toernooien'
       }
     }
   }
 }
 
-function resetLocalStorage() {
+function resetLocalStorage(inclTeams = true) {
   // reset de local storage
-  localStorage.removeItem("tournamentTeams");
+  if (inclTeams) {
+    localStorage.removeItem("tournamentTeams");
+    toernooiTeams.value = [];
+  }
   localStorage.removeItem("matches");
   localStorage.removeItem("tournamentGroups");
   localStorage.removeItem("tournamentGroupMatches");
   localStorage.removeItem("tournamentMatches");
   localStorage.removeItem("tournamentFinalMatches");
   localStorage.removeItem("repeatRounds");
-  toernooiTeams.value = [];
   newTeam.value = "";
   tournamentStarted.value = false;
   groepsToernooi.value = false;
@@ -275,18 +472,22 @@ function resetLocalStorage() {
   getSavedToernooien()
 }
 
-function handleSelectTournament() {
+async function handleSelectTournament() {
   if (toernooi.value && toernooi.value.id) {
-    selectTournament(toernooi.value.id);
+    await selectTournament(toernooi.value.id);
+    setActiveSemester();
+    setPeriode();
   }
 }
 
-
-function selectTournament(tn) {
+async function selectTournament(tn) {
   thisToernooi.value = tn;
-  // console.log("selectTournament", thisToernooi.value);
   // laad de toernooiTeams van het geselecteerde toernooi
-  loadTournament(tn);
+  await loadTournament(tn);
+  await pdfBestaat(niceDate(thisTNdatum.value, true));
+  // console.log("PDF in Select tournament:", pdfUrl.value);
+  toernooiSaved.value = true; // toernooi is geladen, dus opgeslagen
+  // console.log("Datum van het toernooi:", thisTNdatum.value);
 }
 
 async function loadTournament(tn) {
@@ -295,14 +496,14 @@ async function loadTournament(tn) {
   await axios.get(`${api}/toernooien/${tn}`)
     .then(response => {
       const data = response.data;
-      // console.log("Toernooi data:", data);
+      //      // console.log("Toernooi data:", data);
       // sla de toernooi data op in localStorage
       thisToernooi.value = data.id;
       repeatRounds.value = data.repeatRounds || 1;
       // toernooiTeams
       thisTNdatum.value = data.datum ? new Date(data.datum) : new Date();
       groepsToernooi.value = data.groepsToernooi !== 0;
-      // console.log("tournamentTeams", data.teams);
+      //      // console.log("tournamentTeams", data.teams);
       localStorage.setItem("tournamentTeams", data.teams);
       if (!groepsToernooi.value || groepsToernooi.value === 0) {
         localStorage.setItem("tournamentMatches", data.matches);
@@ -318,12 +519,13 @@ async function loadTournament(tn) {
     });
 }
 
-function saveToApi() {
-  standardTeamsToApi()
-  saveTournament()
+async function saveToApi() {
+  await standardTeamsToApi()
+  await saveTournament("Alles is opgeslagen!")
+  await getRanking()
 }
 
-async function standardTeamsToApi() {
+async function standardTeamsToApi(msg) {
   // standaard teams
 
   // if (!serverAvailable.value) return
@@ -341,10 +543,12 @@ async function standardTeamsToApi() {
   };
   await axios.post(`${api}/standardTeams`, sendTeams)
     .then(() => {
-      toast.success("Teams opgeslagen op de server", {
-        position: "top-left",
-        timeout: 3000,
-      });
+      if (msg) {
+        toast.success(msg, {
+          position: "top-left",
+          timeout: 3000,
+        });
+      }
       // console.log("Lijst ook opgeslagen op de server:", bewaardeTeams);
     })
     .catch((error) => {
@@ -363,21 +567,21 @@ function tournamentHasData() {
   const groups = localStorage.getItem("tournamentGroups");
   const groupMatches = localStorage.getItem("tournamentGroupMatches");
   const finalMatches = localStorage.getItem("tournamentFinalMatches");
-  //  // console.log("tournamentHasData tnTeams:", "matches:", matches, "groups:", groups, "groupMatches:", groupMatches, "finalMatches:", finalMatches)
+  // console.log("tournamentHasData tnTeams:", "matches:", matches, "groups:", groups, "groupMatches:", groupMatches, "finalMatches:", finalMatches)
   return matches || groups || groupMatches || finalMatches;
 }
 // controleer of er al data is voor dit toernooi
 
-async function saveTournamentChanges() {
+async function saveTournamentChanges(msg) {
   if (!toernooi.value || !serverAvailable.value) return
-  let msg = 'Weet je zeker daty je wijzigingen wilt opslaan?'
+  let msgA = 'Weet je zeker daty je wijzigingen wilt opslaan?'
   if (thisTNdatum.value !== new Date().toISOString().split('T')[0]) {
-    msg = `Weet je zeker dat je de wijzigingen voor het toernooi wilt opslaan?`
-    msg += `\nLet op: Dit toenooi is gespeeld op ${niceDate(thisTNdatum.value)}`;
+    msgA = `Weet je zeker dat je de wijzigingen voor het toernooi wilt opslaan?`
+    msgA += `\nLet op: Dit toenooi is gespeeld op ${niceDate(thisTNdatum.value)}`;
   }
-  if (confirm(msg)) {
+  if (confirm(msgA)) {
     try {
-      // console.log("Opslaan van toernooi wijzigingen...");
+      //      // console.log("Opslaan van toernooi wijzigingen...");
       const response = await axios.put(`${api}/toernooien/${toernooi.value.id}`, {
         teams: localStorage.getItem("tournamentTeams"),
         matches: localStorage.getItem("tournamentMatches"),
@@ -387,11 +591,12 @@ async function saveTournamentChanges() {
         groepsToernooi: groepsToernooi.value || false,
         repeatRounds: repeatRounds.value || 1,
       })
-
-      toast.success('Toernooi succesvol bijgewerkt!', {
-        position: "top-right",
-        timeout: 3000,
-      });
+      if (msg) {
+        toast.success(msg, {
+          position: "top-right",
+          timeout: 3000,
+        });
+      }
       toggleEditMode()
     } catch (error) {
       console.error("Fout bij het opslaan van wijzigingen:", error)
@@ -401,20 +606,21 @@ async function saveTournamentChanges() {
 }
 
 
-async function saveTournament() {
+async function saveTournament(msg) {
 
-  if (!serverAvailable.value) return
+  if (!serverAvailable.value || toernooiSaved.value === true) return
 
   // tournament
-
+  thisTNdatum.value = new Date().toISOString().split('T')[0];
+  // console.log("saveToApi thisTNdatum:", thisTNdatum.value,
   const tnTeams = localStorage.getItem("tournamentTeams");
   const matches = localStorage.getItem("tournamentMatches");
   const groups = localStorage.getItem("tournamentGroups");
   const groupMatches = localStorage.getItem("tournamentGroupMatches");
   const finalMatches = localStorage.getItem("tournamentFinalMatches");
-  //  // console.log("saveToApi tournamentTeams:", tnTeams, "groups:", groups, "groupMatches:", groupMatches, "finalMatches:", finalMatches)
+  // console.log("saveToApi tournamentTeams:", tnTeams, "groups:", groups, "groupMatches:", groupMatches, "finalMatches:", finalMatches)
   const toernooi = {
-    datum: new Date().toISOString().split('T')[0],
+    datum: thisTNdatum.value,
     teams: tnTeams ? JSON.parse(tnTeams) : [],
     matches: matches ? JSON.parse(matches) : [],
     groups: groups ? JSON.parse(groups) : [],
@@ -425,13 +631,17 @@ async function saveTournament() {
   };
   await axios.post(`${api}/toernooien`, toernooi)
     .then(() => {
-      toast.success("Toernooi opgeslagen op de server", {
-        position: "top-right",
-        timeout: 3000,
-      });
-      //            console.log("Toernooi opgeslagen op de server");
+      if (msg) {
+        toast.success(msg, {
+          position: "top-right",
+          timeout: 3000,
+        });
+      }
+      toernooiSaved.value = true;
+      // console.log("Toernooi opgeslagen op de server");
     })
     .catch((error) => {
+
       toast.error("Fout bij het opslaan van toernooi: " + error.message, {
         position: "top-left",
         timeout: 3000,
@@ -454,7 +664,18 @@ async function removeTournament(tn) {
       .catch((error) => {
         console.error("Fout bij het verwijderen van toernooi:", error);
       });
+    // reset de toernooi data
+    thisToernooi.value = null;
+    thisTNdatum.value = new Date();
+    tournamentStarted.value = false;
+    toernooiTeams.value = [];
+    newTeam.value = "";
+    // reset de localStorage
     resetLocalStorage();
+    filterRankingByPeriod();
+    filterToernooien();
+    getRanking(`Toernooi van ${niceDate(tn.datum, true)} verwijderd`);
+
   }
 
 }
@@ -472,7 +693,7 @@ function addTeam() {
 }
 
 function addAll() {
-  //    //  //  //  console.log("addAll ... ")
+  //    //  console.log("addAll ... ")
   savedTeams.value.forEach((tm, index) => {
     getTeam(tm)
   })
@@ -503,7 +724,7 @@ function removeStandardTeam(tm) {
       // en maar gelijk opslaan, anders blijft ie hangen
       localStorage.setItem("savedTeams", JSON.stringify(savedTeams.value));
       // en ook in de API bijwerken
-      standardTeamsToApi();
+      standardTeamsToApi("Team verwijderd uit standaardlijst: " + tm);
     }
   }
 }
@@ -538,43 +759,43 @@ watch(filteredTeams, (newTeams) => {
 
 async function startTournament() {
   if (filteredTeams.value.length >= 2) {
-
     // // controleer of er al een toernooi is voor deze datum
     const nu = new Date(Date.now()).toISOString().split('T')[0];
     const tnID = await axios.get(`${api}/tournamentID?datum=${nu}`)
       .then(response => {
-        console.log("Toernooi ID opgehaald:", response.data.id);
+        //        console.log("Toernooi ID opgehaald:", response.data.id);
         return response.data.id;
       })
       .catch(error => {
         console.error("Fout bij het ophalen van toernooi ID:", error);
       });
-    console.log("tnID:", tnID);
+    //    console.log("tnID:", tnID);
     if (tnID) {
       if (confirm("Een toernooi op deze datum bestaat al, deze wordt overschreven, tenzij je nu annuleert!")) {
+        resetLocalStorage(false) // reset de data in localStorage (just to be sure), maar niet de geselecteerde teams
         // verwijder het oude toernooi
         await axios.delete(`${api}/toernooien/${tnID}`)
           .then(() => {
-            console.log("Oud toernooi verwijderd:", tnID);
+            // console.log("Oud toernooi verwijderd:", tnID);
             thisToernooi.value = null; // reset toernooi ID
-            // resetAll();
+            // sluitToernooi();
             // resetLocalStorage()
-            toernooi.value = 'Oude toernooien'
+            toernooi.value = 'Toernooien'
             return; // stop hier
           })
           .catch(error => {
             console.error("Fout bij het verwijderen van oud toernooi:", error);
           });
       } else {
-        // stop hier, dus geen toernooi starten
+        // geen nieuw toernooi starten
         // laad dit toernooi opnieuw
         toernooi.value = nu
         selectTournament(tnID);
-        // await loadTournament(tnID);
-        console.log("Toernooi niet gestart, terug naar het toernooi:", tnID);
+        //        console.log("Toernooi niet gestart, terug naar het toernooi:", tnID);
         return;
       }
     }
+    // begin nieuw toernooi
     addTeamsToList() // voeg eventueel nieuwe teams aan de standaardlijst toe
     groepsToernooi.value = false
     if (filteredTeams.value.length >= 7) {
@@ -584,7 +805,7 @@ async function startTournament() {
     let rndTxt = 'ronde'
     if (repeatRounds.value > 1) rndTxt = 'rondes'
     let msg = `Het schema wordt gemaakt voor ${repeatRounds.value} ${rndTxt} \nmet ${(filteredTeams.value.length)} teams`
-    if (groepsToernooi) {
+    if (groepsToernooi.value) {
       msg += ', verdeeld over twee groepen'
     }
     msg += `\n\nIs dit de bedoeling?`
@@ -607,21 +828,18 @@ function addTeamsToList() {
     // voeg toernooiTeams toe aan savedTeams als ze (nog) niet bestaan
     toernooiTeams.value.forEach((tm, index) => {
       if (!savedTeams.value.includes(tm)) {
-        if (confirm(`${tm} toevoegen aan standaard lijst?`))
+        if (confirm(`${tm} toevoegen aan standaard lijst?`)) {
           savedTeams.value.push(tm);
-        teamsSaved = true
+          teamsSaved = true;
+        }
       }
     });
     savedTeams.value.sort();
     // en savedTeams array opslaan
     localStorage.setItem("savedTeams", JSON.stringify(savedTeams.value));
     // en ook naar de API sturen
-    standardTeamsToApi();
     if (teamsSaved) {
-      toast.info("Nieuwe teams toegevoegd aan de standaard lijst", {
-        position: "top-center",
-        timeout: 3000,
-      });
+      standardTeamsToApi("Standaard teams opgeslagen");
     }
   }
 }
@@ -638,7 +856,7 @@ async function getSavedTeamsFromApi() {
   await axios.get(`${api}/savedTeams`)
     .then(response => {
       const Lijst = response.data.sort();
-      //            console.log("Lijst opgehaald van de API:", savedTeams);
+      //      //            console.log("Lijst opgehaald van de API:", savedTeams);
       Lijst.forEach((tm, index) => {
         // check of het team al in de lijst staat
         if (!savedTeams.value.includes(tm)) {
@@ -650,7 +868,7 @@ async function getSavedTeamsFromApi() {
     .catch(error => {
       console.error("Fout bij het ophalen van teams:", error);
       toast.error("Fout bij het ophalen van teams: " + error.message, {
-        position: "bottom",
+        position: "bottom-center",
         timeout: 2000,
       });
     });
@@ -661,7 +879,7 @@ async function isServerActive() {
   try {
     const res = await axios.get(`${api}/ping`, { timeout: 3000 });
 
-    // console.log("API server beschikbaar:", res.status);
+    //    // console.log("API server beschikbaar:", res.status);
     if (res.status === 200) {
       serverAvailable.value = true;
     }
@@ -675,16 +893,81 @@ async function isServerActive() {
   }
 }
 
+const getRanking = async (msg) => {
+  // haal de ranking op van de API
+  try {
+    const response = await axios.get(`${api}/ranking`);
+    rankingData.value = response.data;
+    if (msg) {
+      toast.success(msg, {
+        position: "top-center",
+        timeout: 2000,
+      });
+    }
+    //    console.log("Ranking data:", rankingData.value);
+  } catch (error) {
+    console.error("Fout bij het ophalen van ranking:", error);
+    toast.error("Fout bij het ophalen van ranking: " + error.message, {
+      position: "bottom-center",
+      timeout: 2000,
+    });
+  }
+};
+
+function filterRankingByPeriod() {
+  const start = new Date(vanaf.value)
+  const end = new Date(tot.value)
+  //  console.log("Filtering ranking from", start, "to", end);
+  //  console.log("Ranking data:", rankingData.value);
+  const result = rankingData.value.map((speler) => {
+    const filteredScores = speler.scores.filter((s) => {
+      const d = new Date(s.datum)
+      return d >= start && d <= end
+    })
+    //    console.log("filteredScores:", filteredScores)
+    const beste6 = [...filteredScores].sort((a, b) => b.punten - a.punten).slice(0, 6)
+    const totaal = beste6.reduce((sum, s) => sum + s.punten, 0)
+    //    console.log("Totaal punten voor", speler.speler, ":", totaal)
+    return {
+      speler: speler.speler,
+      scores: filteredScores,
+      totaal,
+    }
+  })
+
+  result.sort((a, b) => b.totaal - a.totaal)
+  //  console.log("Result:", result)
+  let lastTotaal = null
+  let plaats = 0
+  let echtePlaats = 0
+
+  const metPlaats = result.map((s) => {
+    echtePlaats++
+    if (s.totaal !== lastTotaal) {
+      plaats = echtePlaats
+      lastTotaal = s.totaal
+    }
+    return { ...s, plaats }
+  })
+  //  console.log("Filtered ranking:", metPlaats)
+  filteredRanking.value = metPlaats
+}
+
+
 onMounted(async () => {
-  //  console.log("api = ", api);
   await isServerActive(); // kijk o de server beschikbaar is
+  setActiveSemester(); // zet de huidige semester
   if (serverAvailable.value) {
     // haal de opgeslagen teams op van de API
     await getSavedTeamsFromApi();
     await getSavedToernooien();
+    await getRanking();
+    filterToernooien()
+    filterRankingByPeriod()
     toast.success("Welkom bij Jota's Kraak Score \nGegevens zijn opgehaald van de server", {
       position: "top-center",
       timeout: 3000,
+
     });
   } else {
     // haal de opgeslagen teams uit localStorage
