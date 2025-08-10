@@ -30,7 +30,7 @@
           ✕
         </button>
 
-        <h2 class="text-sm font-semibold mb-2">Deel deze QR-code</h2>
+        <h2 class="text-sm font-semibold mb-2">Scan QR-code voor uitslag PDF</h2>
         <qrcode-vue :value="pdfUrl" :size="140" class="mx-auto" />
 
         <p class="text-xs mt-3 break-words text-center text-gray-600">

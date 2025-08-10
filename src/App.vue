@@ -26,40 +26,32 @@
               {{ semester }}
             </option>
           </select>
-          <!-- <p @click="toggleShowRanking" v-if="!thisToernooi" class="copyright" v-tooltip="'Toon ranking'">©2025 Jota
-            Services</p> -->
-
         </div>
         <div v-if="toernooi !== 'Toernooien'" class="titel regel flex justify-left ">
-          <h2 class="text-sm text-white m-1">Datum: {{ niceDate(thisTNdatum) }}
-            <!-- <button v-if="pdfUrl" class="bg-yellow-300 text-red-800 btn">
-              <a :href="pdfUrl" target="_blank">Druk af</a>
-            </button> -->
-          </h2>
-
+          <h2 class="text-sm text-white m-1">Datum: {{ niceDate(thisTNdatum,true) }} </h2>
           <button v-if="!editMode" v-tooltip="'Bewerk dit toernooi'" class="bg-transparent border-0 p-1"
             @click="toggleEditMode">
-            <editIcon class="h-6 w-6 text-blue-100" />
+            <pencilSquareIcon class="h-6 w-6 text-blue-100" />
           </button>
           <button v-if="editMode" v-tooltip="'Sla dit toernooi op'" class="bg-transparent border-0 p-1"
             @click="saveTournamentChanges">
-            <inbox class="h-6 w-6 text-green-300" />
+            <InboxIcon class="h-6 w-6 text-green-300" />
           </button>
           <button v-if="serverAvailable" class="bg-red-800 border-0 p-1" @click="removeTournament(toernooi)"
             v-tooltip="'Verwijder dit toernooi definitief van de server'">
-            <trash class="h-6 w-6 text-red-200" />
+            <TrashIcon class="h-6 w-6 text-red-200" />
           </button>
         </div>
         <div class="knoppen flex justify-center" v-if="tournamentStarted">
           <button @click="sluitToernooi" class="bg-yellow-300 text-red-800 btn" v-tooltip="'Sluit toernooi af'"><span
               v-if="thisToernooi">Sluiten</span><span v-else>Opslaan</span></button>
           <button v-if="!pdfUrl" @click="maakPdf" class="bg-blue-500 text-white btn" v-tooltip="'Afdrukken naar PDF'">
-            <printer class="h-6 w-6 text-white" />
+            <PrinterIcon class="h-6 w-6 text-white" />
           </button>
           <button v-else style="margin-left:2px; width:auto; height:30px; font-size: .9em;"
             class="bg-blue-500 text-white btn" v-tooltip="'Open de PDF met uitslag'">
             <a :href="pdfUrl" target="_blank">
-              <printer class="h-6 w-6 text-white" />
+              <PrinterIcon class="h-6 w-6 text-white" />
             </a>
           </button>
           <!-- QR knop -->
@@ -71,28 +63,21 @@
               <img height="24" width="24" src="https://unpkg.com/simple-icons@latest/icons/whatsapp.svg" />
             </a>
           </button>
-          <!-- <Pdf v-if="toernooiSaved" groepsToernooi="groepsToernooi" :ranking="filteredRanking" :toernooien="filteredToernooien"
-            :datum="thisTNdatum" /> -->
-
         </div>
       </div>
-
     </div>
     <div class="toprow" v-if="!tournamentStarted">
       <!-- Lijst sectie -->
       <div v-if="showRanking" class="ranking">
         <Ranking :ranking="filteredRanking" :toernooien="filteredToernooien" :vanaf="vanaf" :tot="tot" />
       </div>
-
       <div v-if="!showRanking" class="teams">
-
         <div class="flex gap-2 text-center">
           <input v-model="newTeam" @keyup.enter="addTeam" placeholder="Teamnaam" class="p-1 border teamnaam rounded"
             style="width:50%;" :disabled="toernooiTeams.length > 7" />
           <button @click="addTeam" class="bg-green-800 text-white px-4 py-2 rounded" style="width:50%;"
             :disabled="toernooiTeams.length > 7 || newTeam.trim() === ''">OK</button>
         </div>
-
         <div class="flex gap-2 items-center p-1">
           <label for="repeatRounds">Aantal volle rondes:</label>
           <input id="repeatRounds" type="number" v-model.number="repeatRounds" min="1" max="2"
@@ -102,7 +87,6 @@
           <div>
           </div>
         </div>
-
         <div v-if="toernooiTeams.length > 0" class="teamlist">
           <h2 class="font-semibold" @click.ctrl="removeTeamsFromToernooi" v-longpress="() => removeTeamsFromToernooi()">
             Lijst:</h2>
@@ -114,13 +98,11 @@
           </ul>
           <p class="text-xs">klik: aanpassen, ctrl/long+klik=wissen</p>
         </div>
-
       </div>
 
       <!-- rechter div -->
       <!-- kan ofwel de standaard deelnemers lijst ofwel de stand laten zien -->
       <!-- Afhankelijk of er al dan niet al een schema is gemaakt -->
-
       <!-- Opgeslagen team lijst -->
       <div id="savedTeams" class="teamlijst rounded" v-if="!tournamentStarted && !showRanking">
         <h2 @click.exact="addAll" @click.ctrl="removeAllStandardTeams">Opgeslagen teams</h2>
@@ -138,66 +120,75 @@
         style="margin-right:2px; width:200px;" :disabled="tournamentStarted"
         v-tooltip="'Bij 8 spelers worden willekeurig twee groepen aangemaakt'">Start toernooi</button>
     </div>
-
+    <!-- Load Tournament component -->
     <Tournament v-if="tournamentStarted" :initialTeams="filteredTeams" :repeatRounds="repeatRounds"
-      :edit-mode="editMode" :groepsToernooi="groepsToernooi" :toernooiPlayed="thisToernooi !== null"
-      @reset="handleReset" />
-
-
-
+      :edit-mode="editMode" :groepsToernooi="groepsToernooi" :toernooiPlayed="thisToernooi !== null" />
   </div>
 </template>
 
 <script setup>
+//  VUE core imports
 import { ref, computed, watch, onMounted } from "vue";
+
+// components
 import Ranking from "./components/Ranking.vue";
 import Tournament from "./components/Tournament.vue";
-// import Pdf from './components/Pdf.vue'
-import { niceDate, getSemesterText, stripTime } from './utils/dateUtils.js'
+import Qrcode from './components/Qrcode.vue'
+
+// data
+import dbService from './services/dbservices.js'
+
+// Directives
 import longpress from './directives/longpress.js';
-import axios from 'axios'
-import { useToast } from 'vue-toastification'
+
+//utils
+import { niceDate, stripTime } from './utils/dateUtils.js'
 import { uitslagPDF } from './utils/pdf/tournamentPDF.js'
 import { rankingPDF } from "./utils/pdf/rankingPDF.js";
-import jsPDF from "jspdf";
-import Qrcode from './components/Qrcode.vue'
-const toast = useToast()
 
+//externeal libraries
+import jsPDF from "jspdf";
+
+//icons
 import { PrinterIcon, TrashIcon, PencilSquareIcon, InboxIcon } from '@heroicons/vue/24/solid'
 
-const printer = PrinterIcon
-const trash = TrashIcon
-const editIcon = PencilSquareIcon
-const inbox = InboxIcon
-const showRanking = ref(false);
-const rankingData = ref([]); // voor de ranking data
-const filteredRanking = ref([]);
-const serverAvailable = ref(false);
-const toernooiSaved = ref(false); // om te weten of het toernooi is Opgeslagen
+import { useToast } from 'vue-toastification'; // import toast composable
 
-// const api = import.meta.env.VITE_API_URL || 'http://piweb:54321';
-const api = import.meta.env.VITE_API_URL;
-// console.log ("API URL:", api);
-const groepsToernooi = ref(false)
-const thisToernooi = ref(null)
-const thisTNdatum = ref(new Date())
-const currentSemester = ref(''); // default value for semester selection
-// const thisTNteams = ref([]) // teams van dit toernooi, nog niet gebruikt
+// UI State
+const showRanking = ref(false);
+const editMode = ref(false);
+const pdfUrl = ref(null);
+const toast = useToast();
+
+
+// tournament data
 const toernooien = ref([])
 const filteredToernooien = ref([]);
 const toernooi = ref('Toernooien')
-const newTeam = ref("");
+const tournamentStarted = ref(false);
+const thisToernooi = ref(null)
+const thisTNdatum = ref(new Date())
 const toernooiTeams = ref([]);
 const savedTeams = ref([]);
-const editMode = ref(false);
-const tournamentStarted = ref(false);
 const repeatRounds = ref(1);
+const groepsToernooi = ref(false)
+const toernooiSaved = ref(false); // om te weten of het toernooi is Opgeslagen
 
-const pdfUrl = ref(null);
+// ranking 
+const rankingData = ref([]); // voor de ranking data
+const filteredRanking = ref([]);
 
+// server state
+const serverAvailable = ref(false);
 
+// console.log ("API URL:", api);
+// date filters
 const vanaf = ref(new Date().toISOString().split('T')[0]);
 const tot = ref(new Date().toISOString().split('T')[0]);
+const currentSemester = ref(''); // default value for semester selection
+
+// form inputs
+const newTeam = ref("");
 
 function setPeriode() {
   // Zet de periode van de ranking op basis van de selected semester
@@ -235,17 +226,6 @@ async function maakPdf() {
   let tnNaam = "Kraken " + niceDate(thisTNdatum.value, true) + ".pdf";
   tnNaam = tnNaam.replace(/\s+/g, '_').toLowerCase(); // vervang spaties door streepjes en zet om naar kleine letters
   savePDF(doc, tnNaam);
-  // const blob = doc.output("blob");
-  // const formData = new FormData();
-  // formData.append("file", blob, tnNaam);
-  // const response = await axios.post(`${api}/upload`, formData, {
-  //   headers: {
-  //     'Content-Type': 'multipart/form-data'
-  //   }
-  // })
-  // console.log("PDF geüpload, response:", response.data);
-  // pdfUrl.value = baseUrl + response.data.url
-  // pdfUrl.value = pdfUrl.value.replace(/\s+/g, '_').toLowerCase(); // vervang spaties door streepjes en zet om naar kleine letters
   doc.save(tnNaam);
 }
 
@@ -255,52 +235,26 @@ async function savePDF(doc, tnNaam) {
   const blob = doc.output("blob");
   const formData = new FormData();
   formData.append("file", blob, tnNaam);
-  const response = await axios.post(`${api}/upload`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  })
-  // console.log("PDF geüpload, response:", response.data);
+
+  const response = await dbService.postPDF(formData);
+  console.log("PDF geüpload, response:", response.data);
   pdfUrl.value = baseUrl + response.data.url
 }
 
 async function pdfBestaat(datum) {
-
   let pdfNaam = `Kraken ${datum}.pdf`;
   pdfNaam = pdfNaam.replace(/\s+/g, '_').toLowerCase(); // vervang spaties door streepjes en zet om naar kleine letters
   const pdf = "https://www.jota.nl/laurierboom/uploads/pdfs/" + pdfNaam;
-  await axios.get(`${api}/pdf-exists/${pdfNaam}`)
-    .then(response => {
-      if (response.data.exists) {
-        // console.log("PDF bestaat al:", pdf);
-        pdfUrl.value = pdf;
-        return pdfUrl.value;
-      } else {
-        // console.log("PDF bestaat niet:", pdf);
-        pdfUrl.value = null;
-        return null;
-      }
-    })
-    .catch(error => {
-      console.error("Fout bij het controleren van PDF:", error);
-      return null;
-    });
-  // console.log("PDF URL:", pdf);
-  // //   const response = await axios.get(`${api}/toernooien`)
-
-  // await axios.get(`${api}/pdf-exists/${pdf}`)
-  //   .then(response => {
-  //     if (response.data.exists) {
-  //       console.log("PDF bestaat al:", pdf);
-  //       return pdf;
-  //     } else {
-  //       return false;
-  //     }
-  //   })
-  //   .catch(error => {
-  //     console.error("Fout bij het controleren van PDF:", error);
-  //     return false;
-  //   });
+  const res = await dbService.fetchPDF(pdfNaam);
+  if (res.exists) {
+    // console.log("PDF bestaat al:", pdf);
+    pdfUrl.value = pdf;
+    return pdfUrl.value;
+  } else {
+    // console.log("PDF bestaat niet:", pdf);
+    pdfUrl.value = null;
+    return null;
+  }
 }
 
 function filterToernooien() {
@@ -351,10 +305,14 @@ function toggleEditMode() {
 }
 
 async function getSavedToernooien() {
-  const response = await axios.get(`${api}/toernooien`)
-  // console.log("Toernooien opgehaald:", response.data);
-  toernooien.value = response.data
-  toernooi.value = 'Toernooien'
+  // Haal de toernooien op van de server
+  try {
+    const data = await dbService.fetchToernooien();
+    toernooien.value = data;
+    // console.log("Toernooien opgehaald:", toernooien.value);
+  } catch (error) {
+    console.error("Fout bij het ophalen van toernooien:", error);
+  }
 }
 
 function editTeam(i) {
@@ -493,30 +451,32 @@ async function selectTournament(tn) {
 async function loadTournament(tn) {
   //  console.log("loadTournament", tn)
   // console.log("Loading tournament data from:", api);
-  await axios.get(`${api}/toernooien/${tn}`)
-    .then(response => {
-      const data = response.data;
-      //      // console.log("Toernooi data:", data);
-      // sla de toernooi data op in localStorage
-      thisToernooi.value = data.id;
-      repeatRounds.value = data.repeatRounds || 1;
-      // toernooiTeams
-      thisTNdatum.value = data.datum ? new Date(data.datum) : new Date();
-      groepsToernooi.value = data.groepsToernooi !== 0;
-      //      // console.log("tournamentTeams", data.teams);
-      localStorage.setItem("tournamentTeams", data.teams);
-      if (!groepsToernooi.value || groepsToernooi.value === 0) {
-        localStorage.setItem("tournamentMatches", data.matches);
-      } else {
-        localStorage.setItem("tournamentGroups", data.groups);
-        localStorage.setItem("tournamentGroupMatches", data.groupMatches);
-        localStorage.setItem("tournamentFinalMatches", data.finalMatches);
-      }
-      tournamentStarted.value = true;
-    })
-    .catch(error => {
-      console.error("Fout bij het laden van toernooi:", error);
-    });
+  try {
+    const data = await dbService.fetchToernooi(tn);
+    console.log("Toernooi data geladen:", data);
+    // sla de toernooi data op in localStorage
+    console.log("Data: ", data)
+    thisToernooi.value = data.id;
+    repeatRounds.value = data.repeatRounds || 1;
+    // toernooiTeams
+    thisTNdatum.value = data.datum ? new Date(data.datum) : new Date();
+    groepsToernooi.value = data.groepsToernooi !== 0;
+    //      // console.log("tournamentTeams", data.teams);
+    localStorage.setItem("tournamentTeams", data.teams);
+    // niet een groepstoernooi =>  matches 
+    if (!groepsToernooi.value || groepsToernooi.value === 0) {
+      localStorage.setItem("tournamentMatches", data.matches);
+    } else {
+      // groepstoernooi heeft groupmatches en finalMatches
+      localStorage.setItem("tournamentGroups", data.groups);
+      localStorage.setItem("tournamentGroupMatches", data.groupMatches);
+      localStorage.setItem("tournamentFinalMatches", data.finalMatches);
+    }
+  } catch (error) {
+    console.error("Fout bij het laden van toernooi:", error);
+    return
+  }
+  tournamentStarted.value = true;  // om de dom bij te werken
 }
 
 async function saveToApi() {
@@ -526,9 +486,6 @@ async function saveToApi() {
 }
 
 async function standardTeamsToApi(msg) {
-  // standaard teams
-
-  // if (!serverAvailable.value) return
 
   const bewaardeTeams = savedTeams.value.map((team) => {
     // verdeel in twee namen van de spelers
@@ -541,24 +498,24 @@ async function standardTeamsToApi(msg) {
   const sendTeams = {
     teams: bewaardeTeams,
   };
-  await axios.post(`${api}/standardTeams`, sendTeams)
-    .then(() => {
-      if (msg) {
-        toast.success(msg, {
-          position: "top-left",
-          timeout: 3000,
-        });
-      }
-      // console.log("Lijst ook opgeslagen op de server:", bewaardeTeams);
-    })
-    .catch((error) => {
-      toast.error("Fout bij het opslaan van standaard teams: " + error.message, {
-        position: "top-left",
+  try {
+    await dbService.saveStandardTeams(sendTeams);
+    if (msg) {
+      toast.success(msg, {
+        position: "top-right",
         timeout: 3000,
       });
-      // console.error("Fout bij het opslaan van standaard teams:", error);
-      console.error("Fout bij het opslaan van standaard teams:", error);
+    }
+    // console.log("Standaard teams opgeslagen:", sendTeams);
+  } catch (error) {
+    console.error("Fout bij het opslaan van standaard teams:", error);
+    toast.error("Fout bij het opslaan van standaard teams: " + error.message, {
+      position: "top-left",
+      timeout: 3000,
     });
+    return;
+  }
+
 }
 
 function tournamentHasData() {
@@ -580,28 +537,30 @@ async function saveTournamentChanges(msg) {
     msgA += `\nLet op: Dit toenooi is gespeeld op ${niceDate(thisTNdatum.value)}`;
   }
   if (confirm(msgA)) {
+    const toernooiData = {
+      id: toernooi.value.id,
+      datum: thisTNdatum.value,
+      teams: localStorage.getItem("tournamentTeams"),
+      matches: localStorage.getItem("tournamentMatches"),
+      groups: localStorage.getItem("tournamentGroups"),
+      groupMatches: localStorage.getItem("tournamentGroupMatches"),
+      finalMatches: localStorage.getItem("tournamentFinalMatches"),
+      groepsToernooi: groepsToernooi.value || false,
+      repeatRounds: repeatRounds.value || 1,
+    };
     try {
-      //      // console.log("Opslaan van toernooi wijzigingen...");
-      const response = await axios.put(`${api}/toernooien/${toernooi.value.id}`, {
-        teams: localStorage.getItem("tournamentTeams"),
-        matches: localStorage.getItem("tournamentMatches"),
-        groups: localStorage.getItem("tournamentGroups"),
-        groupMatches: localStorage.getItem("tournamentGroupMatches"),
-        finalMatches: localStorage.getItem("tournamentFinalMatches"),
-        groepsToernooi: groepsToernooi.value || false,
-        repeatRounds: repeatRounds.value || 1,
-      })
+      await dbService.updateToernooi(toernooi.value.id, toernooiData)
       if (msg) {
         toast.success(msg, {
           position: "top-right",
           timeout: 3000,
         });
       }
-      toggleEditMode()
     } catch (error) {
-      console.error("Fout bij het opslaan van wijzigingen:", error)
+      console.error("Fout bij het opslaan van toernooi:", error)
       toast.error('Opslaan mislukt.' + error.message)
     }
+    toggleEditMode()
   }
 }
 
@@ -611,43 +570,29 @@ async function saveTournament(msg) {
   if (!serverAvailable.value || toernooiSaved.value === true) return
 
   // tournament
-  thisTNdatum.value = new Date().toISOString().split('T')[0];
-  // console.log("saveToApi thisTNdatum:", thisTNdatum.value,
-  const tnTeams = localStorage.getItem("tournamentTeams");
-  const matches = localStorage.getItem("tournamentMatches");
-  const groups = localStorage.getItem("tournamentGroups");
-  const groupMatches = localStorage.getItem("tournamentGroupMatches");
-  const finalMatches = localStorage.getItem("tournamentFinalMatches");
-  // console.log("saveToApi tournamentTeams:", tnTeams, "groups:", groups, "groupMatches:", groupMatches, "finalMatches:", finalMatches)
-  const toernooi = {
+  const toernooiData = {
     datum: thisTNdatum.value,
-    teams: tnTeams ? JSON.parse(tnTeams) : [],
-    matches: matches ? JSON.parse(matches) : [],
-    groups: groups ? JSON.parse(groups) : [],
-    groupMatches: groupMatches ? JSON.parse(groupMatches) : [],
-    finalMatches: finalMatches ? JSON.parse(finalMatches) : [],
-    groepsToernooi: groepsToernooi.value || false,
-    repeatRounds: repeatRounds.value || 1,
-  };
-  await axios.post(`${api}/toernooien`, toernooi)
-    .then(() => {
-      if (msg) {
-        toast.success(msg, {
-          position: "top-right",
-          timeout: 3000,
-        });
-      }
-      toernooiSaved.value = true;
-      // console.log("Toernooi opgeslagen op de server");
-    })
-    .catch((error) => {
-
-      toast.error("Fout bij het opslaan van toernooi: " + error.message, {
-        position: "top-left",
+    teams: JSON.parse(localStorage.getItem("tournamentTeams") || "[]"),
+    matches: JSON.parse(localStorage.getItem("tournamentMatches") || "[]"),
+    groups: JSON.parse(localStorage.getItem("tournamentGroups") || "[]"),
+    groupMatches: JSON.parse(localStorage.getItem("tournamentGroupMatches") || "[]"),
+    finalMatches: JSON.parse(localStorage.getItem("tournamentFinalMatches") || "[]"),
+    groepsToernooi: groepsToernooi.value,
+    repeatRounds: repeatRounds.value
+  }
+  try {
+    await dbService.saveToernooi(toernooiData);
+    // console.log("Toernooi opgeslagen:", toernooiData);
+    toernooiSaved.value = true;
+    if (msg) {
+      toast.success(msg, {
+        position: "top-right",
         timeout: 3000,
       });
-      console.error("Fout bij het opslaan van toernooi:", error);
-    });
+    }
+  } catch (error) {
+    console.error("Fout bij het opslaan van toernooi:", error);
+  }
 
 }
 
@@ -656,14 +601,22 @@ async function removeTournament(tn) {
   if (!serverAvailable.value) return
 
   if (confirm(`Weet je zeker dat je de gegevens van het kraaktoernooi op ${niceDate(tn.datum)} wil verwijderen?`)) {
-    axios.delete(`${api}/toernooien/${tn.id}`)
-      .then(() => {
-        // Verwijder het toernooi uit de lijst
-        toernooien.value = toernooien.value.filter(t => t.id !== tn.id);
-      })
-      .catch((error) => {
-        console.error("Fout bij het verwijderen van toernooi:", error);
+    // verwijder het toernooi van de server
+    // console.log("Verwijder toernooi:", tn);
+    try {
+      await dbService.deleteToernooi(tn.id);
+      toast.success(`Toernooi van ${niceDate(tn.datum, true)} verwijderd`, {
+        position: "top-right",
+        timeout: 3000,
       });
+    } catch (error) {
+      toast.error("Fout bij het verwijderen van toernooi: " + error.message, {
+        position: "top-left",
+        timeout: 3000,
+      });
+      console.error("Fout bij het verwijderen van toernooi:", error);
+      return;
+    }
     // reset de toernooi data
     thisToernooi.value = null;
     thisTNdatum.value = new Date();
@@ -761,27 +714,23 @@ async function startTournament() {
   if (filteredTeams.value.length >= 2) {
     // // controleer of er al een toernooi is voor deze datum
     const nu = new Date(Date.now()).toISOString().split('T')[0];
-    const tnID = await axios.get(`${api}/tournamentID?datum=${nu}`)
-      .then(response => {
-        //        console.log("Toernooi ID opgehaald:", response.data.id);
-        return response.data.id;
-      })
-      .catch(error => {
-        console.error("Fout bij het ophalen van toernooi ID:", error);
-      });
+    const tnID = await dbService.getToernooiIdByDate(nu);
     //    console.log("tnID:", tnID);
     if (tnID) {
       if (confirm("Een toernooi op deze datum bestaat al, deze wordt overschreven, tenzij je nu annuleert!")) {
         resetLocalStorage(false) // reset de data in localStorage (just to be sure), maar niet de geselecteerde teams
         // verwijder het oude toernooi
-        await axios.delete(`${api}/toernooien/${tnID}`)
+        try {
+          await dbService.deleteToernooi(tnID);
+          thisToernooi.value = null; // reset toernooi ID
+          toernooi.value = 'Toernooien'
+          return
+        } catch (error) {
+          console.error(" Fout bij het verwijderen van oud toernooi:", error);
+        }
+        await dbService.deleteToernooi(tnID)
           .then(() => {
             // console.log("Oud toernooi verwijderd:", tnID);
-            thisToernooi.value = null; // reset toernooi ID
-            // sluitToernooi();
-            // resetLocalStorage()
-            toernooi.value = 'Toernooien'
-            return; // stop hier
           })
           .catch(error => {
             console.error("Fout bij het verwijderen van oud toernooi:", error);
@@ -844,45 +793,27 @@ function addTeamsToList() {
   }
 }
 
-
-function handleReset() {
-  // tournamentStarted.value = false;
-  // toernooiTeams.value = [];
-  // localStorage.removeItem("toernooiTeams");
-}
-
 async function getSavedTeamsFromApi() {
   //    console.log("getSavedTeamsFromApi")
-  await axios.get(`${api}/savedTeams`)
-    .then(response => {
-      const Lijst = response.data.sort();
-      //      //            console.log("Lijst opgehaald van de API:", savedTeams);
-      Lijst.forEach((tm, index) => {
-        // check of het team al in de lijst staat
-        if (!savedTeams.value.includes(tm)) {
-          savedTeams.value.push(tm.team);
-        }
-      });
-      localStorage.setItem("savedTeams", JSON.stringify(savedTeams.value));
-    })
-    .catch(error => {
-      console.error("Fout bij het ophalen van teams:", error);
-      toast.error("Fout bij het ophalen van teams: " + error.message, {
-        position: "bottom-center",
-        timeout: 2000,
-      });
+  try {
+    const data = await dbService.fetchSavedTeams();
+    console.log("Saved teams from API:", data);
+    savedTeams.value = data.map(team => team.team);
+    // console.log("Saved teams from API:", savedTeams.value);
+  } catch (error) {
+    console.error("Fout bij het ophalen van opgeslagen teams:", error);
+    toast.error("Fout bij het ophalen van opgeslagen teams: " + error.message, {
+      position: "bottom-center",
+      timeout: 2000,
     });
+  }
 }
 
 async function isServerActive() {
   // controleer of de server beschikbaar is
   try {
-    const res = await axios.get(`${api}/ping`, { timeout: 3000 });
-
-    //    // console.log("API server beschikbaar:", res.status);
-    if (res.status === 200) {
-      serverAvailable.value = true;
-    }
+    const res = await dbService.checkServer();
+    serverAvailable.value = res.success;
   } catch (error) {
     console.warn('API server niet bereikbaar:', error.message);
     toast.warning("Server niet bereikbaar: " + error.message, {
@@ -896,8 +827,8 @@ async function isServerActive() {
 const getRanking = async (msg) => {
   // haal de ranking op van de API
   try {
-    const response = await axios.get(`${api}/ranking`);
-    rankingData.value = response.data;
+    const data = await dbService.fetchRanking()
+    rankingData.value = data;
     if (msg) {
       toast.success(msg, {
         position: "top-center",
@@ -953,7 +884,6 @@ function filterRankingByPeriod() {
   filteredRanking.value = metPlaats
 }
 
-
 onMounted(async () => {
   await isServerActive(); // kijk o de server beschikbaar is
   setActiveSemester(); // zet de huidige semester
@@ -978,7 +908,6 @@ onMounted(async () => {
   }
 
 });
-
 </script>
 
 <!-- registreer de directive -->
@@ -989,6 +918,4 @@ export default {
   }
 }
 </script>
-
-
 <style scoped></style>
