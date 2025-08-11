@@ -464,6 +464,7 @@ function resetLocalStorage(inclTeams = true) {
   localStorage.removeItem("tournamentMatches");
   localStorage.removeItem("tournamentFinalMatches");
   localStorage.removeItem("repeatRounds");
+  localStorage.removeItem("toernooiTeams");
   newTeam.value = "";
   tournamentStarted.value = false;
   groepsToernooi.value = false;
@@ -958,17 +959,17 @@ onMounted(async () => {
   await isServerActive(); // kijk o de server beschikbaar is
   setActiveSemester(); // zet de huidige semester
   if (serverAvailable.value) {
-    // haal de opgeslagen teams op van de API
-    await getSavedTeamsFromApi();
-    await getSavedToernooien();
-    await getRanking();
-    filterToernooien()
-    filterRankingByPeriod()
     toast.success("Welkom bij Jota's Kraak Score \nGegevens zijn opgehaald van de server", {
       position: "top-center",
       timeout: 3000,
 
     });
+    resetLocalStorage(); // reset de localStorage,
+    await getSavedTeamsFromApi();
+    await getSavedToernooien();
+    await getRanking();
+    filterToernooien()
+    filterRankingByPeriod()
   } else {
     // haal de opgeslagen teams uit localStorage
     const saved = localStorage.getItem("savedTeams");
