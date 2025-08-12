@@ -34,6 +34,7 @@ async function post(endpoint, body = {}, config = {}, message) {
     const response = await apiClient.post(endpoint, body, config);
     return { success: true, data: response.data };
   } catch (error) {
+    console.log("SaveTeams:", body, config);
     return handleError(error, message);
   }
 }
@@ -85,7 +86,7 @@ const dbService = {
     await get('/savedTeams', {}, 'Fout bij het ophalen van teams'),
 
   saveStandardTeams: async (teams) =>
-    await post('/standardTeams', { teams }, {}, 'Fout bij het opslaan van standaard teams'),
+    await post('/standardTeams', teams, {}, 'Fout bij het opslaan van standaard teams'),
 
   checkServer: async () => {
     try {
