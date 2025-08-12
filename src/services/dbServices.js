@@ -81,6 +81,8 @@ const dbService = {
   deleteToernooi: async (id) =>
     await remove(`/toernooien/${id}`, `Fout bij het verwijderen van toernooi ${id}`),
 
+  // TODO Voeg een veld toe in de toernooien tabel voor de naam van de gegenereerde pdf. Dan kan die meteen worden verwijderd
+
   fetchSavedTeams: async () =>
     await get('/savedTeams', {}, 'Fout bij het ophalen van teams'),
 
@@ -110,7 +112,7 @@ const dbService = {
 
   fetchPDF: async (pdfUrl) => {
     const result = await get(`/pdf-exists/${pdfUrl}`, {}, 'Fout bij het ophalen van PDF status');
-    console.log('PDF fetch result:', result);
+//    console.log('PDF fetch result:', result);
     return result.data.exists;
   }
 };

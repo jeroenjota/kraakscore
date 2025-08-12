@@ -1,6 +1,6 @@
 // src/composables/useTournament.js
 import { ref } from 'vue'
-import dbService from '../services/dbservices.js'
+import dbService from '../services/dbServices.js'
 import { useToast } from 'vue-toastification'
 
 export function useTournament() {
@@ -16,6 +16,8 @@ export function useTournament() {
     error.value = null
     try {
       toernooien.value = await dbService.fetchToernooien()
+      console.log("Toernooien geladen:", toernooien.value)
+      toast.success('Toernooien succesvol geladen')
     } catch (e) {
       error.value = e
       toast.error('Fout bij het laden van toernooien')
