@@ -34,7 +34,6 @@ async function post(endpoint, body = {}, config = {}, message) {
     const response = await apiClient.post(endpoint, body, config);
     return { success: true, data: response.data };
   } catch (error) {
-    console.log("SaveTeams:", body, config);
     return handleError(error, message);
   }
 }
