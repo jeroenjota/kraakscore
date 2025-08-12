@@ -31,11 +31,7 @@
 
         </div>
         <div v-if="selectToernooi !== 'Toernooien'" class="titel regel flex justify-left ">
-          <h2 class="text-sm text-white m-1">Datum: {{ niceDate(thisToernooiDatum) }}
-            <!-- <button v-if="pdfUrl" class="bg-yellow-300 text-red-800 btn">
-              <a :href="pdfUrl" target="_blank">Druk af</a>
-            </button> -->
-          </h2>
+          <h2 class="text-sm text-white m-1">Datum: {{ niceDate(thisToernooiDatum) }} </h2>
 
           <button v-if="!editMode" v-tooltip="'Bewerk dit toernooi'" class="bg-transparent border-0 p-1"
             @click="toggleEditMode">
@@ -149,7 +145,6 @@ import Tournament from "./components/Tournament.vue";
 // import Pdf from './components/Pdf.vue'
 import { niceDate, getSemesterText, stripTime } from './utils/dateUtils.js'
 import longpress from './directives/longpress.js';
-import axios from 'axios'
 import { useToast } from 'vue-toastification'
 import { uitslagPDF } from './utils/pdf/tournamentPDF.js'
 import { rankingPDF } from "./utils/pdf/rankingPDF.js";
@@ -400,13 +395,16 @@ async function sluitToernooi() {
     // Alles ingevuld?
     if (!thisToernooiID.value) {
       // nog niet eerder opgeslagen
-      const response = await saveTournament();
-      if (response.status === 201) {
-        thisToernooiID.value = response.data.id;
-      }
+      saveTournament()
       return;
+    } else {
+      // al eerder opgeslagen, dus nu sluiten
+      await saveTournamentChanges("Toernooi opgeslagen.");
+      await getRanking();
+      await maakPdf();
+      resetApp();
     }
-    if (!allMatchesPlayed() && thisToernooiID.value) {
+    if (!allMatchesPlayed()) {
       if (confirm("Nog niet alle matches zijn gespeeld. Wil je tussendoor opslaan?")) {
         await saveTournamentChanges("Toernooi tussendoor opgeslagen.");
         await standardTeamsToApi();
@@ -508,7 +506,7 @@ async function standardTeamsToApi(msg) {
     teams: bewaardeTeams,
   };
   await dbService.saveStandardTeams(sendTeams)
-  // await axios.post(`${api}/standardTeams`, sendTeams)
+    // await axios.post(`${api}/standardTeams`, sendTeams)
     .then(() => {
       if (msg) {
         toast.success(msg, {
@@ -527,17 +525,6 @@ async function standardTeamsToApi(msg) {
       console.error("Fout bij het opslaan van standaard teams:", error);
     });
 }
-
-function tournamentHasData() {
-  // controleer of er al data is voor dit toernooi
-  const matches = localStorage.getItem("tournamentMatches");
-  const groups = localStorage.getItem("tournamentGroups");
-  const groupMatches = localStorage.getItem("tournamentGroupMatches");
-  const finalMatches = localStorage.getItem("tournamentFinalMatches");
-  // console.log("tournamentHasData tnTeams:", "matches:", matches, "groups:", groups, "groupMatches:", groupMatches, "finalMatches:", finalMatches)
-  return matches || groups || groupMatches || finalMatches;
-}
-// controleer of er al data is voor dit toernooi
 
 async function saveTournamentChanges(msg) {
   if (!selectToernooi.value || !serverAvailable.value) return
@@ -699,9 +686,8 @@ async function startTournament() {
   if (filteredTeams.value.length >= 2) {
     // // controleer of er al een toernooi is voor deze datum
     const nu = new Date(Date.now()).toISOString().split('T')[0];
-
-    const tnID = await dbService.getToernooiIdByDate(nu)
-    //    console.log("tnID:", tnID);
+    const response = await dbService.getToernooiIdByDate(nu);
+    const tnID = response.data
     if (tnID) {
       if (confirm("Een toernooi op deze datum bestaat al, deze wordt overschreven, tenzij je nu annuleert!")) {
         resetLocalStorage(false) // reset de data in localStorage (just to be sure), maar niet de geselecteerde teams
