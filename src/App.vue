@@ -554,6 +554,9 @@ async function saveTournament(msg) {
   const groups = localStorage.getItem("tournamentGroups");
   const groupMatches = localStorage.getItem("tournamentGroupMatches");
   const finalMatches = localStorage.getItem("tournamentFinalMatches");
+  // stel pdf naam samen (zonder path)
+  const pdfNaam = ("Kraken " + niceDate(thisToernooiDatum.value, true) + ".pdf").replace(/\s+/g, '_').toLowerCase(); 
+
 //  // console.log("saveToApi tournamentTeams:", tnTeams, "groups:", groups, "groupMatches:", groupMatches, "finalMatches:", finalMatches)
   const toernooi = {
     datum: thisToernooiDatum.value,
@@ -564,6 +567,7 @@ async function saveTournament(msg) {
     finalMatches: finalMatches ? JSON.parse(finalMatches) : [],
     groepsToernooi: groepsToernooi.value || false,
     repeatRounds: repeatRounds.value || 1,
+    pdfUrl: pdfNaam || null,
   };
   await dbService.saveToernooi(toernooi)
     .then(response => {
