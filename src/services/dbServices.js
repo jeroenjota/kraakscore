@@ -12,7 +12,7 @@ function handleError(error, message) {
   const errorMessage = error.response?.data?.message || error.message || 'Onbekende fout';
   toast.error(`${message}: ${errorMessage}`, {
     timeout: 5000,
-    position: 'top-right',
+    position: 'top-center',
   });
   return {
     success: false,
@@ -94,7 +94,7 @@ const dbService = {
       const response = await apiClient.get('/ping', { timeout: 3000 });
       return { success: response.status === 200 };
     } catch {
-      toast.error('Server niet bereikbaar', { position: 'top-right' });
+      toast.error('Database server niet bereikbaar', { position: 'top-center' });
       return { success: false };
     }
   },

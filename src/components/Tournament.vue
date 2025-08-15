@@ -58,7 +58,7 @@
     </div>
     <!--  minder dan 7 teams -->
     <div v-else class="schema">
-      <h2 class="text-xl font-bold">Schema {{ editMode }}</h2>
+      <h2 class="text-xl font-bold">Schema</h2>
       <div v-for="(ronde, index) in matches" :key="index">
         <h3>Ronde: {{ (index + 1) }}</h3>
         <MatchTable :matches="matches[index]" :teams="toernooiTeams" :oldToernooi="toernooiPlayed" :edit-mode="editMode"
