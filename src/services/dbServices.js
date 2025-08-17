@@ -31,6 +31,7 @@ async function get(endpoint, params = {}, message) {
 
 async function post(endpoint, body = {}, config = {}, message) {
   try {
+//    console.log("POST request to:", endpoint, "with body:", body);
     const response = await apiClient.post(endpoint, body, config);
     return { success: true, data: response.data };
   } catch (error) {
@@ -72,8 +73,11 @@ const dbService = {
     );
   },
 
-  saveToernooi: async (toernooiData) =>
-    await post('/toernooien', toernooiData, {}, 'Fout bij het opslaan van toernooi'),
+  saveToernooi: async (toernooiData) => {
+//    // console.log("Toernooi data om op te slaan:", toernooiData);
+    const response = await post('/toernooien', toernooiData, {}, 'Fout bij het opslaan van toernooi');
+    return response;
+  },
 
   updateToernooi: async (id, toernooiData) =>
     await put(`/toernooien/${id}`, toernooiData, `Fout bij het updaten van toernooi ${id}`),
@@ -112,7 +116,7 @@ const dbService = {
 
   fetchPDF: async (pdfUrl) => {
     const result = await get(`/pdf-exists/${pdfUrl}`, {}, 'Fout bij het ophalen van PDF status');
-//    console.log('PDF fetch result:', result);
+////    console.log('PDF fetch result:', result);
     return result.data.exists;
   }
 };

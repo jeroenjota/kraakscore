@@ -377,11 +377,6 @@ function loadFromLocalStorage() {
 
 
 onMounted(() => {
-  if (!props.toernooiPlayed) {
-    props.editMode = true
-  }
-  // console.log("Played in Tournament:", props.toernooiPlayed);
-  // console.log("EditMode: ", props.editMode)
   if (props.groepsToernooi) {
     groups.value = splitIntoGroups(toernooiTeams.value);
     // console.log("groep.value", groups.value)

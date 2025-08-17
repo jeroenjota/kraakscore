@@ -63,7 +63,7 @@ const props = defineProps({
 
 const open = ref(false)
 
-console.log('Qrcode component loaded with pdfUrl:', props.pdfUrl)
+// console.log('Qrcode component loaded with pdfUrl:', props.pdfUrl)
 
 const copyLink = async () => {
   try {
