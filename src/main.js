@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import App from './App.vue'
+import router from './router';
 import "/styles.css";
 import Toast from 'vue-toastification'
 import 'vue-toastification/dist/index.css'  
@@ -9,6 +10,8 @@ import 'floating-vue/dist/style.css'
 
 const app = createApp(App)
 app.use(FloatingVue)
+app.use(router)
+// Import the Toastification styles
 app.use(Toast, {
   transition: "Vue-Toastification__slideBlurred",
   maxToasts: 20,
