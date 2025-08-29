@@ -120,10 +120,12 @@
           </li>
         </ul>
         <p class="text-xs">click: Meedoen, ctrl/long+click=Wissen</p>
+
+        <button v-if="toernooiTeams.length > 3" @click="startTournament"
+          class="bg-green-800 text-white px-2 py-2 rounded" style="margin-right:2px; width:200px;"
+          :disabled="tournamentStarted" v-tooltip="'Bij 8 spelers worden willekeurig twee groepen aangemaakt'">Start
+          toernooi</button>
       </div>
-      <button v-if="toernooiTeams.length > 1" @click="startTournament" class="bg-green-800 text-white px-2 py-2 rounded"
-        style="margin-right:2px; width:200px;" :disabled="tournamentStarted"
-        v-tooltip="'Bij 8 spelers worden willekeurig twee groepen aangemaakt'">Start toernooi</button>
     </div>
 
     <Tournament v-if="tournamentStarted" :initialTeams="filteredTeams" :repeatRounds="repeatRounds"
@@ -715,7 +717,7 @@ watch(filteredTeams, (newTeams) => {
 });
 
 async function startTournament() {
-  if (filteredTeams.value.length >= 2) {
+  if (filteredTeams.value.length >= 4) {
     // // controleer of er al een toernooi is voor deze datum
     const nu = new Date(Date.now()).toISOString().split('T')[0];
     const response = await dbService.getToernooiIdByDate(nu);
@@ -759,7 +761,7 @@ async function startTournament() {
       // sla de toernooiTeams op in localStorage
     }
   } else {
-    alert("Voer minimaal 2 teams in.");
+    alert("Voer minimaal 4 teams in voor een toernooi.");
   }
 }
 
