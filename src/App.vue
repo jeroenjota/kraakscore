@@ -75,7 +75,7 @@
 
         <div class="flex gap-2 text-center">
           <input v-model="newTeam" @keyup.enter="addTeam" placeholder="Teamnaam" class="p-1 border teamnaam rounded"
-            style="width:50%;" :disabled="toernooiTeams.length > 7" v-tooltip="{content : instructions, theme:'success'}"/>
+            style="width:50%;" :disabled="toernooiTeams.length > 7" v-tooltip="{content : instructions, html:true}"/>
           <button @click="addTeam" class="bg-green-800 text-white px-4 py-2 rounded" style="width:50%;"
             :disabled="toernooiTeams.length > 7 || newTeam.trim() === ''">OK</button>
         </div>
