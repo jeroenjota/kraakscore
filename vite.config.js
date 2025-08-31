@@ -12,7 +12,7 @@ export default defineConfig({
   // Zorg ervoor dat de base URL overeenkomt met de repository naam
   // in dit geval is de repository naam "kraakscore"
   // lokaal gehost op www.jota.nl/kraakscore/
-  base: "/laurierboom/kraakscore/",
+  base: "/kraakscore/",
   plugins: [
     vue(),
     tailwindcss(),

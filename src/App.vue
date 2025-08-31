@@ -10,15 +10,15 @@
         </h1>
         <div v-if="!thisToernooiID && !tournamentStarted && serverAvailable" class="items-center ">
           <select id="toernooien" v-model="selectToernooi" class="p-1 border bg-white rounded m-1 "
-            @change="handleSelectTournament">
+            v-tooltip="{ content: 'Selecteer een opgeslagen toernooi', html: true }" @change="handleSelectTournament">
             <option value="Toernooien" disabled>Toernooien</option>
             <option v-for="tn, tnindex in toernooien" :key="tnindex" :value="tn">
               {{ niceDate(tn.datum, true) }}</option>
           </select>
-          <button @click="toggleShowRanking" 
-            class="text-white bg-blue-800 px-2 rounded mt-2 mr-0 p-2">
-            <span v-if="showRanking" ><span v-tooltip="'Terug naar toernooi gegevens'">Terug</span></span>
-            <span v-else><span v-tooltip="'Toon de ranking tot en met het laatste toernooi'"></span>Ranking</span>
+          <button @click="toggleShowRanking" class="text-white bg-blue-800 px-2 rounded mt-2 mr-0 p-2">
+            <span v-if="!showRanking"><span
+                v-tooltip="'Toon de ranking tot en met het laatste toernooi'">Seizoen</span></span>
+            <span v-else><span v-tooltip="'Terug naar hoofdscherm'">Terug</span></span>
           </button>
           <select @change="setPeriode()" class="p-1 bg-white border rounded m-1" name="semester" id="semester"
             v-model="currentSemester">
@@ -42,20 +42,20 @@
             <InboxIcon class="h-6 w-6 text-green-300" />
           </button>
           <button v-if="serverAvailable" class="bg-red-800 border-0 p-1" @click.ctrl="removeTournament(selectToernooi)"
-            v-tooltip="'Verwijder dit toernooi definitief van de server (ctrl+click)'">
+            v-tooltip="{ content: 'Verwijder dit toernooi definitief van de server 😳 <br/>(Alleen met ctrl+click)', html: true }">
             <TrashIcon class="h-6 w-6 text-red-200" />
           </button>
         </div>
         <div class="knoppen flex justify-center" v-if="tournamentStarted">
-          <button @click="sluitToernooi" class="bg-yellow-300 text-red-800 btn" v-tooltip="'Sluit toernooi af'"><span
-              v-if="thisToernooiID">Sluiten</span><span v-else>Opslaan</span></button>
-          <button @click="maakPdf" class="bg-blue-500 text-white btn" v-tooltip="'Stand als PDF'">
+          <button @click="sluitToernooi" class="bg-yellow-300 text-red-800 btn" ><span
+              v-if="thisToernooiID" v-tooltip="'Terug naar hoofdscherm'">Sluiten</span><span v-else v-tooltip="'Sla toernooi op (als er scores zijn)'">Opslaan</span></button>
+          <button @click="maakPdf" class="bg-blue-500 text-white btn" v-tooltip="'Toon de stand als PDF'">
             <PrinterIcon class="h-6 w-6 text-white" />
           </button>
           <!-- QR knop -->
           <Qrcode v-if="pdfUrl" :pdfUrl="pdfUrl" />
           <button v-if="pdfUrl" class="bg-green-400 text-red-800 btn"
-            v-tooltip="`Stuur een link naar de PDF met WhatsApp \n(Mits geïnstalleerd): ${pdfUrl} `">
+            v-tooltip="{ content: `Stuur een link naar de PDF met WhatsApp <br/>(Mits web-versie geïnstalleerd): ${pdfUrl}`, html: true }">
             <a :href="`https://wa.me/?text=Bekijk de toernooiuitslag ${niceDate(thisToernooiDatum)}: ${encodeURIComponent(pdfUrl)}`"
               target="_blank">
               <img height="24" width="24" src="https://unpkg.com/simple-icons@latest/icons/whatsapp.svg" />
@@ -75,7 +75,7 @@
 
         <div class="flex gap-2 text-center">
           <input v-model="newTeam" @keyup.enter="addTeam" placeholder="Teamnaam" class="p-1 border teamnaam rounded"
-            style="width:50%;" :disabled="toernooiTeams.length > 7" v-tooltip="{content : instructions, html:true}"/>
+            style="width:50%;" :disabled="toernooiTeams.length > 7" v-tooltip="{ content: instructions, html: true }" />
           <button @click="addTeam" class="bg-green-800 text-white px-4 py-2 rounded" style="width:50%;"
             :disabled="toernooiTeams.length > 7 || newTeam.trim() === ''">OK</button>
         </div>
@@ -111,7 +111,7 @@
       <!-- Opgeslagen team lijst -->
       <div id="savedTeams" class="teamlijst rounded" v-if="!tournamentStarted && !showRanking">
         <h2 @click.exact="addAll" @click.ctrl="removeAllStandardTeams">Opgeslagen teams</h2>
-        <ul class="dbl">
+        <ul class="dbl" v-tooltip="{ content: 'Selecteer een opgeslagen team', html: true }">
           <li v-for="(tm, index) in savedTeams" :key="index">
             <p @click.exact="getTeam(tm)" @click.ctrl="removeStandardTeam(tm)"
               v-longpress="() => removeStandardTeam(tm)" :class="teamSelected(tm) ? 'teamSelected' : ''">
@@ -123,7 +123,8 @@
 
         <button v-if="toernooiTeams.length > 3" @click="startTournament"
           class="bg-green-800 text-white px-2 py-2 rounded" style="margin-right:2px; width:200px;"
-          :disabled="tournamentStarted" v-tooltip="'Bij 8 spelers worden willekeurig twee groepen aangemaakt'">Start
+          :disabled="tournamentStarted"
+          v-tooltip="{ content: 'Maak het toernooischema <br/>Bij 8 spelers worden willekeurig twee groepen aangemaakt', html: true }">Start
           toernooi</button>
       </div>
     </div>
