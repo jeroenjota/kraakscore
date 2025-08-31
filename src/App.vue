@@ -15,10 +15,10 @@
             <option v-for="tn, tnindex in toernooien" :key="tnindex" :value="tn">
               {{ niceDate(tn.datum, true) }}</option>
           </select>
-          <button @click="toggleShowRanking" v-tooltip="'Ranking'"
+          <button @click="toggleShowRanking" 
             class="text-white bg-blue-800 px-2 rounded mt-2 mr-0 p-2">
-            <span v-if="showRanking">Terug</span>
-            <span v-else>Ranking</span>
+            <span v-if="showRanking" ><span v-tooltip="'Terug naar toernooi gegevens'">Terug</span></span>
+            <span v-else><span v-tooltip="'Toon de ranking tot en met het laatste toernooi'"></span>Ranking</span>
           </button>
           <select @change="setPeriode()" class="p-1 bg-white border rounded m-1" name="semester" id="semester"
             v-model="currentSemester">
@@ -75,7 +75,7 @@
 
         <div class="flex gap-2 text-center">
           <input v-model="newTeam" @keyup.enter="addTeam" placeholder="Teamnaam" class="p-1 border teamnaam rounded"
-            style="width:50%;" :disabled="toernooiTeams.length > 7" />
+            style="width:50%;" :disabled="toernooiTeams.length > 7" v-tooltip="{content : instructions, theme:'success'}"/>
           <button @click="addTeam" class="bg-green-800 text-white px-4 py-2 rounded" style="width:50%;"
             :disabled="toernooiTeams.length > 7 || newTeam.trim() === ''">OK</button>
         </div>
@@ -159,6 +159,9 @@ const rankingData = ref([]); // voor de ranking data
 const filteredRanking = ref([]);
 const serverAvailable = ref(false);
 const toernooiSaved = ref(false); // om te weten of het toernooi is Opgeslagen
+let instructions = "Voer een (nieuw) team (2 spelers met een spatie of zo) in";
+instructions += "<br/> en druk op enter (of klik OK)<br/>Of selecteer een bestaand team in de lijst rechts";
+instructions += "<br/> Bij 4 of meer teams kan het toernooi worden gestart";
 
 // const api = import.meta.env.VITE_API_URL || 'http://piweb:54321';
 // const api = import.meta.env.VITE_API_URL;
