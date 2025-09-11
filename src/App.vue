@@ -216,7 +216,6 @@ async function maakPdf(showPdf = true) {
   filterRankingByPeriod();
 
   const datum = thisToernooiDatum.value || new Date();
-  const baseUrl = "https://www.jota.nl/";
   const doc = new jsPDF();
   //  //  // console.log("PDF document wordt aangemaakt, groepstoernooi:", groepsToernooi.value, "Datum:", datum);
   uitslagPDF(doc, datum, groepsToernooi.value);
@@ -748,7 +747,7 @@ async function startTournament() {
     addTeamsToList() // voeg eventueel nieuwe teams aan de standaardlijst toe
     groepsToernooi.value = false
     if (filteredTeams.value.length >= 7) {
-      // optioneel: hier alvast iets opslaan of voorbereiden
+      // Bepaal oof het een groepstoernooi wordt
       groepsToernooi.value = confirm("Er zijn meer dan 6 teams, wil je twee groepen aanmaken?")
     }
     let rndTxt = 'ronde'

@@ -119,12 +119,6 @@ function shuffle(array) {
   return array.sort(() => Math.random() - 0.5);
 }
 
-function getRandomScore(min, max) {
-  const minCeiled = Math.ceil(min);
-  const maxFloored = Math.floor(max);
-  return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled); // The maximum is inclusive and the minimum is inclusive
-}
-
 function splitIntoGroups(teamList) {
   // Voor meer dan 6 toernooiTeams, worden de teams verdeeld in twee groepen
   // Toernooi van 14 juli 2025
@@ -186,6 +180,11 @@ function generateMatches(tms, grp) {
 
   }
   schedule.value = fullSchedule
+
+  // TODO saveToLocalStorage() ??
+  // zodat ook een leeg schema (zonder uitslagen) kan worden opgeslagen en terug gehaald
+  // als er geen uitslagen zijnvoegt ie ook geen matches toe.
+
   //  console.log("Schedule:", schedule.value)
   return schedule.value;
 }
