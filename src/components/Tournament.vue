@@ -126,11 +126,11 @@ function splitIntoGroups(teamList) {
   // Carla/Theo, Jan/Angelo, Ron/Jeroen, Joren/Lize
 
   // if (confirm("Wil je zelf de teams in groepen verdelen?")) {
-  //   const groupA = prompt("Voer de teams voor Groep A in, gescheiden door een komma:", teamList.slice(0, Math.ceil(teamList.length / 2)).join(","));
-  //   const groupB = prompt("Voer de teams voor Groep B in, gescheiden door een komma:", teamList.slice(Math.ceil(teamList.length / 2)).join(","));
-  //   console.log("Group A:", groupA);
-  //   console.log("Group B:", groupB);
-  //   return [groupA.split(',').map(t => t.trim()), groupB.split(',').map(t => t.trim())];
+  // const groupA = prompt("Voer de teams voor Groep A in, gescheiden door een komma:", teamList.slice(0, Math.ceil(teamList.length / 2)).join(","));
+  // const groupB = prompt("Voer de teams voor Groep B in, gescheiden door een komma:", teamList.slice(Math.ceil(teamList.length / 2)).join(","));
+  // console.log("Group A:", groupA);
+  // console.log("Group B:", groupB);
+  // return [groupA.split(',').map(t => t.trim()), groupB.split(',').map(t => t.trim())];
 
   // }
   const shuffled = shuffle([...teamList]);
@@ -149,9 +149,9 @@ function generateMatches(tms, grp) {
   const totalRounds = inputTeams.length - 1;
   const halfSize = inputTeams.length / 2;
   const baseRounds = [];
-  //  console.log(inputTeams)
+  // console.log(inputTeams)
   for (let round = 0; round < totalRounds; round++) {
-    //  console.log("Ronde: ", round)
+    // console.log("Ronde: ", round)
     const matches = []
     for (let i = 0; i < halfSize; i++) {
       let teamL = inputTeams[i];
@@ -161,45 +161,45 @@ function generateMatches(tms, grp) {
         teamR = "VRIJ"
       }
       let sc1 =
-        matches.push({ tafel: i + 1 + (2 * grp), teamL, teamR, scoreL: null, scoreR: null });
+        matches.push({ tafel: i + 1 + (2 * grp), teamL, teamR, scoreL: 0, scoreR: 0 });
     }
     baseRounds.push(matches)
     inputTeams.splice(1, 0, inputTeams.pop());
   }
-  //  console.log("baseRounds", baseRounds)
+  console.log("baseRounds", baseRounds)
   const fullSchedule = [];
 
-  //  console.log("repeatRounds:", repeatRounds)
+  // console.log("repeatRounds:", repeatRounds)
 
   for (let i = 0; i < repeatRounds.value; i++) {
     const roundCopy = JSON.parse(JSON.stringify(baseRounds));
-    //  console.log("roundCopy", roundCopy)
+    // console.log("roundCopy", roundCopy)
 
     fullSchedule.push(...roundCopy);
-    //  console.log("fullSchedule", fullSchedule)
+    // console.log("fullSchedule", fullSchedule)
 
   }
+  // console.log("fullSchedule:", fullSchedule)
   schedule.value = fullSchedule
-
   // TODO saveToLocalStorage() ??
   // zodat ook een leeg schema (zonder uitslagen) kan worden opgeslagen en terug gehaald
-  // als er geen uitslagen zijnvoegt ie ook geen matches toe.
+  // als er geen uitslagen zijn voegt ie ook geen matches toe.
 
-  //  console.log("Schedule:", schedule.value)
+  // console.log("Schedule:", schedule.value)
   return schedule.value;
 }
 
 function updateGroupResult(groupIndex, matchIndex, tableIndex, scoreL, scoreR) {
-  //  console.log("index:", groupIndex, matchIndex, tableIndex, scoreL, scoreR)
+  // console.log("index:", groupIndex, matchIndex, tableIndex, scoreL, scoreR)
   groupMatches.value[groupIndex][matchIndex][tableIndex].scoreL = scoreL;
   groupMatches.value[groupIndex][matchIndex][tableIndex].scoreR = scoreR;
-  //  console.log("groupMatches.value:",groupMatches.value[0][0][0])
+  // console.log("groupMatches.value:",groupMatches.value[0][0][0])
   saveToLocalStorage();
   updateFinalists();
 }
 
 function updateSingleResult(ronde, table, scoreL, scoreR) {
-  //  // console.log("updateSingleResult", ronde, table, scoreL, scoreR)
+  // console.log("updateSingleResult", ronde, table, scoreL, scoreR)
   matches.value[ronde][table].scoreL = scoreL;
   matches.value[ronde][table].scoreR = scoreR;
   saveToLocalStorage();
@@ -258,7 +258,7 @@ function calculateStandings(teamsList, matchesList) {
         teamR.draws++;
       }
 
-      //  console.log("match:", match)
+      // console.log("match:", match)
     }
 
   }
@@ -276,8 +276,8 @@ function updateFinalists() {
 
   const standingsA = calculateStandings(groups.value[0], groupMatches.value[0]);
   const standingsB = calculateStandings(groups.value[1], groupMatches.value[1]);
-  //  // console.log("standingsA:", standingsA)
-  //  // console.log("standingsB:", standingsB)
+  // console.log("standingsA:", standingsA)
+  // console.log("standingsB:", standingsB)
   // console.log("groupmatches",groupMatches.value[1][0])
   groupMatches.value[1].forEach((match, index) => {
     // beetsje een trucje oom het aantl gepeelde wedstrijden te tellen
@@ -314,26 +314,26 @@ function updateFinalists() {
 }
 
 function saveToLocalStorage() {
-  //  // console.log("Opslaan in localStorage")
-  //  // console.log("toernooiTeams.value:", toernooiTeams.value)
+  // console.log("Opslaan in localStorage")
+  // console.log("toernooiTeams.value:", toernooiTeams.value)
   localStorage.setItem("tournamentTeams", JSON.stringify(toernooiTeams.value));
   localStorage.setItem("matches", JSON.stringify(matches.value));
   localStorage.setItem("tournamentGroups", JSON.stringify(groups.value));
-  //  console.log("Opgeslagen: Groepen:" , groups.value)
-  //  console.log("Opgeslagen: groupMatches.value", groupMatches.value)
+  // console.log("Opgeslagen: Groepen:" , groups.value)
+  // console.log("Opgeslagen: groupMatches.value", groupMatches.value)
   localStorage.setItem("tournamentGroupMatches", JSON.stringify(groupMatches.value));
-  //  console.log("Opgeslagen: groupMatches.value", groupMatches.value)
+  // console.log("Opgeslagen: groupMatches.value", groupMatches.value)
   localStorage.setItem("tournamentMatches", JSON.stringify(matches.value));
-  //  console.log("Opgeslagen: matches.value", matches.value)
+  // console.log("Opgeslagen: matches.value", matches.value)
   localStorage.setItem("tournamentFinalMatches", JSON.stringify(finalMatches.value));
-  //  console.log("Opgeslagen: finalMatches.value", finalMatches.value)
+  // console.log("Opgeslagen: finalMatches.value", finalMatches.value)
   // console.log(totalMatchesPlayed())
 }
 
 function totalMatchesPlayed() {
   let ttlPlayed = 0
   toernooiTeams.value.forEach((tm, index) => {
-    //  console.log("team:",tm)
+    // console.log("team:",tm)
     ttlPlayed += tm.played
   })
 
@@ -343,24 +343,24 @@ function totalMatchesPlayed() {
 function loadFromLocalStorage() {
   const t = localStorage.getItem("tournamentTeams");
   if (t) {
-    //    // console.log("Opgehaald: toernooiTeams:", t)
+    // // console.log("Opgehaald: toernooiTeams:", t)
     toernooiTeams.value = JSON.parse(t);
-    //    // console.log("Opgehaald: toernooiTeams:", toernooiTeams.value)
+    // // console.log("Opgehaald: toernooiTeams:", toernooiTeams.value)
   }
   const g = localStorage.getItem("tournamentGroups");
   const gm = localStorage.getItem("tournamentGroupMatches");
   const m = localStorage.getItem("tournamentMatches");
   const fm = localStorage.getItem("tournamentFinalMatches");
   if (g && gm) {
-    //    // console.log("Opgehaald: groepen:", g)
-    //  //  console.log("Opgehaald: groepen:", g.length, gm.length)
+    // // console.log("Opgehaald: groepen:", g)
+    // console.log("Opgehaald: groepen:", g.length, gm.length)
     groups.value = JSON.parse(g);
-    //  //  console.log("Opgehaald: groepen:", groups.value)
+    // console.log("Opgehaald: groepen:", groups.value)
     groupMatches.value = JSON.parse(gm);
-    //  //  console.log("Opgehaald: groupMatches:", groupMatches.value)
+    // console.log("Opgehaald: groupMatches:", groupMatches.value)
   } else if (m) {
     matches.value = JSON.parse(m);
-    //   console.log("Opgehaald: matches:", matches.value)
+    // console.log("Opgehaald: matches:", matches.value)
 
   }
   if (fm) {
@@ -370,8 +370,8 @@ function loadFromLocalStorage() {
 }
 
 // function reset() {
-//   localStorage.clear();
-//   emit("reset");
+// localStorage.clear();
+// emit("reset");
 // }
 
 
@@ -380,12 +380,13 @@ onMounted(() => {
     groups.value = splitIntoGroups(toernooiTeams.value);
     // console.log("groep.value", groups.value)
     groupMatches.value = groups.value.map((group, index) => generateMatches(group, index));
+    console.log("groupMaches.value", groupMatches.value)
   } else {
     matches.value = generateMatches(toernooiTeams.value, 0);
-    //  console.log("matches:" ,  matches.value)
+    console.log("matches:" ,  matches.value)
   }
   loadFromLocalStorage();
-  //  console.log("matches:" ,  matches.value)
+  // console.log("matches:" ,  matches.value)
   updateFinalists();
 });
 </script>
