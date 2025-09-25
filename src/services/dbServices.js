@@ -73,6 +73,9 @@ const dbService = {
     );
   },
 
+  fetchAllPlayers: async () => 
+    await get('/spelers', {}, 'Fout bij het ophalen van spelers'),
+
   saveToernooi: async (toernooiData) => {
 //    // console.log("Toernooi data om op te slaan:", toernooiData);
     const response = await post('/toernooien', toernooiData, {}, 'Fout bij het opslaan van toernooi');

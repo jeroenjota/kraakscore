@@ -14,7 +14,7 @@
           <td style="width:5%; text-align: center;" class="border px-2">{{ i + 1 }}</td>
           <td style="width:60%; text-align: left;" class="border px-2">{{ team.name }}</td>
           <td style="width:5%; text-align: center;"  class="border px-2 text-center">{{ team.played }}</td>
-          <td style="width:15%; text-align: right;"  class="border px-2 text-center">{{ team.goalsFor }}</td>
+          <td style="width:15%; text-align: right;"  class="border px-2 text-center">{{ team.matchPoints }}</td>
         </tr>
       </tbody>
     </table>
@@ -43,7 +43,7 @@ const standings = computed(() => {
     const stats = {
       name,
       played: 0,
-      goalsFor: 0,
+      matchPoints: 0,
     }
 
     for (const round of props.matches) {
@@ -56,17 +56,14 @@ const standings = computed(() => {
         let isTeamA = match.teamL === name
         let isTeamB = match.teamR === name
         if (!isTeamA && !isTeamB) continue
-        const goalsFor = isTeamA ? match.scoreL : match.scoreR
-        const goalsAgainst = isTeamA ? match.scoreR : match.scoreL
-       //  console.log("Score: ", goalsFor, goalsAgainst)
+        const matchPoints = isTeamA ? match.scoreL : match.scoreR
 
-        stats.goalsFor += goalsFor
-        stats.goalsAgainst += goalsAgainst
+        stats.matchPoints += matchPoints
         stats.played += 1
       }
     }
 
     return stats
-  }).sort((a, b) => b.goalsFor - a.goalsFor)
+  }).sort((a, b) => b.matchPoints - a.matchPoints)
 })
 </script>

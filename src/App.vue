@@ -173,6 +173,7 @@ const thisToernooiDatum = ref(new Date()) // de datum van het huidige toernooi
 const currentSemester = ref(''); // default value for semester selection
 // const thisTNteams = ref([]) // teams van dit toernooi, nog niet gebruikt
 const toernooien = ref([])  // array met alle opgeslagen toernooien
+const spelers = ref([]); // alle spelers uit alle teams
 const filteredToernooien = ref([]); // toernooien binnen een semester
 const selectToernooi = ref('Toernooien')  // voor de DropDown met toernooien
 const newTeam = ref(""); // voor het invulvak TeamNaam
@@ -320,7 +321,14 @@ async function getSavedToernooien() {
   const response = await dbService.fetchToernooien();
 //  console.log("Toernooien opgehaald:", response.data);
   toernooien.value = response.data;
+  // console.log("Toernooien:", toernooien.value); 
   selectToernooi.value = 'Toernooien';
+}
+
+async function getAllSpelers(){
+  const response = await dbService.fetchAllPlayers();
+  spelers.value = response.data.map(speler => speler.naam);
+  // console.log("Alle spelers opgehaald:", spelers.value);
 }
 
 function editTeam(i) {
@@ -603,7 +611,7 @@ async function saveTournament(msg) {
   try {
     // sla het toernooi op in de database
     const response = await dbService.saveToernooi(toernooi);
-//    //    // console.log("response bij save:", response.data.message);
+    // console.log("response bij save:", response.data.message);
     thisToernooiID.value = response.data.id; // sla het ID van het toernooi op
     toernooiSaved.value = true; // toernooi is opgeslagen
     if (msg) {
@@ -644,10 +652,32 @@ async function removeTournament(tn) {
 
 function addTeam() {
   if (newTeam.value.trim()) {
+    console.log("Add team:", newTeam.value);
     newTeam.value = cleanTeamName(newTeam.value);
     const idx = toernooiTeams.value.indexOf(newTeam.value);
     // check if element exists
     if (idx < 0) {
+      // dit team bestaat nog niet in de lijst
+      // check of een van de teamleden al bestaat in een ander team
+      const leden = newTeam.value.split('/');
+      // console.log("Alle spelers:", spelers.value);
+      // console.log("Nieuwe teamleden:", leden);
+      // check of een van de leden al in de spelers lijst zit
+      for (let i = 0; i < leden.length; i++) {
+        const speler = leden[i].trim();
+        if (spelers.value.includes(speler)) {
+          if (!confirm(`De naam ${speler} komt al voor, is dit dezelfde?\nZo nee, klik annuleren en pas de naam aan (bijv. met een nummer)`)) {
+            return ; // conflict
+          }
+        }
+      }
+      if (toernooiTeams.value.length >= 8) {
+        alert("Maximaal 8 teams toegestaan!");
+        newTeam.value = "";
+        return;
+      }
+      // nee, dus toevoegen
+      // addPlayers(newTeam.value)   // spelers toevoegen eventueel
       toernooiTeams.value.push(newTeam.value.trim());
     }
     newTeam.value = "";
@@ -701,7 +731,7 @@ function removeAllStandardTeams() {
 function cleanTeamName(thisTeam) {
   // vervang elk mogelijke koppel teken door /
   // en maak hoofdletters van de namen
-  let tm = thisTeam.replace(/[^a-zA-Z]+/g, "/");
+  let tm = thisTeam.replace(/[^a-zA-Z0-9]+/g, "/");
   var splitStr = tm.toLowerCase().split('/');
   for (var i = 0; i < splitStr.length; i++) {
     // You do not need to check if i is larger than splitStr length, as your for does that for you
@@ -776,7 +806,7 @@ function addTeamsToList() {
     // voeg toernooiTeams toe aan savedTeams als ze (nog) niet bestaan
     toernooiTeams.value.forEach((tm, index) => {
       if (!savedTeams.value.includes(tm)) {
-        if (confirm(`${tm} toevoegen aan standaard lijst?`)) {
+        if (confirm(`${tm} toevoegen aan standaard lijst? </> (anders alleen voor dit toernooi)`)) {
           savedTeams.value.push(tm);
           teamsSaved = true;
         }
@@ -914,6 +944,7 @@ onMounted(async () => {
     resetLocalStorage(); // reset de localStorage,
     await getSavedTeamsFromApi();
     await getSavedToernooien();
+    await getAllSpelers();
     await getRanking();
     filterToernooien()
     filterRankingByPeriod()

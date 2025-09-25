@@ -216,13 +216,8 @@ function calculateStandings(teamsList, matchesList) {
   // veel van wat hier staat is niet nodig, maar toch maar laten staan voor het geval dat we ooit nog eens een andere manier van berekenen willen gebruiken
   const table = teamsList.map((name) => ({
     name,
-    points: 0,
     played: 0,
-    wins: 0,
-    draws: 0,
-    losses: 0,
-    goalsFor: 0,
-    goalsAgainst: 0,
+    matchPoints: 0,
   }));
   for (const round of matchesList) {
     for (const match of round) {
@@ -233,29 +228,12 @@ function calculateStandings(teamsList, matchesList) {
       const teamR = table.find((t) => t.name === match.teamR);
       if (!teamL || !teamR) continue;
 
-      teamL.goalsFor += match.scoreL;
-      teamL.goalsAgainst += match.scoreR;
-      teamR.goalsFor += match.scoreR;
-      teamR.goalsAgainst += match.scoreL;
+      teamL.matchPoints += match.scoreL;
+      teamR.matchPoints += match.scoreR;
       // console.log("TeamR:", teamR.name)
       if (match.scoreL > 0 || match.scoreR > 0) {
         teamL.played += 1
         teamR.played += 1
-      }
-
-      if (match.scoreL > match.scoreR) {
-        teamL.points += 3;
-        teamL.wins++;
-        teamR.losses++;
-      } else if (match.scoreL < match.scoreR) {
-        teamR.points += 3;
-        teamR.wins++;
-        teamL.losses++;
-      } else {
-        teamL.points += 1;
-        teamR.points += 1;
-        teamL.draws++;
-        teamR.draws++;
       }
 
       // console.log("match:", match)
@@ -263,7 +241,7 @@ function calculateStandings(teamsList, matchesList) {
 
   }
   table.sort((a, b) => {
-    return b.goalsFor - a.goalsFor; // Sort by goals for first
+    return b.matchPoints - a.matchPoints; // Sort by goals for first
   });
   // console.log(table)
   return table;
@@ -295,9 +273,7 @@ function updateFinalists() {
   if (
     ttlPlayed < 24 ||
     standingsA.length === 0 ||
-    standingsB.length === 0 ||
-    standingsA.every((t) => t.points === 0 && t.wins === 0 && t.draws === 0) ||
-    standingsB.every((t) => t.points === 0 && t.wins === 0 && t.draws === 0)
+    standingsB.length === 0
   ) {
     finalMatches.value[0].teamL = ''
     finalMatches.value[0].teamR = ''
