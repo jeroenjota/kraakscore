@@ -739,7 +739,7 @@ function cleanTeamName(thisTeam) {
     splitStr[i] = splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);
   }
   // Directly return the joined string
-  return splitStr.join('/');
+  return splitStr.sort().join('/');
 
 }
 
@@ -836,16 +836,17 @@ async function getSavedTeamsFromApi() {
 //  console.log("Ophalen van opgeslagen teams van de API:", api);  
   await dbService.fetchSavedTeams()
     .then(response => {
-      const Lijst = response.data.sort();
-//      //      //      // console.log("Lijst opgehaald van de API:", Lijst);
-      savedTeams.value = []; // reset de lijst
-      Lijst.forEach((tm, index) => {
+      const teamLijst = response.data.sort();
+//      //      //      // console.log("teamLijst opgehaald van de API:", teamLijst);
+      savedTeams.value = []; // reset de teamLijst
+      teamLijst.forEach((tm, index) => {
+        const thisTeam = cleanTeamName(tm.team)
         // check of het team al in de lijst staat
-        if (!savedTeams.value.includes(tm.team)) {
-          savedTeams.value.push(tm.team);
+        if (!savedTeams.value.includes(thisTeam)) {
+          savedTeams.value.push(thisTeam);
         }
       });
-      localStorage.setItem("savedTeams", JSON.stringify(savedTeams.value));
+      localStorage.setItem("savedTeams", JSON.stringify(savedTeams.value.sort()));
     })
     .catch(error => {
       console.error("Fout bij het ophalen van teams:", error);
