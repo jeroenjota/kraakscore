@@ -74,7 +74,7 @@
       <div v-if="!showRanking" class="teams">
 
         <div class="flex gap-2 text-center">
-          <input v-model="newTeam" @keyup.enter="addTeam" placeholder="Teamnaam" class="p-1 border teamnaam rounded"
+          <input id="newTeam" @keyup.enter="addTeam" placeholder="Teamnaam" class="p-1 border teamnaam rounded"
             style="width:50%;" :disabled="toernooiTeams.length > 7" v-tooltip="{ content: instructions, html: true }" />
           <button @click="addTeam" class="bg-green-800 text-white px-4 py-2 rounded" style="width:50%;"
             :disabled="toernooiTeams.length > 7 || newTeam.trim() === ''">OK</button>
@@ -271,7 +271,6 @@ async function pdfBestaat(datum) {
 
 function filterToernooien() {
   // Filter de toernooien op basis van de geselecteerde periode
-  getSavedToernooien()
   filteredToernooien.value = toernooien.value
     .filter(tn => {
       const date = new Date(stripTime(tn.datum));

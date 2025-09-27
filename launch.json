@@ -1,0 +1,27 @@
+{
+  "configurations": [
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Launch Vue App",
+      "url": "http://localhost:5173/kraakscore/",
+      "webRoot": "${workspaceFolder}/src",
+      "preLaunchTask": "dev-server",
+      "sourceMaps": true,
+      "smartStep": true,
+      "showAsyncStacks": true,
+      "skipFiles": [
+        "**/node_modules/**",
+        "<node_internals>/**"
+      ],
+      "vueComponentPaths": [
+        "${workspaceFolder}/src/**/*.vue"
+      ],
+      "sourceMapPathOverrides": {
+        "webpack:///src/*": "${workspaceFolder}/src/*"
+      },
+      "disableNetworkCache": true,
+      "enableContentValidation": true
+    }
+  ]
+}
