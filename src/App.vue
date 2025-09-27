@@ -666,7 +666,7 @@ function addTeam() {
       for (let i = 0; i < leden.length; i++) {
         const speler = leden[i].trim();
         if (spelers.value.includes(speler)) {
-          if (!confirm(`De naam ${speler} komt al voor, is dit dezelfde?\nZo nee, klik annuleren en pas de naam aan (bijv. met een nummer)`)) {
+          if (!confirm(`De naam ${speler} komt al voor, is dit dezelfde?\nZo ja, klik OK, \nof anders klik annuleren en pas de naam aan (bijv. met een nummer)`)) {
             return ; // conflict
           }
         }
@@ -802,14 +802,12 @@ function addTeamsToList() {
   let teamsSaved = false
   if (!toernooiTeams.value.every((tm) => savedTeams.value.includes(tm))) {
     // check for new items
-    // nieuwe tiems in loc storage toevoegen?
     // voeg toernooiTeams toe aan savedTeams als ze (nog) niet bestaan
     toernooiTeams.value.forEach((tm, index) => {
       if (!savedTeams.value.includes(tm)) {
-        if (confirm(`${tm} toevoegen aan standaard lijst? </> (anders alleen voor dit toernooi)`)) {
-          savedTeams.value.push(tm);
-          teamsSaved = true;
-        }
+        // gaan we niet meer om vragen, nieuwe teams worden automatisch toegevoegd. kunnen altijd weer worden verwijderd.
+        savedTeams.value.push(tm);
+        teamsSaved = true;
       }
     });
     savedTeams.value.sort();
@@ -817,7 +815,7 @@ function addTeamsToList() {
     localStorage.setItem("savedTeams", JSON.stringify(savedTeams.value));
     // en ook naar de API sturen
     if (teamsSaved) {
-      standardTeamsToApi("Standaard teams opgeslagen");
+      standardTeamsToApi("Teams zijn opgeslagen");
     }
   }
 }
