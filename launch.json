@@ -1,7 +1,7 @@
 {
   "configurations": [
     {
-      "type": "chrome",
+      "type": "firefox",
       "request": "launch",
       "name": "Launch Vue App",
       "url": "http://localhost:5173/kraakscore/",

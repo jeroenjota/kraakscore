@@ -50,8 +50,8 @@ const standings = computed(() => {
      //  console.log("Ronde:", round)
       for (const match of round) {
        //  console.log("tafel:", match)
-
-        if (match.scoreL == null || match.scoreR == null) continue
+        
+        if (match.scoreL === 0 || match.scoreR === 0) continue
 
         let isTeamA = match.teamL === name
         let isTeamB = match.teamR === name

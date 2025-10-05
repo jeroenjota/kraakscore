@@ -166,7 +166,7 @@ function generateMatches(tms, grp) {
     baseRounds.push(matches)
     inputTeams.splice(1, 0, inputTeams.pop());
   }
-  console.log("baseRounds", baseRounds)
+  // console.log("baseRounds", baseRounds)
   const fullSchedule = [];
 
   // console.log("repeatRounds:", repeatRounds)
@@ -194,7 +194,11 @@ function updateGroupResult(groupIndex, matchIndex, tableIndex, scoreL, scoreR) {
   groupMatches.value[groupIndex][matchIndex][tableIndex].scoreL = scoreL;
   groupMatches.value[groupIndex][matchIndex][tableIndex].scoreR = scoreR;
   // console.log("groupMatches.value:",groupMatches.value[0][0][0])
-  saveToLocalStorage();
+  localStorage.setItem("tournamentGroupMatches", JSON.stringify(groupMatches.value));
+  console.log ("Score updated")
+  window.dispatchEvent(new Event('storage'))
+  // console.log("Opgeslagen: groupMatches.value", groupMatches.value)
+  // saveToLocalStorage();
   updateFinalists();
 }
 
@@ -202,7 +206,12 @@ function updateSingleResult(ronde, table, scoreL, scoreR) {
   // console.log("updateSingleResult", ronde, table, scoreL, scoreR)
   matches.value[ronde][table].scoreL = scoreL;
   matches.value[ronde][table].scoreR = scoreR;
-  saveToLocalStorage();
+  localStorage.setItem("tournamentMatches", JSON.stringify(matches.value));
+
+  console.log ("Score updated")
+
+  window.dispatchEvent(new Event('storage'))
+
 }
 
 function updateFinalResult(index, scoreL, scoreR) {
@@ -213,12 +222,12 @@ function updateFinalResult(index, scoreL, scoreR) {
 
 function calculateStandings(teamsList, matchesList) {
 
-  // veel van wat hier staat is niet nodig, maar toch maar laten staan voor het geval dat we ooit nog eens een andere manier van berekenen willen gebruiken
   const table = teamsList.map((name) => ({
     name,
     played: 0,
     matchPoints: 0,
   }));
+
   for (const round of matchesList) {
     for (const match of round) {
       if ((match.scoreL === null && match.scoreR === null)) {
@@ -230,7 +239,7 @@ function calculateStandings(teamsList, matchesList) {
 
       teamL.matchPoints += match.scoreL;
       teamR.matchPoints += match.scoreR;
-      // console.log("TeamR:", teamR.name)
+      // console.log("TeamR:", teamR)
       if (match.scoreL > 0 || match.scoreR > 0) {
         teamL.played += 1
         teamR.played += 1
@@ -293,17 +302,14 @@ function saveToLocalStorage() {
   // console.log("Opslaan in localStorage")
   // console.log("toernooiTeams.value:", toernooiTeams.value)
   localStorage.setItem("tournamentTeams", JSON.stringify(toernooiTeams.value));
-  localStorage.setItem("matches", JSON.stringify(matches.value));
+
   localStorage.setItem("tournamentGroups", JSON.stringify(groups.value));
   // console.log("Opgeslagen: Groepen:" , groups.value)
   // console.log("Opgeslagen: groupMatches.value", groupMatches.value)
-  localStorage.setItem("tournamentGroupMatches", JSON.stringify(groupMatches.value));
-  // console.log("Opgeslagen: groupMatches.value", groupMatches.value)
-  localStorage.setItem("tournamentMatches", JSON.stringify(matches.value));
-  // console.log("Opgeslagen: matches.value", matches.value)
   localStorage.setItem("tournamentFinalMatches", JSON.stringify(finalMatches.value));
   // console.log("Opgeslagen: finalMatches.value", finalMatches.value)
   // console.log(totalMatchesPlayed())
+  // er zijn al wedstrijden gespeeld
 }
 
 function totalMatchesPlayed() {
@@ -356,10 +362,10 @@ onMounted(() => {
     groups.value = splitIntoGroups(toernooiTeams.value);
     // console.log("groep.value", groups.value)
     groupMatches.value = groups.value.map((group, index) => generateMatches(group, index));
-    console.log("groupMaches.value", groupMatches.value)
+    // console.log("groupMaches.value", groupMatches.value)
   } else {
     matches.value = generateMatches(toernooiTeams.value, 0);
-    console.log("matches:" ,  matches.value)
+    // console.log("matches:", matches.value)
   }
   loadFromLocalStorage();
   // console.log("matches:" ,  matches.value)
