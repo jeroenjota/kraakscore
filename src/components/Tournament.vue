@@ -195,7 +195,7 @@ function updateGroupResult(groupIndex, matchIndex, tableIndex, scoreL, scoreR) {
   groupMatches.value[groupIndex][matchIndex][tableIndex].scoreR = scoreR;
   // console.log("groupMatches.value:",groupMatches.value[0][0][0])
   localStorage.setItem("tournamentGroupMatches", JSON.stringify(groupMatches.value));
-  console.log ("Score updated")
+  // console.log("Score updated")
   window.dispatchEvent(new Event('storage'))
   // console.log("Opgeslagen: groupMatches.value", groupMatches.value)
   // saveToLocalStorage();
@@ -208,7 +208,7 @@ function updateSingleResult(ronde, table, scoreL, scoreR) {
   matches.value[ronde][table].scoreR = scoreR;
   localStorage.setItem("tournamentMatches", JSON.stringify(matches.value));
 
-  console.log ("Score updated")
+  // console.log("Score updated")
 
   window.dispatchEvent(new Event('storage'))
 
@@ -358,17 +358,28 @@ function loadFromLocalStorage() {
 
 
 onMounted(() => {
-  if (props.groepsToernooi) {
-    groups.value = splitIntoGroups(toernooiTeams.value);
-    // console.log("groep.value", groups.value)
-    groupMatches.value = groups.value.map((group, index) => generateMatches(group, index));
-    // console.log("groupMaches.value", groupMatches.value)
+  if (!props.toernooiPlayed) {
+    localStorage.clear();
+
+    if (props.groepsToernooi) {
+      groups.value = splitIntoGroups(toernooiTeams.value);
+      // console.log("groep.value", groups.value)
+      groupMatches.value = groups.value.map((group, index) => generateMatches(group, index));
+      // localStorage.setItem("tournamentGroupMatches", JSON.stringify(groupMatches.value));
+      // console.log("Score updated")
+      window.dispatchEvent(new Event('storage'))
+      // console.log("groupMatches.value", groupMatches.value)
+    } else {
+      matches.value = generateMatches(toernooiTeams.value, 0);
+      // console.log("matches:", matches.value)
+      // localStorage.setItem("tournamentMatches", JSON.stringify(matches.value));
+      window.dispatchEvent(new Event('storage'))
+    }
   } else {
-    matches.value = generateMatches(toernooiTeams.value, 0);
-    // console.log("matches:", matches.value)
+    // console.log("Laad toernooi uit localStorage");
+    loadFromLocalStorage();
+    // console.log("matches:" ,  matches.value)
+    updateFinalists();
   }
-  loadFromLocalStorage();
-  // console.log("matches:" ,  matches.value)
-  updateFinalists();
 });
 </script>

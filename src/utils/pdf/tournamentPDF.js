@@ -87,7 +87,12 @@ export async function uitslagPDF(doc, datum, groepstoernooi = false) {
   yPos += 2
   doc.line(marge + 40, yPos, pageWidth - marge - 40, yPos);
   yPos += 6
-  let infoStr = `${teams.value.length} teams`;
+  let infoStr = "";
+  if(teams.value) {
+    infoStr = `${teams.value.length} teams`;
+  } else {
+    infoStr = `0 teams`;
+  }
   if (gesplitst) {
     infoStr += `, ${groups.value.length} groepen`;
   } else {
