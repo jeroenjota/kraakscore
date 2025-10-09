@@ -75,7 +75,7 @@
       <div v-if="!showRanking" class="teams">
 
         <div class="flex gap-2 text-center">
-          <input id="newTeam" @keyup.enter="addTeam" placeholder="Teamnaam" class="p-1 border teamnaam rounded"
+          <input id="newTeam" @keyup.enter="addTeam" placeholder="Teamnaam" class="p-1 border teamnaam rounded" v-model="newTeam"
             style="width:50%;" :disabled="toernooiTeams.length > 7" v-tooltip="{ content: instructions, html: true }" />
           <button @click="addTeam" class="bg-green-800 text-white px-4 py-2 rounded" style="width:50%;"
             :disabled="toernooiTeams.length > 7 || newTeam.trim() === ''">OK</button>
@@ -115,7 +115,8 @@
         <ul class="dbl" v-tooltip="{ content: 'Selecteer een opgeslagen team', html: true }">
           <li v-for="(tm, index) in savedTeams" :key="index">
             <p @click.exact="getTeam(tm)" @click.ctrl="removeStandardTeam(tm)"
-              v-longpress="() => removeStandardTeam(tm)" :class="teamSelected(tm) ? 'teamSelected' : ''">
+              v-longpress="() => removeStandardTeam(tm)" :class="{ teamSelected: teamSelected(tm), teamDisabled: !teamSelected(tm) && !availableTeams.includes(tm) }"
+              >
               <span v-if="teamSelected(tm)">&#10004;</span> {{ tm }}
             </p>
           </li>
@@ -193,9 +194,9 @@ const repeatRounds = ref(1); // aantal herhalingen van de rondes in het huidige 
 
 const pdfUrl = ref(null); // URL van de PDF met uitslag van het huidige toernooi
 
-
 const vanaf = ref(new Date().toISOString().split('T')[0]);  // startdatum van de periode
 const tot = ref(new Date().toISOString().split('T')[0]);
+
 
 function setPeriode() {
   // Zet de periode van de ranking op basis van de selected semester
@@ -318,6 +319,31 @@ function teamSelected(tm) {
   const idx = toernooiTeams.value.indexOf(tm);
   return idx > -1;
 }
+const availableTeams = computed(() => {
+  if (toernooiTeams.value.length === 0) return savedTeams.value;
+  const selectedSpelers = new Set();
+  toernooiTeams.value.forEach(team => {
+    const spelers = team.split('/');
+    spelers.forEach(speler => selectedSpelers.add(speler.trim()));
+  });
+  console.log("selectedSpelers:", selectedSpelers);
+  // Filter teams: niet geselecteerd en geen overlap in spelers
+  const availTeams = savedTeams.value.filter(team => {
+    const teamleden = team.split('/').map(t => t.trim());
+    return !teamleden.some(player => selectedSpelers.has(player));
+  });
+  console.log("availableTeams:", availTeams);
+  return availTeams
+});
+
+const isTeamDisabled = (team) => {
+  // check if teamplayers are in one of the selected teams
+  if (team.id === selectedTeam.value.id) return false
+
+  const selectedPlayers = selectedTeam.value.players
+  return team.players.some(p => selectedPlayers.includes(p))
+}
+
 
 function toggleEditMode() {
   editMode.value = !editMode.value;
@@ -677,8 +703,8 @@ function addTeam() {
       // dit team bestaat nog niet in de lijst
       // check of een van de teamleden al bestaat in een ander team
       const leden = newTeam.value.split('/');
-      // console.log("Alle spelers:", spelers.value);
-      // console.log("Nieuwe teamleden:", leden);
+      console.log("Alle spelers:", spelers.value);
+      console.log("Nieuwe teamleden:", leden);
       // check of een van de leden al in de spelers lijst zit
       for (let i = 0; i < leden.length; i++) {
         const speler = leden[i].trim();

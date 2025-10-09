@@ -176,10 +176,17 @@ ul.dbl{
   /* visibility:hidden; */
 }
 
+.teamDisabled {
+  /* color: var(--color-gray-500); */
+  text-decoration: line-through;
+  font-size: .9rem;
+  /* background-color: lightgray; */
+  /* visibility:hidden; */
+  pointer-events: none;
+}
+
 button {
   border-radius: 5px;
-
-
 }
 
 .btn {
