@@ -152,7 +152,7 @@ import { uitslagPDF } from './utils/pdf/tournamentPDF.js'
 import { rankingPDF } from "./utils/pdf/rankingPDF.js";
 import jsPDF from "jspdf";
 import Qrcode from './components/Qrcode.vue'
-import { PrinterIcon, TrashIcon, PencilSquareIcon, InboxIcon } from '@heroicons/vue/24/solid'
+import { PrinterIcon, TrashIcon, PencilSquareIcon, InboxIcon, NewspaperIcon } from '@heroicons/vue/24/solid'
 
 import dbService from './services/dbServices.js'
 
@@ -558,7 +558,7 @@ async function standardTeamsToApi(msg) {
       players: sp,
     };
   });
-  //  console.log("saveToApi teams:", bewaardeTeams)
+  console.log("saveToApi teams:", bewaardeTeams)
   const sendTeams = {
     teams: bewaardeTeams,
   };
@@ -571,7 +571,7 @@ async function standardTeamsToApi(msg) {
           timeout: 3000,
         });
       }
-      //      //      //      // console.log("Lijst ook opgeslagen op de server:", bewaardeTeams);
+      console.log("Lijst ook opgeslagen op de server:", bewaardeTeams);
     })
     .catch((error) => {
       toast.error("Fout bij het opslaan van standaard teams: " + error.message, {
@@ -697,10 +697,12 @@ function addTeam() {
   if (newTeam.value.trim()) {
     // console.log("Add team:", newTeam.value);
     newTeam.value = cleanTeamName(newTeam.value);
-    const idx = toernooiTeams.value.indexOf(newTeam.value);
+    const idx = savedTeams.value.indexOf(newTeam.value);
+    // console.log(savedTeams.value);
+    // console.log("New team:", newTeam.value, "Index in lijst:", idx);
     // check if element exists
     if (idx < 0) {
-      // dit team bestaat nog niet in de lijst
+      // dit team bestaat nog niet in de lijst op de server
       // check of een van de teamleden al bestaat in een ander team
       const leden = newTeam.value.split('/');
       // console.log("Alle spelers:", spelers.value);
@@ -714,15 +716,15 @@ function addTeam() {
           }
         }
       }
-      if (toernooiTeams.value.length >= 8) {
-        alert("Maximaal 8 teams toegestaan!");
-        newTeam.value = "";
-        return;
-      }
-      // nee, dus toevoegen
-      // addPlayers(newTeam.value)   // spelers toevoegen eventueel
-      toernooiTeams.value.push(newTeam.value.trim());
     }
+    if (toernooiTeams.value.length >= 8) {
+      alert("Maximaal 8 teams toegestaan!");
+      newTeam.value = "";
+      return;
+    }
+    // nee, dus toevoegen
+    // addPlayers(newTeam.value)   // spelers toevoegen eventueel
+    toernooiTeams.value.push(newTeam.value.trim());
     newTeam.value = "";
   }
 }
