@@ -326,13 +326,13 @@ const availableTeams = computed(() => {
     const spelers = team.split('/');
     spelers.forEach(speler => selectedSpelers.add(speler.trim()));
   });
-  console.log("selectedSpelers:", selectedSpelers);
+  // console.log("selectedSpelers:", selectedSpelers);
   // Filter teams: niet geselecteerd en geen overlap in spelers
   const availTeams = savedTeams.value.filter(team => {
     const teamleden = team.split('/').map(t => t.trim());
     return !teamleden.some(player => selectedSpelers.has(player));
   });
-  console.log("availableTeams:", availTeams);
+  // console.log("availableTeams:", availTeams);
   return availTeams
 });
 
@@ -695,7 +695,7 @@ async function removeTournament(tn) {
 
 function addTeam() {
   if (newTeam.value.trim()) {
-    console.log("Add team:", newTeam.value);
+    // console.log("Add team:", newTeam.value);
     newTeam.value = cleanTeamName(newTeam.value);
     const idx = toernooiTeams.value.indexOf(newTeam.value);
     // check if element exists
@@ -703,13 +703,13 @@ function addTeam() {
       // dit team bestaat nog niet in de lijst
       // check of een van de teamleden al bestaat in een ander team
       const leden = newTeam.value.split('/');
-      console.log("Alle spelers:", spelers.value);
-      console.log("Nieuwe teamleden:", leden);
+      // console.log("Alle spelers:", spelers.value);
+      // console.log("Nieuwe teamleden:", leden);
       // check of een van de leden al in de spelers lijst zit
       for (let i = 0; i < leden.length; i++) {
         const speler = leden[i].trim();
         if (spelers.value.includes(speler)) {
-          if (!confirm(`De naam ${speler} komt al voor, is dit dezelfde?\nZo ja, klik OK, \nof anders klik annuleren en pas de naam aan (bijv. met een nummer)`)) {
+          if (!confirm(`Het team ${newTeam.value} bestaat nog niet, maar de naam ${speler} komt al voor, is dit dezelfde ${speler}?\nZo ja, klik OK, \nof anders klik annuleren en pas de naam aan (bijv. met een nummer)`)) {
             return; // conflict
           }
         }
@@ -728,7 +728,11 @@ function addTeam() {
 }
 
 function addAll() {
-  //    //  console.log("addAll ... ")
+  return
+  // not used
+
+  // voeg alle teams uit de savedTeams toe aan de toernooiTeams
+  // for testing purposes
   savedTeams.value.forEach((tm, index) => {
     getTeam(tm)
   })
@@ -744,6 +748,9 @@ function getTeam(tm) {
     if (toernooiTeams.value.length < 8) {
       toernooiTeams.value.push(tm);
     }
+  } else {
+    // ja, dus weghalen
+    toernooiTeams.value.splice(idx, 1); 
   }
 }
 
@@ -765,6 +772,10 @@ function removeStandardTeam(tm) {
 }
 
 function removeAllStandardTeams() {
+  // not used
+  return
+
+  // voor testing purposes
   if (confirm("Alle toernooiTeams verwijderen uit de standaardlijst?")) {
     savedTeams.value = []
     localStorage.setItem("savedTeams", JSON.stringify(savedTeams.value));
