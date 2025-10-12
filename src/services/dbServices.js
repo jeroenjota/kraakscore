@@ -3,7 +3,7 @@ import { useToast } from 'vue-toastification'; // import toast composable
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
-  timeout: 5000,
+  timeout: 7500,
 });
 
 const toast = useToast();
@@ -88,13 +88,18 @@ const dbService = {
   deleteToernooi: async (id) =>
     await remove(`/toernooien/${id}`, `Fout bij het verwijderen van toernooi ${id}`),
 
-  // TODO Voeg een veld toe in de toernooien tabel voor de naam van de gegenereerde pdf. Dan kan die meteen worden verwijderd
 
   fetchSavedTeams: async () =>
     await get('/savedTeams', {}, 'Fout bij het ophalen van teams'),
 
   saveStandardTeams: async (teams) =>
     await post('/standardTeams', teams, {}, 'Fout bij het opslaan van standaard teams'),
+
+  cleanTeamsAndPlayers: async () => {
+    const response = await post('/cleanTeamsAndPlayers', {}, {}, 'Fout bij het opschonen van teams en spelers');
+    // console.log('Clean response:', response); 
+    return response;
+  },
 
   checkServer: async () => {
     try {
@@ -121,7 +126,8 @@ const dbService = {
     const result = await get(`/pdf-exists/${pdfUrl}`, {}, 'Fout bij het ophalen van PDF status');
 ////    console.log('PDF fetch result:', result);
     return result.data.exists;
-  }
+  },
+
 };
 
 export default dbService;

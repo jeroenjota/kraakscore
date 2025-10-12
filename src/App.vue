@@ -48,8 +48,8 @@
         </div>
         <div class="knoppen flex justify-center" v-if="tournamentStarted">
           <button @click="sluitToernooi" class="bg-yellow-300 text-red-800 btn"><span
-              v-if="thisToernooiID || !scoresEntered" v-tooltip="'Terug naar hoofdscherm'">{{sluitKnop}}</span><span v-else
-              v-tooltip="'Sla toernooi op'">{{sluitKnop}}</span></button>
+              v-if="thisToernooiID || !scoresEntered" v-tooltip="'Terug naar hoofdscherm'">{{ sluitKnop }}</span><span
+              v-else v-tooltip="'Sla toernooi op'">{{ sluitKnop }}</span></button>
           <button @click="maakPdf" class="bg-blue-500 text-white btn" v-tooltip="'Toon de stand als PDF'">
             <PrinterIcon class="h-6 w-6 text-white" />
           </button>
@@ -75,9 +75,10 @@
       <div v-if="!showRanking" class="teams">
 
         <div class="flex gap-2 text-center">
-          <input id="newTeam" @keyup.enter="addTeam" placeholder="Teamnaam" class="p-1 border teamnaam rounded" v-model="newTeam"
-            style="width:50%;" :disabled="toernooiTeams.length > 7" v-tooltip="{ content: instructions, html: true }" />
-          <button @click="addTeam" class="bg-green-800 text-white px-4 py-2 rounded" style="width:50%;"
+          <input id="newTeam" @keyup.enter="addTeam" placeholder="Teamnaam" class="p-1 border teamnaam rounded"
+            v-model="newTeam" style="width:50%;" :disabled="toernooiTeams.length > 7"
+            v-tooltip="{ content: instructions, html: true }" />
+          <button @click="addTeam" class="bg-blue-800 text-white px-4 py-2 rounded" style="width:50%;"
             :disabled="toernooiTeams.length > 7 || newTeam.trim() === ''">OK</button>
         </div>
 
@@ -115,13 +116,18 @@
         <ul class="dbl" v-tooltip="{ content: 'Selecteer een opgeslagen team', html: true }">
           <li v-for="(tm, index) in savedTeams" :key="index">
             <p @click.exact="getTeam(tm)" @click.ctrl="removeStandardTeam(tm)"
-              v-longpress="() => removeStandardTeam(tm)" :class="{ teamSelected: teamSelected(tm), teamDisabled: !teamSelected(tm) && !availableTeams.includes(tm) }"
-              >
+              v-longpress="() => removeStandardTeam(tm)"
+              :class="{ teamSelected: teamSelected(tm), teamDisabled: !teamSelected(tm) && !availableTeams.includes(tm) }">
               <span v-if="teamSelected(tm)">&#10004;</span> {{ tm }}
             </p>
           </li>
         </ul>
         <p class="text-xs">click: Meedoen, ctrl/long+click=Wissen</p>
+        <button v-if="toernooiTeams.length === 0" class="bg-sky-300 text-blue-800 px-1 py-1 border-t-black"
+          @click="cleanDatabase"
+          v-tooltip="{ content: 'Verwijder teams die geen toernooi hebben gespeeld<br/>en spelers die niet in een team zitten ', html: true }">
+          Teams opschonen
+        </button>
 
         <button v-if="toernooiTeams.length > 3" @click="startTournament"
           class="bg-green-800 text-white px-2 py-2 rounded" style="margin-right:2px; width:200px;"
@@ -134,8 +140,6 @@
     <Tournament v-if="tournamentStarted" :initialTeams="filteredTeams" :repeatRounds="repeatRounds"
       :edit-mode="editMode" :groepsToernooi="groepsToernooi" :toernooiPlayed="thisToernooiID !== null"
       @reset="handleReset" />
-
-
 
   </div>
 </template>
@@ -152,16 +156,21 @@ import { uitslagPDF } from './utils/pdf/tournamentPDF.js'
 import { rankingPDF } from "./utils/pdf/rankingPDF.js";
 import jsPDF from "jspdf";
 import Qrcode from './components/Qrcode.vue'
+import DOMPurify from 'dompurify';
+
 import { PrinterIcon, TrashIcon, PencilSquareIcon, InboxIcon, NewspaperIcon } from '@heroicons/vue/24/solid'
 
 import dbService from './services/dbServices.js'
 
+import { useToastMessage } from "./composables/useToastMessage";
+const { toastHTML } = useToastMessage();
+
 const scoresEntered = ref(false);
 
-const sluitKnop = computed(() =>{
+const sluitKnop = computed(() => {
   return (scoresEntered.value && editMode.value)
-  ? "Opslaan"
-  : "Sluiten"
+    ? "Opslaan"
+    : "Sluiten"
 })
 const toast = useToast()
 const showRanking = ref(false);
@@ -235,22 +244,61 @@ async function maakPdf(showPdf = true) {
   let tnNaam = "Kraken " + niceDate(thisToernooiDatum.value, true) + ".pdf";
   tnNaam = tnNaam.replace(/\s+/g, '_').toLowerCase(); // vervang spaties door streepjes en zet om naar kleine letters
   savePDF(doc, tnNaam);
-  // const blob = doc.output("blob");
-  // const formData = new FormData();
-  // formData.append("file", blob, tnNaam);
-  // const response = await axios.post(`${api}/upload`, formData, {
-  //   headers: {
-  //     'Content-Type': 'multipart/form-data'
-  //   }
-  // })
-  //  console.log("PDF geüpload, response:", response.data);
-  // pdfUrl.value = baseUrl + response.data.url
-  // pdfUrl.value = pdfUrl.value.replace(/\s+/g, '_').toLowerCase(); // vervang spaties door streepjes en zet om naar kleine letters
   if (showPdf) {
     // open de PDF in een nieuw tabblad
     const pdfBlob = doc.output("blob");
     const pdfUrl = URL.createObjectURL(pdfBlob);
     window.open(pdfUrl, '_blank');
+  }
+}
+
+async function cleanDatabase() {
+  try {
+    if (confirm("Weet je zeker dat je teams zonder toernooi en spelers zonder team wilt verwijderen?")) {
+      const response = await dbService.cleanTeamsAndPlayers()
+      const data = response.data
+      let msg = ""
+      // console.log("Data", data)
+      if (data.success) {
+        //
+        if (data.aantal > 0) {
+
+          if (data.items.teams && data.items.teams.length > 0) {
+            const teamList = data.items.teams.map(item => `<li>${item}</li>`).join('');
+            msg += DOMPurify.sanitize(`
+            <h2><strong>Verwijderde teams:</strong></h2>
+            <ol>
+              ${teamList}
+            </ol>
+          `);
+          }
+          if (data.items.spelers && data.items.spelers.length > 0) {
+            const spelersList = data.items.spelers.map(item => `<li>${item}</li>`).join('');
+            msg += DOMPurify.sanitize(`
+            <h2><strong>Verwijderde spelers:</strong></h2>
+            <ol>
+              ${spelersList}
+            </ol>
+          `);
+          }
+        } else {
+          msg = "Geen items verwijderd";
+        }
+        // console.log("Opschoningsresultaat:", msg);
+        toastHTML('info', msg, {
+          position: "top-center",
+          timeout: 8000,
+        });
+
+        await getSavedTeamsFromApi()
+      }
+    }
+  } catch (error) {
+    console.error("Fout bij het opschonen van de database:", error);
+    toast.error("Fout bij het opschonen van de database: " + error.message, {
+      position: "top-center",
+      timeout: 5000,
+    });
   }
 }
 
@@ -439,7 +487,7 @@ async function resetApp() {
 function scoresAreEntered() {
   const hasScores = JSON.parse(localStorage.getItem("tournamentMatches")) || JSON.parse(localStorage.getItem("tournamentGroupMatches"));
   scoresEntered.value = hasScores !== null;
-  console.log("scoresEntered:", scoresEntered.value);
+  // console.log("scoresEntered:", scoresEntered.value);
 }
 
 async function sluitToernooi() {
@@ -558,7 +606,7 @@ async function standardTeamsToApi(msg) {
       players: sp,
     };
   });
-  console.log("saveToApi teams:", bewaardeTeams)
+  // console.log("saveToApi teams:", bewaardeTeams)
   const sendTeams = {
     teams: bewaardeTeams,
   };
@@ -571,7 +619,7 @@ async function standardTeamsToApi(msg) {
           timeout: 3000,
         });
       }
-      console.log("Lijst ook opgeslagen op de server:", bewaardeTeams);
+      // console.log("Lijst ook opgeslagen op de server:", bewaardeTeams);
     })
     .catch((error) => {
       toast.error("Fout bij het opslaan van standaard teams: " + error.message, {
@@ -752,7 +800,7 @@ function getTeam(tm) {
     }
   } else {
     // ja, dus weghalen
-    toernooiTeams.value.splice(idx, 1); 
+    toernooiTeams.value.splice(idx, 1);
   }
 }
 
@@ -848,6 +896,10 @@ async function startTournament() {
       tournamentStarted.value = true;
       editMode.value = true;
       // sla de toernooiTeams op in localStorage
+      toast.info("Toernooi is begonnen, je kunt hier de scores invoeren.", {
+        position: "top-center",
+        timeout: 8000,
+      });
     }
   } else {
     alert("Voer minimaal 4 teams in voor een toernooi.");
@@ -871,7 +923,7 @@ function addTeamsToList() {
     localStorage.setItem("savedTeams", JSON.stringify(savedTeams.value));
     // en ook naar de API sturen
     if (teamsSaved) {
-      standardTeamsToApi("Teams zijn opgeslagen");
+      standardTeamsToApi("Nieuwe teams zijn opgeslagen");
     }
   }
 }
@@ -991,7 +1043,7 @@ onMounted(async () => {
   setActiveSemester(); // zet de huidige semester
   window.addEventListener('storage', scoresAreEntered)
   if (serverAvailable.value) {
-    toast.success("Welkom bij Jota's Kraak Score \nGegevens zijn opgehaald van de server", {
+    toastHTML('info', "<strong>KRAKEN</strong><p><strong>Welkom bij Jota's Kraak Score</strong></p><p>Gegevens zijn opgehaald van de server</p>", {
       position: "top-center",
       timeout: 3000,
 
