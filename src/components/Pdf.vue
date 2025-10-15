@@ -10,7 +10,7 @@
 <script setup>
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { rankingPDF } from "../utils/pdf/rankingPDF.js";
+// import { rankingPDF } from "../utils/pdf/rankingPDF.js";
 import { ref, computed } from "vue";
 
 import imgRaam from '../assets/raam.jpg'
@@ -31,8 +31,10 @@ const teams = ref([]);
 const groups = ref([]);
 const groupMatches = ref([]);
 const finalMatches = ref([
-  { teamL: null, teamR: null, scoreL: null, scoreR: null }, // finale
-  { teamL: null, teamR: null, scoreL: null, scoreR: null }, // 3e plaats
+  { tafel: 1, teamL: null, teamR: null, scoreL: null, scoreR: null }, // finale
+  { tafel: 3, teamL: null, teamR: null, scoreL: null, scoreR: null }, // 3e plaats
+  { tafel: 5, teamL: null, teamR: null, scoreL: null, scoreR: null }, // 5e plaats
+  { tafel: 7, teamL: null, teamR: null, scoreL: null, scoreR: null }, // 7e plaats
 ]);
 
 
@@ -90,20 +92,28 @@ function getMatchesFromStorage() {
   }
   if (fm) {
     finalMatches.value = JSON.parse(fm);
-    //  console.log("finales:", finalMatches.value)
+    if (finalMatches.value.length < 4) {
+      // vul aan met lege matches
+      const toAdd = 4 - finalMatches.value.length
+      for (let i = 0; i < toAdd; i++) {
+        finalMatches.value.push({ tafel: finalMatches.value.length * 2 + 1, teamL: null, teamR: null, scoreL: null, scoreR: null })
+      }
+    }
+    console.log("finales:", finalMatches.value)
   }
 }
 
 function finalBekend() {
-  const isBekend = finalMatches.value.length === 2 && finalMatches.value[0].teamL && finalMatches.value[0].teamR && finalMatches.value[1].teamL && finalMatches.value[1].teamR
+  console.log("Finales:", finalMatches.value)
+  const isBekend = finalMatches.value.length >= 2
   // console.log("Bekend: ", isBekend, finalMatches.value[0].teamL, finalMatches.value[0].teamR)
   return isBekend
 }
 
 function finalPlayed() {
-  const isPlayed = (finalMatches.value[0].scoreL || finalMatches.value[0].scoreR) && (finalMatches.value[1].scoreLL || finalMatches.value[1].scoreR)
+  // const isPlayed = (finalMatches.value[0].scoreL || finalMatches.value[0].scoreR) && (finalMatches.value[1].scoreL || finalMatches.value[1].scoreR)
   // console.log("Played: ", isPlayed)
-  return isPlayed
+  return true
 }
 
 
@@ -247,7 +257,7 @@ function exportPdf() {
     // eerst de standen in de groepen
     saveY = yPos
     let kopPosY = 0
-    let kopTxt = ""
+    let kopTxt = "HALLO"
     countRondeMatch = groupMatches.value.length * groupMatches.value[0].length * groupMatches.value[0][0].length
     groupMatches.value.forEach((gm, index) => {
       const xPos = marge + (pageWidth / 2 - marge) * index
@@ -311,10 +321,13 @@ function exportPdf() {
 
       if (saveY < doc.lastAutoTable.finalY + 4) saveY = doc.lastAutoTable.finalY + 4
     })
+
+
     doc.setFontSize(18)
     doc.text(kopTxt, pageWidth / 2, (kopPosY), { align: "center" });
     doc.setFontSize(12)
     // finales
+
     if (finalBekend()) {
       yPos = saveY
       let xPos = (pageWidth - tblWidth - 30) / 2
@@ -325,7 +338,7 @@ function exportPdf() {
       table = []
       let obj = []
       let uitslag = []
-      for (let i = 0; i < 2; i++) {
+      for (let i = 0; i < finalMatches.value.length; i++) {
         let finMatch = finalMatches.value[i]
         if (finMatch.scoreL > finMatch.scoreR) {
           uitslag.push(finMatch.teamL)

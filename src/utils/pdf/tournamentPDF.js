@@ -1,4 +1,4 @@
-import {autoTable} from "jspdf-autotable";
+import { autoTable } from "jspdf-autotable";
 
 import imgRaam from '../../assets/raam.jpg'
 import { ref } from 'vue'
@@ -25,24 +25,24 @@ const finalMatches = ref([
 
 // Ophalen en parsen van data uit localStorage
 function getMatchesFromStorage() {
-//  // console.log("getMatchesFromStorage")
+  //  // console.log("getMatchesFromStorage")
   teams.value = JSON.parse(localStorage.getItem("tournamentTeams"));
-//  //  console.log("gesplistst", gesplitst)
+  //  //  console.log("gesplistst", gesplitst)
   const g = localStorage.getItem("tournamentGroups");
   const gm = localStorage.getItem("tournamentGroupMatches");
   const m = localStorage.getItem("tournamentMatches");
   const fm = localStorage.getItem("tournamentFinalMatches");
-//  // console.log( "gesplitst:", gesplitst, "g:", g, "gm:", gm, "m:", m, "fm:", fm)
+  //  // console.log( "gesplitst:", gesplitst, "g:", g, "gm:", gm, "m:", m, "fm:", fm)
   if (gesplitst) {
     groups.value = JSON.parse(g);
     groupMatches.value = JSON.parse(gm);
   } else {
     rounds.value = JSON.parse(m);
-//    //  console.log("Opgehaald: matches:", rounds.value)
+    //    //  console.log("Opgehaald: matches:", rounds.value)
   }
   if (fm) {
     finalMatches.value = JSON.parse(fm);
-//    //  console.log("finales:", finalMatches.value)
+    //    //  console.log("finales:", finalMatches.value)
   }
 }
 
@@ -55,21 +55,21 @@ function gespeeld(index) {
 }
 
 function finalBekend() {
-  const isBekend = finalMatches.value.length === 2 && finalMatches.value[0].teamL && finalMatches.value[0].teamR && finalMatches.value[1].teamL && finalMatches.value[1].teamR
-//  // console.log("Bekend: ", isBekend, finalMatches.value[0].teamL, finalMatches.value[0].teamR)
+  const isBekend = finalMatches.value.length >= 2 && finalMatches.value[0].teamL && finalMatches.value[0].teamR && finalMatches.value[1].teamL && finalMatches.value[1].teamR
+  //  // console.log("Bekend: ", isBekend, finalMatches.value[0].teamL, finalMatches.value[0].teamR)
   return isBekend
 }
 
 function finalPlayed() {
   const isPlayed = (finalMatches.value[0].scoreL || finalMatches.value[0].scoreR) && (finalMatches.value[1].scoreLL || finalMatches.value[1].scoreR)
-//  // console.log("Played: ", isPlayed)
+  //  // console.log("Played: ", isPlayed)
   return isPlayed
 }
 
 export async function uitslagPDF(doc, datum, groepstoernooi = false) {
   gesplitst = groepstoernooi
   getMatchesFromStorage();
-//  // console.log("Gesplitst Na:", gesplitst)
+  //  // console.log("Gesplitst Na:", gesplitst)
   let countPlayed = 0;
   let countRondeMatch = 0;
   const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
@@ -88,7 +88,7 @@ export async function uitslagPDF(doc, datum, groepstoernooi = false) {
   doc.line(marge + 40, yPos, pageWidth - marge - 40, yPos);
   yPos += 6
   let infoStr = "";
-  if(teams.value) {
+  if (teams.value) {
     infoStr = `${teams.value.length} teams`;
   } else {
     infoStr = `0 teams`;
@@ -118,9 +118,9 @@ export async function uitslagPDF(doc, datum, groepstoernooi = false) {
       }
       // laatste tabel centreren als er een oneven aantal rondes is
       if (index === rounds.value.length - 1 && rounds.value.length % 2 !== 0) {
-//        // console.log("Index", index, xPos)
+        //        // console.log("Index", index, xPos)
         xPos = (pageWidth - tblWidth) / 2
-//        // console.log("Index", index, xPos)
+        //        // console.log("Index", index, xPos)
         doc.addImage(imgCafe, 'jpeg', marge, yPos, 40, 30)
         doc.addImage(imgBoom, 'jpeg', pageWidth - marge - 30, yPos, 30, 30)
       }
@@ -138,7 +138,7 @@ export async function uitslagPDF(doc, datum, groepstoernooi = false) {
         table.push(obj);
       });
       head[0] = `ronde ${(index + 1)}`
-//      // console.log(`Ronde: ${(index + 1)}, yPos: ${yPos}`)
+      //      // console.log(`Ronde: ${(index + 1)}, yPos: ${yPos}`)
       autoTable(doc, {
         theme: "grid",
         tableLineWidth: 1,
@@ -215,14 +215,14 @@ export async function uitslagPDF(doc, datum, groepstoernooi = false) {
     countRondeMatch = groupMatches.value.length * groupMatches.value[0].length * groupMatches.value[0][0].length
     groupMatches.value.forEach((gm, index) => {
       const xPos = marge + (pageWidth / 2 - marge) * index
-      doc.setFontSize(18);
+      doc.setFontSize(16);
       yPos = marge * 2.5
       doc.text(`Groep ${(index + 1)}`, xPos, yPos)
-      yPos += 2
+      yPos += 1
       gm.forEach((round, idx) => {
         table = [];
         round.forEach((match, idx) => {
-//          //  console.log("Match:" , match)
+          //          //  console.log("Match:" , match)
           let obj = []
           if ((match.scoreL || match.scoreR) || match.teamR === 'VRIJ') {
             obj = [`T${(match.tafel)}`, match.teamL + " vs " + match.teamR, `${match.scoreL} - ${match.scoreR}`];
@@ -254,13 +254,12 @@ export async function uitslagPDF(doc, datum, groepstoernooi = false) {
         yPos += table.length * 10 + 4;
       })
       // groeps standen
-      yPos += 2
+      yPos += 1
       doc.line(marge, yPos, pageWidth - marge, yPos);
-      doc.setFontSize(18);
-      kopPosY = yPos += 8
+      doc.setFontSize(16);
+      kopPosY = yPos += 5
       kopTxt = "Tussenstand groepen"
       if (countRondeMatch === countPlayed) kopTxt = "Eindstand groepen"
-      doc.setFontSize(12);
       autoTable(doc, {
         theme: "striped",
         styles: { font: "times", fontSize: 14 },
@@ -273,23 +272,24 @@ export async function uitslagPDF(doc, datum, groepstoernooi = false) {
         margin: { left: xPos },
       });
 
-      if (saveY < doc.lastAutoTable.finalY + 4) saveY = doc.lastAutoTable.finalY + 4
+      if (saveY < doc.lastAutoTable.finalY + 4) saveY = doc.lastAutoTable.finalY + 2
     })
-    doc.setFontSize(18)
+    doc.setFontSize(16)
     doc.text(kopTxt, pageWidth / 2, (kopPosY), { align: "center" });
+    doc.setFontSize(12);
     doc.setFontSize(12)
     // finales
     if (finalBekend()) {
-      yPos = saveY
+      yPos = doc.lastAutoTable.finalY + 2
       let xPos = (pageWidth - tblWidth - 30) / 2
       doc.line(marge, yPos, pageWidth - marge, yPos);
-      doc.setFontSize(18);
-      doc.text(`Finales`, pageWidth / 2, (yPos += 8), { align: "center" });
+      doc.setFontSize(16);
+      doc.text(`Finales`, pageWidth / 2, (yPos += 5), { align: "center" });
       doc.setFontSize(12);
       table = []
       let obj = []
       let uitslag = []
-      for (let i = 0; i < 2; i++) {
+      for (let i = 0; i < 4; i++) {
         let finMatch = finalMatches.value[i]
         if (finMatch.scoreL > finMatch.scoreR) {
           uitslag.push(finMatch.teamL)
@@ -298,55 +298,67 @@ export async function uitslagPDF(doc, datum, groepstoernooi = false) {
           uitslag.push(finMatch.teamR)
           uitslag.push(finMatch.teamL)
         }
-        obj = [`Finale:`, finMatch.teamL + " vs " + finMatch.teamR, `${finMatch.scoreL || ""} - ${finMatch.scoreR || ""}`];
+        obj = [`Fin:`, finMatch.teamL + " vs " + finMatch.teamR, `${finMatch.scoreL || ""} - ${finMatch.scoreR || ""}`];
         if (i > 0) {
-          obj = [`3e Plaats:`, finMatch.teamL + " vs " + finMatch.teamR, `${finMatch.scoreL || ""} - ${finMatch.scoreR || ""}`];
+          obj = [`${finMatch.tafel}e Pl:`, finMatch.teamL + " vs " + finMatch.teamR, `${finMatch.scoreL || ""} - ${finMatch.scoreR || ""}`];
         }
         table.push(obj)
       }
-      const finhead = ["match", "spelers", "uitslag"];
       yPos += 2
-      autoTable(doc, {
-        head: [finhead],
-        theme: "striped",
-        styles: { font: "times", fontSize: 14 },
-        startY: yPos,
-        headStyles: { fillColor: [5, 93, 165], textColor: [255, 255, 255] }, columnStyles: { 3: { halign: "center" } },
-        tableWidth: tblWidth + 30,
-        tableLineWidth: 1,
-        body: table,
-        margin: { left: xPos },
-      });
+      // de finales moeten in twee tabellen naast elkaar: tabel links de matches om de eerste en om de derde plaats
+      doc.setFontSize(10)
+      const finhead = ["match", "spelers", "uitslag"];
+      for (let kolom = 0; kolom < 2; kolom++) {
+        const tblBody = kolom === 0 ? table.slice(0, 2) : table.slice(-2)
+        // const tblBody = table;
+        console.log("table:", table, "tblBody:", tblBody)
+        xPos = marge + (pageWidth / 2 - marge) * kolom
+        autoTable(doc, {
+          head: [finhead],
+          theme: "striped",
+          styles: { font: "times", fontSize: 11 },
+          startY: yPos,
+          headStyles: { fillColor: [5, 93, 165], textColor: [255, 255, 255] }, columnStyles: { 3: { halign: "center" } },
+          tableWidth: (tblWidth),
+          tableLineWidth: 1,
+          body: tblBody,
+          margin: { left: xPos },
+        });
+      }
       yPos = doc.lastAutoTable.finalY
       // uitslag
       if (finalPlayed()) {
-        yPos += 4
+        yPos += 2
         doc.line(marge, yPos, pageWidth - marge, yPos);
         doc.setFontSize(18);
-        doc.text(``, pageWidth / 2, (yPos += 8), { align: "center" });
+        // doc.text(``, pageWidth / 2, (yPos += 8), { align: "center" });
         table = []
+        const rankingpunten = [12, 9, 6, 3]
         uitslag.forEach((team, index) => {
-          obj = [`${(index + 1)}e plaats`, team]
-          if (index === 0) {
-            obj = ['Winnaars:', team]
-          }
+          const pnt = rankingpunten[index] || 1
+          obj = [`${(index + 1)}e`, team, pnt]
+          // if (index === 0) {
+          //   obj = ['Winnaars:', team, pnt]
+          // }
           table.push(obj)
           // doc.text(`${(index +1)}: ${team}`, pageWidth / 2-20, (yPos += 12), { align: "left" });
         })
         xPos = (pageWidth - tblWidth) / 2
-        yPos += 2
+        yPos += 4
+
         autoTable(doc, {
-          head: [["Eindstand", "Team"]],
-          theme: "plain",
-          styles: { font: "times", fontSize: 14 },
+          head: [["Stand", "Team", "Pnt"]],
+          theme: "striped",
+          styles: { font: "times", fontSize: 10 },
           startY: yPos,
-          headStyles: { fillColor: [0, 128, 0], textColor: [255, 255, 139] },
+          headStyles: { fillColor: [0, 128, 0], textColor: [255, 255, 139], fontSize: 12 },
           tableWidth: tblWidth,
           tableLineWidth: 1,
           body: table,
           columnStyles: {
-            0: { cellWidth: 35 },
-            1: { cellWidth: 55 },
+            0: { cellWidth: 15 , halign: 'center' },
+            1: { cellWidth: 65 },
+            2: { cellWidth: 10 , halign: 'center'  },
           },
           margin: { left: xPos },
           bodyStyles: {
@@ -354,18 +366,23 @@ export async function uitslagPDF(doc, datum, groepstoernooi = false) {
           },
           didParseCell: function (data) {
             if (data.section === "body" && data.row.index === 0) {
-              if (data.column.index === 1) {
+              if (data.column.index <= 1) {
                 data.cell.styles.fontSize = 20;
               }
             }
             if (data.section === "body" && data.row.index === 1) {
-              if (data.column.index === 1) {
-                data.cell.styles.fontSize = 18;
+              if (data.column.index <= 1) {
+                data.cell.styles.fontSize = 16;
               }
             }
             if (data.section === "body" && data.row.index === 2) {
-              if (data.column.index === 1) {
-                data.cell.styles.fontSize = 16;
+              if (data.column.index <= 1) {
+                data.cell.styles.fontSize = 14;
+              }
+            }
+            if (data.section === "body" && data.row.index === 3) {
+              if (data.column.index <= 1) {
+                data.cell.styles.fontSize = 12;
               }
             }
           },

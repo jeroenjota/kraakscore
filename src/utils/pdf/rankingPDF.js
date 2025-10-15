@@ -27,7 +27,7 @@ export function rankingPDF(doc, ranking, toernooien, datum) {
   const formattedDate = niceDate(datum, true);
 //  // console.log("Datum voor PDF:", formattedDate, datum);
   doc.setFontSize(18);
-  doc.text("Laurierboom Kraaktoernooi", pageWidth / 2, 20, { align: "center" });
+  doc.text("Laurierboom Kraaktoernooi", pageWidth / 2, yPos += 2, { align: "center" });
   doc.setFontSize(16);
   let txt = "Ranking " + getSemesterText(datum, true);
   if (toernooien.length > 0) {
@@ -36,7 +36,7 @@ export function rankingPDF(doc, ranking, toernooien, datum) {
     txt += " (geen toernooien)";
   }
 
-  doc.text(`${txt}`, pageWidth / 2, 25, { align: "center" });
+  doc.text(`${txt}`, pageWidth / 2, yPos += 8, { align: "center" });
   doc.setFontSize(10);
   doc.line(marge, 35, pageWidth - marge, 35);
   autoTable(doc, {
@@ -49,7 +49,7 @@ export function rankingPDF(doc, ranking, toernooien, datum) {
       r.totaal || "-"
     ]),
     theme: "striped",
-    startY: 40,
+    startY: yPos += 5,
     headStyles: {
       fillColor: [0, 100, 139],
       fontSize: 12,

@@ -3,10 +3,10 @@
   <table class="w-full rondes table" :id="matchType">
     <tbody>
       <tr v-for="(match, index) in matches" :key="index">
-        <td style="width:5%; text-align: center;" class="border px-2">T{{ match.tafel }}</td>
-        <td style="width:25%; text-align: left;" class="border px-2">{{ match.teamL }}</td>
+        <td style="width:9%; text-align: center;" class="border px-2"><span v-if="matchType!='finale'">T</span><span v-else>Pl </span>{{ match.tafel }}</td>
+        <td style="width:23%; text-align: left;" class="border px-2">{{ match.teamL }}</td>
         <td style="width:5%; text-align: center;" class="border px-2">vs</td>
-        <td style="width:25%; text-align: left;" class="border px-2">{{ match.teamR }}</td>
+        <td style="width:23%; text-align: left;" class="border px-2">{{ match.teamR }}</td>
         <td style="width:15%; text-align: left;" class="border px-2">
           <input style="width:100%; margin:0" type="number" v-model.number="scores[index].scoreL" min="0" step="10"
             :disabled="!editMode || hasVRIJ(index)"
