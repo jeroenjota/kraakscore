@@ -3,7 +3,8 @@
   <table class="w-full rondes table" :id="matchType">
     <tbody>
       <tr v-for="(match, index) in matches" :key="index">
-        <td style="width:9%; text-align: center;" class="border px-2"><span v-if="matchType!='finale'">T</span><span v-else>Pl </span>{{ match.tafel }}</td>
+        {{ index }}
+        <td style="width:9%; text-align: center;" class="border px-2"><span v-if="matchType!='finale'">T {{ match.tafel }}</span><span v-else>Pl {{ match.pl }} </span></td>
         <td style="width:23%; text-align: left;" class="border px-2">{{ match.teamL }}</td>
         <td style="width:5%; text-align: center;" class="border px-2">vs</td>
         <td style="width:23%; text-align: left;" class="border px-2">{{ match.teamR }}</td>
@@ -66,7 +67,7 @@ function hasVRIJ(match){
 }
 
 function update(index) {
- // console.log("update index:", index, "scores:", scores.value)
+  console.log("update index:", index, "scores:", scores.value)
   const { scoreL, scoreR } = scores.value[index]
   if (scoreL !== '' && scoreR !== '') {
     emit('update-result', index, Number(scoreL), Number(scoreR))

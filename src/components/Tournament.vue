@@ -61,10 +61,12 @@
         v-if="
           finalMatches.length >= 2
         ">
-        <h3 class="text-xl font-semibold">Finales</h3>
+        <h3 class="text-xl font-semibold">Finales {{  finalMatches.length }}</h3>
+          <!-- <p>Match: {{ finalMatches[1] }}</p> -->
+
         <div v-for="match, index in finalMatches" :key="index">
           <MatchTable
-            matchType="finale"
+            :matchType="'finale'"
             :matches="[match]"
             :teams="[match.teamL, match.teamR]"
             :oldToernooi="toernooiPlayed"
@@ -129,10 +131,10 @@ const repeatRounds = ref(props.repeatRounds);
 const groups = ref([]);
 const groupMatches = ref([]);
 const finalMatches = ref([
-  { tafel: 1, teamL: null, teamR: null, scoreL: null, scoreR: null }, // finale
-  { tafel: 3, teamL: null, teamR: null, scoreL: null, scoreR: null }, // 3e plaats
-  { tafel: 5, teamL: null, teamR: null, scoreL: null, scoreR: null }, // 5e plaats
-  { tafel: 7, teamL: null, teamR: null, scoreL: null, scoreR: null }, // 7e plaats
+  { tafel: 1, teamL: null, teamR: null, scoreL: null, scoreR: null, pl: 1 }, // finale
+  { tafel: 2, teamL: null, teamR: null, scoreL: null, scoreR: null, pl: 3 }, // 3e plaats
+  { tafel: 3, teamL: null, teamR: null, scoreL: null, scoreR: null, pl: 5 }, // 5e plaats
+  { tafel: 4, teamL: null, teamR: null, scoreL: null, scoreR: null, pl: 7 }, // 7e plaats
 ]);
 
 // console.log("Edit mode in Tournament:", props.editMode);
@@ -239,8 +241,10 @@ function updateSingleResult(ronde, table, scoreL, scoreR) {
 }
 
 function updateFinalResult(index, scoreL, scoreR) {
+
   finalMatches.value[index].scoreL = scoreL;
   finalMatches.value[index].scoreR = scoreR;
+  console.log("finalMatches.value:", finalMatches.value);
   saveToLocalStorage();
 }
 
@@ -390,7 +394,8 @@ function loadFromLocalStorage() {
       }
     }
     finalMatches.value.forEach((match, index) => {
-      match.tafel = index * 2 + 1;
+      match.tafel = index + 1;
+      match.pl = index * 2 + 1;
     });
     // console.log("Opgehaald: finalMatches:", finalMatches.value);
   }
