@@ -3,8 +3,7 @@
   <table class="w-full rondes table" :id="matchType">
     <tbody>
       <tr v-for="(match, index) in matches" :key="index">
-        {{ index }}
-        <td style="width:9%; text-align: center;" class="border px-2"><span v-if="matchType!='finale'">T {{ match.tafel }}</span><span v-else>Pl {{ match.pl }} </span></td>
+        <td style="width:9%; text-align: center;" class="border px-2"><span v-if="!matchType">T {{ match.tafel }}</span><span v-else>Pl {{ match.pl }} </span></td>
         <td style="width:23%; text-align: left;" class="border px-2">{{ match.teamL }}</td>
         <td style="width:5%; text-align: center;" class="border px-2">vs</td>
         <td style="width:23%; text-align: left;" class="border px-2">{{ match.teamR }}</td>

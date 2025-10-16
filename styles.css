@@ -205,10 +205,12 @@ button:disabled {
 }
 
 button:hover:enabled {
-  background-color: var(--color-sky-600);
-  color: white;
-  border-color: bisque;
-  border: 2px solid bisque;
+  background-color: var(--color-lime-600);
+  color: var(--color-lime-100);
+  /* border-color: bisque; */
+  /* border: 2px solid bisque; */
+  transform: scale3d(1.1, 1.1, 0.3);
+  
 }
 
 .v-popper--theme-tooltip .v-popper__inner {

@@ -61,17 +61,16 @@
         v-if="
           finalMatches.length >= 2
         ">
-        <h3 class="text-xl font-semibold">Finales {{  finalMatches.length }}</h3>
+        <h3 class="text-xl font-semibold">Finales</h3>
           <!-- <p>Match: {{ finalMatches[1] }}</p> -->
-
         <div v-for="match, index in finalMatches" :key="index">
           <MatchTable
-            :matchType="'finale'"
+            :matchType="matchTypes[index]"
             :matches="[match]"
             :teams="[match.teamL, match.teamR]"
             :oldToernooi="toernooiPlayed"
             :edit-mode="editMode"
-            @update-result="(i, a, b) => updateFinalResult(i, a, b)" />
+            @update-result="(i, a, b) => updateFinalResult(index, a, b)" />
         </div>
 
       </div>
@@ -100,6 +99,9 @@
 import { ref, onMounted } from "vue";
 import MatchTable from "./MatchTable.vue";
 import GroupStandings from "./GroupStandings.vue";
+
+const matchTypes = ['finale', '3e plaats', '5e plaats', '7e plaats'];
+
 
 const props = defineProps({
   initialTeams: {
@@ -244,7 +246,7 @@ function updateFinalResult(index, scoreL, scoreR) {
 
   finalMatches.value[index].scoreL = scoreL;
   finalMatches.value[index].scoreR = scoreR;
-  console.log("finalMatches.value:", finalMatches.value);
+  // console.log("finalMatches.value:", finalMatches.value);
   saveToLocalStorage();
 }
 
