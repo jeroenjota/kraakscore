@@ -75,7 +75,7 @@
 
       </div>
     </div>
-    <!--  minder dan 7 teams -->
+    <!--  geen groepen -->
     <div v-else class="schema">
       <h2 class="text-xl font-bold">Schema</h2>
       <div v-for="(ronde, index) in matches" :key="index">
@@ -332,7 +332,7 @@ function updateFinalists() {
 
 function saveToLocalStorage() {
   // console.log("Opslaan in localStorage")
-  // console.log("toernooiTeams.value:", toernooiTeams.value)
+  console.log("toernooiTeams.value:", toernooiTeams.value)
   localStorage.setItem("tournamentTeams", JSON.stringify(toernooiTeams.value));
 
   localStorage.setItem("tournamentGroups", JSON.stringify(groups.value));
@@ -411,21 +411,21 @@ function loadFromLocalStorage() {
 onMounted(() => {
   if (!props.toernooiPlayed) {
     localStorage.clear();
-
+    localStorage.setItem("tournamentTeams", JSON.stringify(toernooiTeams.value));
     if (props.groepsToernooi) {
       groups.value = splitIntoGroups(toernooiTeams.value);
       // console.log("groep.value", groups.value)
       groupMatches.value = groups.value.map((group, index) =>
         generateMatches(group, index)
       );
-      // localStorage.setItem("tournamentGroupMatches", JSON.stringify(groupMatches.value));
+      localStorage.setItem("tournamentGroupMatches", JSON.stringify(groupMatches.value));
       // console.log("Score updated")
       window.dispatchEvent(new Event("storage"));
       // console.log("groupMatches.value", groupMatches.value)
     } else {
       matches.value = generateMatches(toernooiTeams.value, 0);
       // console.log("matches:", matches.value)
-      // localStorage.setItem("tournamentMatches", JSON.stringify(matches.value));
+      localStorage.setItem("tournamentMatches", JSON.stringify(matches.value));
       window.dispatchEvent(new Event("storage"));
     }
   } else {

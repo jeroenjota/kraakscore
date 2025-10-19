@@ -850,6 +850,7 @@ function cleanTeamName(thisTeam) {
 const filteredTeams = computed(() => toernooiTeams.value.map((t) => t.trim()).filter((t) => t));
 
 watch(filteredTeams, (newTeams) => {
+  console.log("toernooiTeams gewijzigd:", newTeams);  
   localStorage.setItem("tournamentTeams", JSON.stringify(newTeams));
 });
 
@@ -881,7 +882,7 @@ async function startTournament() {
     addTeamsToList() // voeg eventueel nieuwe teams aan de standaardlijst toe
     groepsToernooi.value = false
     if (filteredTeams.value.length >= 7) {
-      // Bepaal oof het een groepstoernooi wordt
+      // Bepaal of het een groepstoernooi wordt
       groepsToernooi.value = confirm("Er zijn meer dan 6 teams, wil je twee groepen aanmaken?")
     }
     let rndTxt = 'ronde'
@@ -896,6 +897,8 @@ async function startTournament() {
       tournamentStarted.value = true;
       editMode.value = true;
       // sla de toernooiTeams op in localStorage
+      console.log("toernooiTeams:", toernooiTeams.value);
+      localStorage.setItem("tournamentTeams", JSON.stringify(toernooiTeams.value));
       toast.info("Toernooi is begonnen, je kunt hier de scores invoeren.", {
         position: "top-center",
         timeout: 8000,

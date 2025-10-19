@@ -28,6 +28,7 @@ const props = defineProps({
   matches: Array,
   group: {
     type: String,
+    default: '',
   }
 })
 
@@ -38,7 +39,7 @@ function setID(group){
 }
 
 const standings = computed(() => {
-
+  console.log("Computing standings:", props.teams, props.matches)
   return props.teams.map(name => {
     const stats = {
       name,
@@ -47,9 +48,9 @@ const standings = computed(() => {
     }
 
     for (const round of props.matches) {
-     //  console.log("Ronde:", round)
+      //  console.log("Ronde:", round)
       for (const match of round) {
-       //  console.log("tafel:", match)
+      //  console.log("tafel:", match)
         
         if (match.scoreL === 0 || match.scoreR === 0) continue
 

@@ -66,7 +66,7 @@ function hasVRIJ(match){
 }
 
 function update(index) {
-  console.log("update index:", index, "scores:", scores.value)
+  // console.log("update index:", index, "scores:", scores.value)
   const { scoreL, scoreR } = scores.value[index]
   if (scoreL !== '' && scoreR !== '') {
     emit('update-result', index, Number(scoreL), Number(scoreR))
