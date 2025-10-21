@@ -332,7 +332,7 @@ function updateFinalists() {
 
 function saveToLocalStorage() {
   // console.log("Opslaan in localStorage")
-  console.log("toernooiTeams.value:", toernooiTeams.value)
+  // console.log("toernooiTeams.value:", toernooiTeams.value)
   localStorage.setItem("tournamentTeams", JSON.stringify(toernooiTeams.value));
 
   localStorage.setItem("tournamentGroups", JSON.stringify(groups.value));

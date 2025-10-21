@@ -1,109 +1,197 @@
 <template>
+  <ConfirmDialog ref="dialog" />
   <div class="max-w-4xl mx-auto space-y-4 maindiv rounded">
     <div class="kop">
-      <div class="titelregel flex justify-between items-center  ">
+      <div class="titelregel flex justify-between items-center">
         <h1 class="text-2xl font-bold">
           <span v-if="thisToernooiID">Kraaktoernooi</span>
           <span v-else>
             <span class="boom">Laurierboom Kraak</span>
           </span>
         </h1>
-        <div v-if="!thisToernooiID && !tournamentStarted && serverAvailable" class="items-center ">
-          <select id="toernooien" v-model="selectToernooi" class="p-1 border bg-white rounded m-1 "
-            v-tooltip="{ content: 'Selecteer een opgeslagen toernooi', html: true }" @change="handleSelectTournament">
+        <div
+          v-if="!thisToernooiID && !tournamentStarted && serverAvailable"
+          class="items-center">
+          <select
+            id="toernooien"
+            v-model="selectToernooi"
+            class="p-1 border bg-white rounded m-1"
+            v-tooltip="{
+              content: 'Selecteer een opgeslagen toernooi',
+              html: true,
+            }"
+            @change="handleSelectTournament">
             <option value="Toernooien" disabled>Toernooien</option>
-            <option v-for="tn, tnindex in toernooien" :key="tnindex" :value="tn">
-              {{ niceDate(tn.datum, true) }}</option>
+            <option
+              v-for="(tn, tnindex) in toernooien"
+              :key="tnindex"
+              :value="tn">
+              {{ niceDate(tn.datum, true) }}
+            </option>
           </select>
-          <button @click="toggleShowRanking" class="text-white bg-blue-800 px-2 rounded mt-2 mr-0 p-2">
-            <span v-if="!showRanking"><span
-                v-tooltip="'Toon de ranking tot en met het laatste toernooi'">Seizoen</span></span>
-            <span v-else><span v-tooltip="'Terug naar hoofdscherm'">Terug</span></span>
+          <button
+            @click="toggleShowRanking"
+            class="text-white bg-blue-800 px-2 rounded mt-2 mr-0 p-2">
+            <span v-if="!showRanking"
+              ><span
+                v-tooltip="'Toon de ranking tot en met het laatste toernooi'"
+                >Seizoen</span
+              ></span
+            >
+            <span v-else
+              ><span v-tooltip="'Terug naar hoofdscherm'">Terug</span></span
+            >
           </button>
-          <select @change="setPeriode()" class="p-1 bg-white border rounded m-1" name="semester" id="semester"
+          <select
+            @change="setPeriode()"
+            class="p-1 bg-white border rounded m-1"
+            name="semester"
+            id="semester"
             v-model="currentSemester">
-            <option v-for="semester in getSemesters()" :key="semester" :value="semester">
+            <option
+              v-for="semester in getSemesters()"
+              :key="semester"
+              :value="semester">
               {{ semester }}
             </option>
           </select>
           <!-- <p @click="toggleShowRanking" v-if="!thisToernooiID" class="copyright" v-tooltip="'Toon ranking'">©2025 Jota
             Services</p> -->
-
         </div>
-        <div v-if="selectToernooi !== 'Toernooien'" class="titel regel flex justify-left ">
-          <h2 class="text-sm text-white m-1">Datum: {{ niceDate(thisToernooiDatum) }} </h2>
+        <div
+          v-if="selectToernooi !== 'Toernooien'"
+          class="titel regel flex justify-left">
+          <h2 class="text-sm text-white m-1">
+            Datum: {{ niceDate(thisToernooiDatum) }}
+          </h2>
 
-          <button v-if="!editMode" v-tooltip="'Bewerk dit toernooi'" class="bg-transparent border-0 p-1"
+          <button
+            v-if="!editMode"
+            v-tooltip="'Bewerk dit toernooi'"
+            class="bg-transparent border-0 p-1"
             @click="toggleEditMode">
             <PencilSquareIcon class="h-6 w-6 text-blue-100" />
           </button>
-          <button v-if="editMode" v-tooltip="'Sla dit toernooi op'" class="bg-transparent border-0 p-1"
+          <button
+            v-if="editMode"
+            v-tooltip="'Sla dit toernooi op'"
+            class="bg-transparent border-0 p-1"
             @click="saveTournamentChanges">
             <InboxIcon class="h-6 w-6 text-green-300" />
           </button>
-          <button v-if="serverAvailable" class="bg-red-800 border-0 p-1" @click.ctrl="removeTournament(selectToernooi)"
-            v-tooltip="{ content: 'Verwijder dit toernooi definitief van de server 😳 <br/>(Alleen met ctrl+click)', html: true }">
+          <button
+            v-if="serverAvailable"
+            class="bg-red-800 border-0 p-1"
+            @click.ctrl="removeTournament(selectToernooi)"
+            v-tooltip="{
+              content:
+                'Verwijder dit toernooi definitief van de server 😳 <br/>(Alleen met ctrl+click)',
+              html: true,
+            }">
             <TrashIcon class="h-6 w-6 text-red-200" />
           </button>
         </div>
         <div class="knoppen flex justify-center" v-if="tournamentStarted">
-          <button @click="sluitToernooi" class="bg-yellow-300 text-red-800 btn"><span
-              v-if="thisToernooiID || !scoresEntered" v-tooltip="'Terug naar hoofdscherm'">{{ sluitKnop }}</span><span
-              v-else v-tooltip="'Sla toernooi op'">{{ sluitKnop }}</span></button>
-          <button @click="maakPdf" class="bg-blue-500 text-white btn" v-tooltip="'Toon de stand als PDF'">
+          <button @click="sluitToernooi" class="bg-yellow-300 text-red-800 btn">
+            <span
+              v-if="thisToernooiID || !scoresEntered"
+              v-tooltip="'Terug naar hoofdscherm'"
+              >{{ sluitKnop }}</span
+            ><span v-else v-tooltip="'Sla toernooi op'">{{ sluitKnop }}</span>
+          </button>
+          <button
+            @click="maakPdf"
+            class="bg-blue-500 text-white btn"
+            v-tooltip="'Toon de stand als PDF'">
             <PrinterIcon class="h-6 w-6 text-white" />
           </button>
           <!-- QR knop -->
           <Qrcode v-if="pdfUrl" :pdfUrl="pdfUrl" />
-          <button v-if="pdfUrl" class="bg-green-400 text-red-800 btn"
-            v-tooltip="{ content: `Stuur een link naar de PDF met WhatsApp <br/>(Mits web-versie geïnstalleerd): ${pdfUrl}`, html: true }">
-            <a :href="`https://wa.me/?text=Bekijk de toernooiuitslag ${niceDate(thisToernooiDatum)}: ${encodeURIComponent(pdfUrl)}`"
+          <button
+            v-if="pdfUrl"
+            class="bg-green-400 text-red-800 btn"
+            v-tooltip="{
+              content: `Stuur een link naar de PDF met WhatsApp <br/>(Mits web-versie geïnstalleerd): ${pdfUrl}`,
+              html: true,
+            }">
+            <a
+              :href="`https://wa.me/?text=Bekijk de toernooiuitslag ${niceDate(
+                thisToernooiDatum
+              )}: ${encodeURIComponent(pdfUrl)}`"
               target="_blank">
-              <img height="24" width="24" src="https://unpkg.com/simple-icons@latest/icons/whatsapp.svg" />
+              <img
+                height="24"
+                width="24"
+                src="https://unpkg.com/simple-icons@latest/icons/whatsapp.svg" />
             </a>
           </button>
         </div>
       </div>
-
     </div>
     <div class="toprow" v-if="!tournamentStarted">
       <!-- Lijst sectie -->
       <div v-if="showRanking" class="ranking">
-        <Ranking :ranking="filteredRanking" :toernooien="filteredToernooien" :vanaf="vanaf" :tot="tot" />
+        <Ranking
+          :ranking="filteredRanking"
+          :toernooien="filteredToernooien"
+          :vanaf="vanaf"
+          :tot="tot" />
       </div>
 
       <div v-if="!showRanking" class="teams">
-
         <div class="flex gap-2 text-center">
-          <input id="newTeam" @keyup.enter="addTeam" placeholder="Teamnaam" class="p-1 border teamnaam rounded"
-            v-model="newTeam" style="width:50%;" :disabled="toernooiTeams.length > 7"
+          <input
+            id="newTeam"
+            @keyup.enter="addTeam"
+            placeholder="Teamnaam"
+            class="p-1 border teamnaam rounded"
+            v-model="newTeam"
+            style="width: 50%"
+            :disabled="toernooiTeams.length > 7"
             v-tooltip="{ content: instructions, html: true }" />
-          <button @click="addTeam" class="bg-blue-800 text-white px-4 py-2 rounded" style="width:50%;"
-            :disabled="toernooiTeams.length > 7 || newTeam.trim() === ''">OK</button>
+          <button
+            @click="addTeam"
+            class="bg-blue-800 text-white px-4 py-2 rounded"
+            style="width: 50%"
+            :disabled="toernooiTeams.length > 7 || newTeam.trim() === ''">
+            OK
+          </button>
         </div>
 
         <div class="flex gap-2 items-center p-1">
           <label for="repeatRounds">Aantal volle rondes:</label>
-          <input id="repeatRounds" type="number" v-model.number="repeatRounds" min="1" max="2"
-            class="border p-2 w-12 rounded" style="width:25%;" />
+          <input
+            id="repeatRounds"
+            type="number"
+            v-model.number="repeatRounds"
+            min="1"
+            max="2"
+            class="border p-2 w-12 rounded"
+            style="width: 25%" />
         </div>
         <div class="flex gap-2 text-center">
-          <div>
-          </div>
+          <div></div>
         </div>
 
         <div v-if="toernooiTeams.length > 0" class="teamlist">
-          <h2 class="font-semibold" @click.ctrl="removeTeamsFromToernooi" v-longpress="() => removeTeamsFromToernooi()">
-            Lijst:</h2>
+          <h2
+            class="font-semibold"
+            @click.ctrl="removeTeamsFromToernooi"
+            v-longpress="() => removeTeamsFromToernooi()">
+            Lijst:
+          </h2>
           <ul class="list-number list-outside" style="margin-left: 8px">
-            <li v-for="(team, index) in toernooiTeams" :key="index" @click.exact="editTeam(index)"
-              @click.ctrl="removeTeam(index)" v-longpress="() => removeTeam(index)">
+            <li
+              v-for="(team, index) in toernooiTeams"
+              :key="index"
+              @click.exact="editTeam(index)"
+              @click.ctrl="removeTeam(index)"
+              v-longpress="() => removeTeam(index)">
               {{ index + 1 }}: {{ team }}
             </li>
           </ul>
           <p class="text-xs">klik: aanpassen, ctrl/long+klik=wissen</p>
         </div>
-
       </div>
 
       <!-- rechter div -->
@@ -111,41 +199,71 @@
       <!-- Afhankelijk of er al dan niet al een schema is gemaakt -->
 
       <!-- Opgeslagen team lijst -->
-      <div id="savedTeams" class="teamlijst rounded" v-if="!tournamentStarted && !showRanking">
-        <h2 @click.exact="addAll" @click.ctrl="removeAllStandardTeams">Opgeslagen teams</h2>
-        <ul class="dbl" v-tooltip="{ content: 'Selecteer een opgeslagen team', html: true }">
+      <div
+        id="savedTeams"
+        class="teamlijst rounded"
+        v-if="!tournamentStarted && !showRanking">
+        <h2 @click.exact="addAll" @click.ctrl="removeAllStandardTeams">
+          Opgeslagen teams
+        </h2>
+        <ul
+          class="dbl"
+          v-tooltip="{ content: 'Selecteer een opgeslagen team', html: true }">
           <li v-for="(tm, index) in savedTeams" :key="index">
-            <p @click.exact="getTeam(tm)" @click.ctrl="removeStandardTeam(tm)"
+            <p
+              @click.exact="getTeam(tm)"
+              @click.ctrl="removeStandardTeam(tm)"
               v-longpress="() => removeStandardTeam(tm)"
-              :class="{ teamSelected: teamSelected(tm), teamDisabled: !teamSelected(tm) && !availableTeams.includes(tm) }">
+              :class="{
+                teamSelected: teamSelected(tm),
+                teamDisabled: !teamSelected(tm) && !availableTeams.includes(tm),
+              }">
               <span v-if="teamSelected(tm)">&#10004;</span> {{ tm }}
             </p>
           </li>
         </ul>
         <p class="text-xs">click: Meedoen, ctrl/long+click=Wissen</p>
-        <button v-if="toernooiTeams.length === 0" class="bg-sky-300 text-blue-800 px-1 py-1 border-t-black"
+        <button
+          v-if="toernooiTeams.length === 0"
+          class="bg-sky-300 text-blue-800 px-1 py-1 border-t-black"
           @click="cleanDatabase"
-          v-tooltip="{ content: 'Verwijder teams die geen toernooi hebben gespeeld<br/>en spelers die niet in een team zitten ', html: true }">
+          v-tooltip="{
+            content:
+              'Verwijder teams die geen toernooi hebben gespeeld<br/>en spelers die niet in een team zitten ',
+            html: true,
+          }">
           Teams opschonen
         </button>
 
-        <button v-if="toernooiTeams.length > 3" @click="startTournament"
-          class="bg-green-800 text-white px-2 py-2 rounded" style="margin-right:2px; width:200px;"
+        <button
+          v-if="toernooiTeams.length > 3"
+          @click="startTournament"
+          class="bg-green-800 text-white px-2 py-2 rounded"
+          style="margin-right: 2px; width: 200px"
           :disabled="tournamentStarted"
-          v-tooltip="{ content: 'Maak het toernooischema <br/>Bij 8 spelers worden willekeurig twee groepen aangemaakt', html: true }">Start
-          toernooi</button>
+          v-tooltip="{
+            content:
+              'Maak het toernooischema <br/>Bij 8 spelers worden willekeurig twee groepen aangemaakt',
+            html: true,
+          }">
+          Start toernooi
+        </button>
       </div>
     </div>
 
-    <Tournament v-if="tournamentStarted" :initialTeams="filteredTeams" :repeatRounds="repeatRounds"
-      :edit-mode="editMode" :groepsToernooi="groepsToernooi" :toernooiPlayed="thisToernooiID !== null"
+    <Tournament
+      v-if="tournamentStarted"
+      :initialTeams="filteredTeams"
+      :repeatRounds="repeatRounds"
+      :edit-mode="editMode"
+      :groepsToernooi="groepsToernooi"
+      :toernooiPlayed="thisToernooiID !== null"
       @reset="handleReset" />
-
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch, onMounted, nextTick } from "vue";
 import Ranking from "./components/Ranking.vue";
 import Tournament from "./components/Tournament.vue";
 // import Pdf from './components/Pdf.vue'
@@ -163,6 +281,14 @@ import { PrinterIcon, TrashIcon, PencilSquareIcon, InboxIcon, NewspaperIcon } fr
 import dbService from './services/dbServices.js'
 
 import { useToastMessage } from "./composables/useToastMessage";
+
+import ConfirmDialog from "./components/ConfirmDialog.vue";
+
+import { registerConfirmDialog , useConfirm } from "./composables/useConfirm.js";
+
+const dialog = ref(null);
+
+
 const { toastHTML } = useToastMessage();
 
 const scoresEntered = ref(false);
@@ -206,6 +332,25 @@ const pdfUrl = ref(null); // URL van de PDF met uitslag van het huidige toernooi
 const vanaf = ref(new Date().toISOString().split('T')[0]);  // startdatum van de periode
 const tot = ref(new Date().toISOString().split('T')[0]);
 
+async function bevestig(kop, vraag, type) {
+  await nextTick();
+  // console.log("dialog:", dialog.value);
+
+  if (!dialog.value) {
+    console.error("ConfirmDialog component is not available.");
+    return false;
+  }
+  const bevestigd = await dialog.value.open({
+    title: kop,
+    message: vraag,
+    // icon: 'warning',
+    confirmButtonText: 'Ja',
+    cancelButtonText: 'Nee',
+    icon: type || null
+  })
+  console.log('Bevestiging:', bevestigd)
+  return bevestigd
+}
 
 function setPeriode() {
   // Zet de periode van de ranking op basis van de selected semester
@@ -217,9 +362,12 @@ function setPeriode() {
 
 async function maakPdf(showPdf = true) {
   pdfUrl.value = await pdfBestaat(niceDate(thisToernooiDatum.value, true));
+
   //  console.log("MaakPDF: PDF bestaat al:", pdfUrl.value);
+
   if (pdfUrl.value !== null) {
-    if (confirm("De PDF bestaat al. Wil je deze opnieuw aanmaken?")) {
+    const ok = await bevestig("Afdruk","De PDF bestaat al. Wil je deze opnieuw aanmaken?","question");
+    if (ok) {
       pdfUrl.value = null; // reset de PDF URL
     } else {
       window.open(pdfUrl.value, '_blank'); // open de bestaande PDF
@@ -228,7 +376,7 @@ async function maakPdf(showPdf = true) {
   }
   //  console.log("Maak PDF voor toernooi:", thisToernooiID.value, "Datum:", thisToernooiDatum.value);
   //  console.log("Geen toernooi geselecteerd, sla eerst het toernooi op.");
-  //  console.log (tot.value, vanaf.value, "thisToernooiDatum:", thisToernooiDatum.value);  
+  //  console.log (tot.value, vanaf.value, "thisToernooiDatum:", thisToernooiDatum.value);
   filterToernooien();
   //  console.log("Gefilterde toernooien:", filteredToernooien.value);
   await getRanking();  // hoe vaak doe je dit wel niet???
@@ -239,7 +387,7 @@ async function maakPdf(showPdf = true) {
   //  console.log("PDF document wordt aangemaakt, groepstoernooi:", groepsToernooi.value, "Datum:", datum);
   uitslagPDF(doc, datum, groepsToernooi.value);
   doc.addPage();
-  //  console.log("Ranking wordt toegevoegd aan PDF, gefilterde ranking:", filteredRanking.value, "Gefilterde toernooien:", filteredToernooien.value, "Toernooi datum:", thisToernooiDatum.value);    
+  //  console.log("Ranking wordt toegevoegd aan PDF, gefilterde ranking:", filteredRanking.value, "Gefilterde toernooien:", filteredToernooien.value, "Toernooi datum:", thisToernooiDatum.value);
   rankingPDF(doc, filteredRanking.value, filteredToernooien.value, thisToernooiDatum.value);
   let tnNaam = "Kraken " + niceDate(thisToernooiDatum.value, true) + ".pdf";
   tnNaam = tnNaam.replace(/\s+/g, '_').toLowerCase(); // vervang spaties door streepjes en zet om naar kleine letters
@@ -254,7 +402,8 @@ async function maakPdf(showPdf = true) {
 
 async function cleanDatabase() {
   try {
-    if (confirm("Weet je zeker dat je teams zonder toernooi en spelers zonder team wilt verwijderen?")) {
+    const ok = await bevestig("Opschonen database","Weet je zeker dat je teams zonder toernooi en spelers zonder team wilt verwijderen?","warning");
+    if (ok) {
       const response = await dbService.cleanTeamsAndPlayers()
       const data = response.data
       let msg = ""
@@ -402,7 +551,7 @@ async function getSavedToernooien() {
   const response = await dbService.fetchToernooien();
   //  console.log("Toernooien opgehaald:", response.data);
   toernooien.value = response.data;
-  // console.log("Toernooien:", toernooien.value); 
+  // console.log("Toernooien:", toernooien.value);
   selectToernooi.value = 'Toernooien';
 }
 
@@ -462,7 +611,7 @@ function allMatchesPlayed() {
 }
 
 function removeTeamsFromToernooi() {
-  // Haal alle toernooiTeams uit de deelnemers lijst 
+  // Haal alle toernooiTeams uit de deelnemers lijst
   toernooiTeams.value = []
 }
 
@@ -499,7 +648,8 @@ async function sluitToernooi() {
       // nog niet eerder opgeslagen
       // console.log("Toernooi nog niet opgeslagen, nu opslaan.");
       if (scoresEntered.value && !allMatchesPlayed()) {
-        if (!confirm("Niet alle wedstrijden zijn gespeeld. Weet je zeker dat je het toernooi wilt opslaan?")) {
+        const ok = await bevestig("Niet alle wedstrijden gespeeld","Niet alle wedstrijden zijn gespeeld. Weet je zeker dat je het toernooi wilt opslaan?","warning");
+        if (!ok) {
           return; // afbreken
         }
       }
@@ -725,23 +875,25 @@ async function saveTournament(msg = "Toernooi opslaan") {
 async function removeTournament(tn) {
 
   if (!serverAvailable.value) return
-
-  if (confirm(`Weet je zeker dat je de gegevens van het kraaktoernooi op ${niceDate(tn.datum)} wil verwijderen?`)) {
-    if (confirm("Doe dit alleen met test toernooien!")) {
-      // verwijder het toernooi uit de database
-      if (confirm("WEET JE HET ECHT HEEL ZEKER? \nDit kan niet ongedaan worden gemaakt!")) {
-        await dbService.deleteToernooi(tn.id);
-        resetApp();
-        toast.success(`Toernooi op ${niceDate(tn.datum)} is verwijderd.`, {
-          position: "top-center",
-          timeout: 3000,
-        });
-      }
-    }
-  }
+  // vraag 1 keer bevestiging
+  let ok = await bevestig("Toernooi verwijderen",`Weet je zeker dat je het toernooi op ${niceDate(tn.datum)} wilt verwijderen? Dit kan niet ongedaan worden gemaakt.`,"warning");
+  if (!ok) return;
+  // vraag nogmaals
+  ok = await bevestig("Let op","Doe dit alleen met test toernooien!","warning");
+  if (!ok) return;
+  // vraag nogmaals
+  ok = await bevestig("Echt verwijderen?",`WEET JE HET ECHT HEEL ZEKER? Dit kan niet ongedaan worden gemaakt!`,"error");
+  if (!ok) return;
+  // verwijder het toernooi uit de database
+  await dbService.deleteToernooi(tn.id);
+  resetApp();
+  toast.success(`Toernooi op ${niceDate(tn.datum)} is verwijderd.`, {
+    position: "top-center",
+    timeout: 3000,
+  });
 }
 
-function addTeam() {
+async function addTeam() {
   if (newTeam.value.trim()) {
     // console.log("Add team:", newTeam.value);
     newTeam.value = cleanTeamName(newTeam.value);
@@ -759,7 +911,9 @@ function addTeam() {
       for (let i = 0; i < leden.length; i++) {
         const speler = leden[i].trim();
         if (spelers.value.includes(speler)) {
-          if (!confirm(`Het team ${newTeam.value} bestaat nog niet, maar de naam ${speler} komt al voor, is dit dezelfde ${speler}?\nZo ja, klik OK, \nof anders klik annuleren en pas de naam aan (bijv. met een nummer)`)) {
+          const ok = await bevestig("Speler bestaat al",`De naam ${speler} komt al voor in een ander team. Is dit dezelfde ${speler}?`,"question");
+          if (!ok) {
+            alert(`Kies een andere naam voor ${speler} (bijvoorbeeld een letter extra) en probeer het opnieuw.`);
             return; // conflict
           }
         }
@@ -804,14 +958,15 @@ function getTeam(tm) {
   }
 }
 
-function removeStandardTeam(tm) {
+async function removeStandardTeam(tm) {
   // zit dit team wel in het savedTeams array?
   const idx = savedTeams.value.indexOf(tm);
   // maar niet in het teams array
   const idx2 = toernooiTeams.value.indexOf(tm);
   //. zo ja, weghalen
   if (idx > -1 && idx2 < 0) {
-    if (confirm(tm + " definitief verwijderen uit standaardlijst?")) {
+    const ok = await bevestig("Team verwijderen",`${tm} definitief verwijderen uit standaardlijst?`,"warning");
+    if (ok) {
       savedTeams.value.splice(idx, 1);
       // en maar gelijk opslaan, anders blijft ie hangen
       localStorage.setItem("savedTeams", JSON.stringify(savedTeams.value));
@@ -821,12 +976,13 @@ function removeStandardTeam(tm) {
   }
 }
 
-function removeAllStandardTeams() {
+async function removeAllStandardTeams() {
   // not used
   return
 
   // voor testing purposes
-  if (confirm("Alle toernooiTeams verwijderen uit de standaardlijst?")) {
+  const ok = await bevestig("Alle teams verwijderen",`Alle toernooiTeams verwijderen uit de standaardlijst?`,"warning");
+  if (ok) {
     savedTeams.value = []
     localStorage.setItem("savedTeams", JSON.stringify(savedTeams.value));
   }
@@ -850,7 +1006,7 @@ function cleanTeamName(thisTeam) {
 const filteredTeams = computed(() => toernooiTeams.value.map((t) => t.trim()).filter((t) => t));
 
 watch(filteredTeams, (newTeams) => {
-  console.log("toernooiTeams gewijzigd:", newTeams);  
+  console.log("toernooiTeams gewijzigd:", newTeams);
   localStorage.setItem("tournamentTeams", JSON.stringify(newTeams));
 });
 
@@ -861,7 +1017,8 @@ async function startTournament() {
     const response = await dbService.getToernooiIdByDate(nu);
     const tnID = response.data
     if (tnID) {
-      if (confirm("Een toernooi op deze datum bestaat al, deze wordt overschreven, tenzij je nu annuleert!")) {
+      const ok = await bevestig("Toernooi bestaat al", "Een toernooi op deze datum bestaat al, wil je deze overschrijven?", "warning");
+      if (ok) {
         // oude gegevens verwijderen
         resetLocalStorage(false) // reset de data in localStorage (just to be sure), maar niet de geselecteerde teams
         // verwijder het oude toernooi
@@ -883,7 +1040,7 @@ async function startTournament() {
     groepsToernooi.value = false
     if (filteredTeams.value.length >= 7) {
       // Bepaal of het een groepstoernooi wordt
-      groepsToernooi.value = confirm("Er zijn meer dan 6 teams, wil je twee groepen aanmaken?")
+      groepsToernooi.value = await bevestig("Groepstoernooi","Er zijn meer dan 6 teams, wil je twee groepen aanmaken?","question");
     }
     let rndTxt = 'ronde'
     if (repeatRounds.value > 1) rndTxt = 'rondes'
@@ -892,18 +1049,20 @@ async function startTournament() {
       msg += ', verdeeld over twee groepen'
     }
     msg += `\n\nIs dit de bedoeling?`
-    if (confirm(msg)) {
-      thisToernooiDatum.value = null
-      tournamentStarted.value = true;
-      editMode.value = true;
-      // sla de toernooiTeams op in localStorage
-      console.log("toernooiTeams:", toernooiTeams.value);
-      localStorage.setItem("tournamentTeams", JSON.stringify(toernooiTeams.value));
-      toast.info("Toernooi is begonnen, je kunt hier de scores invoeren.", {
-        position: "top-center",
-        timeout: 8000,
-      });
+    const ok = await bevestig("Toernooi starten", msg, "question");
+    if (!ok) {
+      return; // afbreken
     }
+    thisToernooiDatum.value = null
+    tournamentStarted.value = true;
+    editMode.value = true;
+    // sla de toernooiTeams op in localStorage
+    console.log("toernooiTeams:", toernooiTeams.value);
+    localStorage.setItem("tournamentTeams", JSON.stringify(toernooiTeams.value));
+    toast.info("Toernooi is begonnen, je kunt hier de scores invoeren.", {
+      position: "top-center",
+      timeout: 8000,
+    });
   } else {
     alert("Voer minimaal 4 teams in voor een toernooi.");
   }
@@ -942,7 +1101,7 @@ async function getSavedTeamsFromApi() {
   //    console.log("getSavedTeamsFromApi")
   if (!serverAvailable.value) return; // als de server niet beschikbaar is, doe niets
   // haal de opgeslagen teams op van de API
-  //  console.log("Ophalen van opgeslagen teams van de API:", api);  
+  //  console.log("Ophalen van opgeslagen teams van de API:", api);
   await dbService.fetchSavedTeams()
     .then(response => {
       const teamLijst = response.data.sort();
@@ -1042,6 +1201,7 @@ function filterRankingByPeriod() {
 
 
 onMounted(async () => {
+  registerConfirmDialog(dialog.value)
   await isServerActive(); // kijk o de server beschikbaar is
   setActiveSemester(); // zet de huidige semester
   window.addEventListener('storage', scoresAreEntered)
@@ -1068,17 +1228,15 @@ onMounted(async () => {
   }
 
 });
-
 </script>
 
 <!-- registreer de directive -->
 <script>
 export default {
   directives: {
-    longpress
-  }
-}
+    longpress,
+  },
+};
 </script>
-
 
 <style scoped></style>
