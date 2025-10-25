@@ -61,6 +61,14 @@ I cannot be held accountable for any problems that arise from using the app.
 
 #### Build with Vue3 in Vite
 
+## Recent changes
+- Removed the unused Pdf.vue component
+- Updated date utility functions
+- Improved ranking PDF generation
+- Deleted obsolete useToast utility 
+- added zoom functionality and style adjustments in App.vue
+
+
 Still learning!
 *© 2025 Jota Services*
 
