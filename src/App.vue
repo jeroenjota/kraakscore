@@ -1,9 +1,9 @@
 <template>
   <ConfirmDialog ref="dialog" />
-  <div class="max-w-4xl mx-auto space-y-4 maindiv rounded">
+  <div class="max-w-4xl mx-auto space-y-4 maindiv rounded app-scaled" :style="zoomStyle">
     <div class="kop">
       <div class="titelregel flex justify-between items-center">
-        <h1 class="text-2xl font-bold">
+        <h1 class="text-2xl font-bold" @click="toggleZoom"  v-tooltip="{ content: 'Klik om in/uit te zoomen', html: true }">
           <span v-if="thisToernooiID">Kraaktoernooi</span>
           <span v-else>
             <span class="boom">Laurierboom Kraak</span>
@@ -267,7 +267,7 @@ import { ref, computed, watch, onMounted, nextTick } from "vue";
 import Ranking from "./components/Ranking.vue";
 import Tournament from "./components/Tournament.vue";
 // import Pdf from './components/Pdf.vue'
-import { niceDate, getSemesterText, stripTime } from './utils/dateUtils.js'
+import { niceDate, getSemester, stripTime } from './utils/dateUtils.js'
 import longpress from './directives/longpress.js';
 import { useToast } from 'vue-toastification'
 import { uitslagPDF } from './utils/pdf/tournamentPDF.js'
@@ -288,7 +288,6 @@ import { registerConfirmDialog , useConfirm } from "./composables/useConfirm.js"
 
 const dialog = ref(null);
 
-
 const { toastHTML } = useToastMessage();
 
 const scoresEntered = ref(false);
@@ -298,6 +297,38 @@ const sluitKnop = computed(() => {
     ? "Opslaan"
     : "Sluiten"
 })
+
+const windowWidth = ref(window.innerWidth);
+const windowHeight = ref(window.innerHeight);
+
+const scale = ref(1);
+
+const winScale = (width) => {
+  if (width >= 1200) return 1;
+  if (width >= 1000) return 0.9;
+  if (width >= 800) return 0.8;
+  return 0.7;
+} 
+
+const zoomStyle = computed(() => ({
+  transform: `scale(${scale.value})`,
+  transformOrigin: 'top left',
+  width: `${100 / scale.value}%`, 
+  height: `${100 / scale.value}%`,
+}))
+
+const updateScale = () => {
+  windowWidth.value = window.innerWidth;
+  windowHeight.value = window.innerHeight;
+  scale.value = winScale(windowWidth.value);
+  // console.log("Window resized:", windowWidth.value, "Scale set to:", scale.value);
+} 
+
+const toggleZoom = () => {
+  scale.value -= 0.1;
+  if(scale.value < 0.7) scale.value = 1;
+}
+
 const toast = useToast()
 const showRanking = ref(false);
 const rankingData = ref([]); // voor de ranking data
@@ -348,7 +379,7 @@ async function bevestig(kop, vraag, type) {
     cancelButtonText: 'Nee',
     icon: type || null
   })
-  console.log('Bevestiging:', bevestigd)
+  // console.log('Bevestiging:', bevestigd)
   return bevestigd
 }
 
@@ -1006,7 +1037,7 @@ function cleanTeamName(thisTeam) {
 const filteredTeams = computed(() => toernooiTeams.value.map((t) => t.trim()).filter((t) => t));
 
 watch(filteredTeams, (newTeams) => {
-  console.log("toernooiTeams gewijzigd:", newTeams);
+  // console.log("toernooiTeams gewijzigd:", newTeams);
   localStorage.setItem("tournamentTeams", JSON.stringify(newTeams));
 });
 
@@ -1057,7 +1088,7 @@ async function startTournament() {
     tournamentStarted.value = true;
     editMode.value = true;
     // sla de toernooiTeams op in localStorage
-    console.log("toernooiTeams:", toernooiTeams.value);
+    // console.log("toernooiTeams:", toernooiTeams.value);
     localStorage.setItem("tournamentTeams", JSON.stringify(toernooiTeams.value));
     toast.info("Toernooi is begonnen, je kunt hier de scores invoeren.", {
       position: "top-center",
@@ -1201,6 +1232,8 @@ function filterRankingByPeriod() {
 
 
 onMounted(async () => {
+  updateScale()
+  window.addEventListener('resize', updateScale)
   registerConfirmDialog(dialog.value)
   await isServerActive(); // kijk o de server beschikbaar is
   setActiveSemester(); // zet de huidige semester

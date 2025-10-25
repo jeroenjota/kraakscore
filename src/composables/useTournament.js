@@ -16,7 +16,7 @@ export function useTournament() {
     error.value = null
     try {
       toernooien.value = await dbService.fetchToernooien()
-      console.log("Toernooien geladen:", toernooien.value)
+      // console.log("Toernooien geladen:", toernooien.value)
       toast.success('Toernooien succesvol geladen')
     } catch (e) {
       error.value = e

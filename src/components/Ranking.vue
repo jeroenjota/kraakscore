@@ -48,7 +48,7 @@ import { computed } from 'vue';
 import { rankingPDF } from '../utils/pdf/rankingPDF';
 import { jsPDF } from 'jspdf';
 
-import { niceDate, getSemesterText } from '../utils/dateUtils';
+import { niceDate, getSemester } from '../utils/dateUtils';
 
 import { PrinterIcon } from '@heroicons/vue/24/solid'
 const printer = PrinterIcon
@@ -78,23 +78,12 @@ const toernooien = computed(() => {
 });
 
 function maakRankingPdf() {
-  console.log("Ranking PDF aanmaken", props.ranking, toernooien.value, props.vanaf, props.tot);
+  // console.log("Ranking PDF aanmaken", props.ranking, toernooien.value, props.vanaf, props.tot);
   const doc = new jsPDF();
   rankingPDF(doc, props.ranking, toernooien.value, props.vanaf);
   doc.save("ranking.pdf");
 }
 
-
-function getSemester(date, jaar) {
-  const d = new Date(date);
-  const month = d.getMonth() + 1; // Months are zero-indexed
-  let result = month <= 6 ? '1e semester' : '2e semester';
-  if (jaar) {
-
-    result += ` ${d.getFullYear()}`;
-  }
-  return result;
-}
 
 function toonPlaats(index) {
   if (index === 0) return props.ranking[0].plaats

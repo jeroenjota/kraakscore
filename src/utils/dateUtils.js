@@ -17,15 +17,13 @@ export function stripTime(date) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
-
-export function getSemesterText(date, jaar) {
+export function getSemester(date, jaar) {
   const d = new Date(date);
-//  // console.log("getSemesterText",date, d, jaar);
   const month = d.getMonth() + 1; // Months are zero-indexed
   let result = month <= 6 ? '1e semester' : '2e semester';
   if (jaar) {
+
     result += ` ${d.getFullYear()}`;
   }
   return result;
 }
-

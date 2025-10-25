@@ -1,9 +1,28 @@
 @import "tailwindcss";
 
+:root {
+  --app-scale: 0.9
+}
+
 body {
   margin:0;
   padding:0;
 }
+
+.maindiv h1 {
+  color: white;
+  text-align: center;
+  padding-top: 5px;
+  margin-bottom: 0%;
+}
+
+.app-scaled {
+  transform: scale(var(--app-scale));
+  transform-origin: top left;
+  width: calc(100% / var(--app-scale));
+  height: calc(100% / var(--app-scale));
+}
+
 .kop {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   margin-bottom: 0px;
@@ -142,16 +161,9 @@ td.team {
 .maindiv {
   background-color:var(--color-green-800);
   padding: 1px;
-  max-width: 620px;
+  max-width: 640px;
   padding-bottom: 4px;
   margin-top: 6px;
-}
-
-.maindiv h1 {
-  color: white;
-  text-align: center;
-  padding-top: 5px;
-  margin-bottom: 0%;
 }
 
 ul.dbl{

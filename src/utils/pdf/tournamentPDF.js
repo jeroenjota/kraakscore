@@ -9,7 +9,7 @@ import imgKaarten from '../../assets/kaarten.png'
 import imgBeker from '../../assets/beker.jpg'
 
 
-import { niceDate, getSemesterText } from "../dateUtils";
+import { niceDate } from "../dateUtils";
 
 
 let gesplitst = false

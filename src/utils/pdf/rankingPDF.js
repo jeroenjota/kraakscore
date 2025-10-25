@@ -1,5 +1,5 @@
 import autoTable from "jspdf-autotable";
-import { niceDate, getSemesterText } from "../dateUtils";
+import { niceDate, getSemester } from "../dateUtils";
 
 function toonPlaats(ranking, index) {
   if (index === 0) return ranking[0].plaats
@@ -29,7 +29,7 @@ export function rankingPDF(doc, ranking, toernooien, datum) {
   doc.setFontSize(18);
   doc.text("Laurierboom Kraaktoernooi", pageWidth / 2, yPos += 2, { align: "center" });
   doc.setFontSize(16);
-  let txt = "Ranking " + getSemesterText(datum, true);
+  let txt = "Ranking " + getSemester(datum, true);
   if (toernooien.length > 0) {
     txt += ` na ${toernooien.length} toernooien`;
   } else {
