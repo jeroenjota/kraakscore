@@ -118,13 +118,11 @@ export async function uitslagPDF(doc, datum, groepstoernooi = false) {
       }
       // laatste tabel centreren als er een oneven aantal rondes is
       if (index === rounds.value.length - 1 && rounds.value.length % 2 !== 0) {
-//        //        // console.log("Index", index, xPos)
         xPos = (pageWidth - tblWidth) / 2
-//        //        // console.log("Index", index, xPos)
+      // plaatjes toevoegen
         doc.addImage(imgCafe, 'jpeg', marge, yPos, 40, 30)
         doc.addImage(imgBoom, 'jpeg', pageWidth - marge - 30, yPos, 30, 30)
       }
-      // plaatjes toevoegen
       // bouw de ronde score tabel
       table = [];
       r.forEach((match, idx) => {
@@ -138,7 +136,7 @@ export async function uitslagPDF(doc, datum, groepstoernooi = false) {
         table.push(obj);
       });
       head[0] = `ronde ${(index + 1)}`
-//      //      // console.log(`Ronde: ${(index + 1)}, yPos: ${yPos}`)
+      // console.log(`Ronde: ${(index + 1)}, yPos: ${yPos}`)
       autoTable(doc, {
         theme: "grid",
         tableLineWidth: 1,
@@ -168,9 +166,7 @@ export async function uitslagPDF(doc, datum, groepstoernooi = false) {
       kopTxt = "Eindstand"
       doc.addImage(imgBeker, 'jpeg', marge, yPos + 8, 40, 50)
       doc.addImage(imgKaarten, 'jpeg', pageWidth - 40 - marge, yPos + 8, 40, 50)
-
     }
-
     doc.text(kopTxt, pageWidth / 2, (yPos += 8), { align: "center" });
     doc.setFontSize(12);
     autoTable(doc, {
@@ -179,24 +175,24 @@ export async function uitslagPDF(doc, datum, groepstoernooi = false) {
       startY: (yPos += 2),
       headStyles: { fillColor: [0, 128, 0], textColor: [255, 255, 139] },
       html: "#standTabel",
-      columnStyles: { 2: { halign: "center" } },
-      tableWidth: tblWidth,
+      columnStyles: {0: { halign: "center", valign: "middle" }, 2: { halign: "center", valign: "middle" }, 3: {halign: "right", valign: "middle" }, 4: {halign: "center", valign: "middle" , fontSize:12}  },
+      tableWidth: tblWidth+15,
       tableLineWidth: 1,
-      margin: { left: (pageWidth - tblWidth) / 2 },
+      margin: { left: (pageWidth - tblWidth-10) / 2 },
       didParseCell: function (data) {
         if (countRondeMatch === countPlayed) {
           if (data.section === "body" && data.row.index === 0) {
-            if (data.column.index === 1) {
+            if (data.column.index === 1 || data.column.index === 3) {
               data.cell.styles.fontSize = 20;
             }
           }
           if (data.section === "body" && data.row.index === 1) {
-            if (data.column.index === 1) {
+            if (data.column.index === 1 || data.column.index === 3) {
               data.cell.styles.fontSize = 18;
             }
           }
           if (data.section === "body" && data.row.index === 2) {
-            if (data.column.index === 1) {
+            if (data.column.index === 1 || data.column.index === 3) {
               data.cell.styles.fontSize = 16;
             }
           }
