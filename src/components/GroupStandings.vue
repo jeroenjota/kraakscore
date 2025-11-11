@@ -7,7 +7,7 @@
           <th style="width:60%; text-align: left;" class="border px-2">Team</th>
           <th style="width:5%; text-align: center;" class="border px-2">#</th>
           <th style="width:25%; text-align: right;" class="border px-2">Punten</th>
-          <th style="width:25%; text-align: right;" class="border px-2">rank</th>
+          <th v-if="!group" style="width:25%; text-align: right;" class="border px-2">rank</th>
         </tr>
       </thead>
       <tbody>
@@ -16,7 +16,8 @@
           <td style="width:60%; text-align: left;" class="border px-2">{{ team.name }}</td>
           <td style="width:5%; text-align: center;"  class="border px-2 text-center">{{ team.played }}</td>
           <td style="width:15%; text-align: right;"  class="border px-2 text-center">{{ team.matchPoints }}</td>
-          <td style="width:25%; text-align: center;"  class="border px-2 text-center">+{{ rankings[i] }}</td>
+
+          <td v-if="!group" style="width:25%; text-align: center;"  class="border px-2 text-center">+{{ rankings[i] }}</td>
         </tr>
       </tbody>
     </table>
