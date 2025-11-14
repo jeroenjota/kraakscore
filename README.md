@@ -40,6 +40,8 @@ CTRL Click on **Teams:** will remove all the chosen teams from the tournament (b
 
 > For touchscreens, instead of **CTRL-click** you can **longpress**
 
+Click on the header (Laurierboom logo) will change size of the app (zoom in/out)
+
 ### Maximum players
 The maximum number of teams (normally 2 players) in a tournament is 8. When there are more than 6 players/teams, you get the choice of splitting the tournament up in two groups and play final/third-place matches after the normal rounds.
 
@@ -67,6 +69,7 @@ I cannot be held accountable for any problems that arise from using the app.
 - Improved ranking PDF generation
 - Deleted obsolete useToast utility 
 - added zoom functionality and style adjustments in App.vue
+- improved pdf styles & colors
 
 
 Still learning!
