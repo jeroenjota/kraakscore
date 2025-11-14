@@ -7,7 +7,7 @@
           <th style="width:60%; text-align: left;" class="border px-2">Team</th>
           <th style="width:5%; text-align: center;" class="border px-2">#</th>
           <th style="width:25%; text-align: right;" class="border px-2">Punten</th>
-          <th v-if="!group" style="width:25%; text-align: right;" class="border px-2">rank</th>
+          <th v-if="!group" style="width:25%; text-align: right;" class="border px-2">Rnk</th>
         </tr>
       </thead>
       <tbody>

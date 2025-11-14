@@ -100,8 +100,8 @@ export async function uitslagPDF(doc, datum, groepstoernooi = false) {
   }
   doc.text(infoStr, pageWidth / 2, yPos, { align: "center" });
   let table = new Array();
-  if (!gesplitst) {
-    // single Tournooi
+  if (!gesplitst) {  
+    // geen groepstoernooi
     // doc.line(14, yPos - 6, pageWidth - 14, yPos - 6);
     // doc.text("Ronde uitslagen", pageWidth / 2, yPos += 8, { align: "center" });
     yPos += 4
@@ -171,15 +171,25 @@ export async function uitslagPDF(doc, datum, groepstoernooi = false) {
     doc.setFontSize(12);
     autoTable(doc, {
       theme: "striped",
-      styles: { font: "times", fontSize: 14 },
+      styles: { font: "times", fontSize: 12 },
       startY: (yPos += 2),
-      headStyles: { fillColor: [0, 128, 0], textColor: [255, 255, 139] },
+      headStyles: { fillColor: [0, 128, 0], textColor: [242, 255, 204]  },
       html: "#standTabel",
       columnStyles: {0: { halign: "center", valign: "middle" }, 2: { halign: "center", valign: "middle" }, 3: {halign: "right", valign: "middle" }, 4: {halign: "center", valign: "middle" , fontSize:12}  },
       tableWidth: tblWidth+15,
       tableLineWidth: 1,
       margin: { left: (pageWidth - tblWidth-10) / 2 },
       didParseCell: function (data) {
+        if (data.section === "head") {
+          data.cell.styles.fontSize = 12;
+          if (data.column.index === 0 || data.column.index === 2) {
+            data.cell.styles.halign = "center";
+          }
+          if (data.column.index === 3 || data.column.index === 4) {
+            data.cell.styles.halign = "right";
+          }
+
+        }
         if (countRondeMatch === countPlayed) {
           if (data.section === "body" && data.row.index === 0) {
             if (data.column.index === 1 || data.column.index === 3) {
@@ -196,14 +206,17 @@ export async function uitslagPDF(doc, datum, groepstoernooi = false) {
               data.cell.styles.fontSize = 16;
             }
           }
+          if (data.section === "body" && data.row.index === 3) {
+            if (data.column.index === 1 || data.column.index === 3) {
+              data.cell.styles.fontSize = 14;
+            }
+          }
         }
       },
     });
-    // yPos = doc.lastAutoTable.finalY 
-    // if (yPos < 200) doc.addImage(imgCafe, 'jpeg', (pageWidth - tblWidth) / 2, yPos, tblWidth, 280 - yPos)
 
   } else {
-    // GroupTournooi()
+    // GroupTournooi
     // eerst de standen in de groepen
     saveY = yPos
     let kopPosY = 0
@@ -294,10 +307,7 @@ export async function uitslagPDF(doc, datum, groepstoernooi = false) {
           uitslag.push(finMatch.teamR)
           uitslag.push(finMatch.teamL)
         }
-        obj = [`Fin:`, finMatch.teamL + " vs " + finMatch.teamR, `${finMatch.scoreL || ""} - ${finMatch.scoreR || ""}`];
-        if (i > 0) {
-          obj = [`${finMatch.tafel}e Pl:`, finMatch.teamL + " vs " + finMatch.teamR, `${finMatch.scoreL || ""} - ${finMatch.scoreR || ""}`];
-        }
+        obj = [`${i*2+1}e pl:`, finMatch.teamL + " vs " + finMatch.teamR, `${finMatch.scoreL || ""} - ${finMatch.scoreR || ""}`];
         table.push(obj)
       }
       yPos += 2
