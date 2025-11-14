@@ -175,20 +175,17 @@ export async function uitslagPDF(doc, datum, groepstoernooi = false) {
       startY: (yPos += 2),
       headStyles: { fillColor: [0, 128, 0], textColor: [242, 255, 204]  },
       html: "#standTabel",
-      columnStyles: {0: { halign: "center", valign: "middle" }, 2: { halign: "center", valign: "middle" }, 3: {halign: "right", valign: "middle" }, 4: {halign: "center", valign: "middle" , fontSize:12}  },
+      columnStyles: {0: { halign: "center", valign: "middle" }, 2: { halign: "center", valign: "middle" }, 3: {halign: "center", valign: "middle" }, 4: {halign: "center", valign: "middle" , fontSize:12}  },
       tableWidth: tblWidth+15,
       tableLineWidth: 1,
       margin: { left: (pageWidth - tblWidth-10) / 2 },
       didParseCell: function (data) {
         if (data.section === "head") {
+          data.cell.styles.halign = "center";
           data.cell.styles.fontSize = 12;
-          if (data.column.index === 0 || data.column.index === 2) {
-            data.cell.styles.halign = "center";
+          if (data.column.index === 1) {
+            data.cell.styles.halign = "left";
           }
-          if (data.column.index === 3 || data.column.index === 4) {
-            data.cell.styles.halign = "right";
-          }
-
         }
         if (countRondeMatch === countPlayed) {
           if (data.section === "body" && data.row.index === 0) {
