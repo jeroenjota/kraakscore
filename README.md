@@ -71,6 +71,9 @@ I cannot be held accountable for any problems that arise from using the app.
 - added zoom functionality and style adjustments in App.vue
 - improved pdf styles & colors
 
+## Future plans
+- seperate table app for direct input scores
+- improve database structure for saved tournaments
 
 Still learning!
 *© 2025 Jota Services*
