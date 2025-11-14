@@ -6,7 +6,6 @@ import 'floating-vue/dist/style.css'
 import "/styles.css";
 import 'vue-toastification/dist/index.css'  
 
-
 const app = createApp(App)
 app.use(FloatingVue)
 app.use(Toast, {
