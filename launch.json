@@ -4,7 +4,7 @@
       "type": "firefox",
       "request": "launch",
       "name": "Launch Vue App",
-      "url": "http://localhost:5173/kraakscore/",
+      "url": "http://localhost:5173/",
       "webRoot": "${workspaceFolder}/src",
       "preLaunchTask": "dev-server",
       "sourceMaps": true,

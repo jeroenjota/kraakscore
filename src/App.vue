@@ -243,7 +243,7 @@
           :disabled="tournamentStarted"
           v-tooltip="{
             content:
-              'Maak het toernooischema <br/>Bij 8 spelers worden willekeurig twee groepen aangemaakt',
+              'Maak het toernooischema <br/>Bij 8 teams worden willekeurig twee groepen aangemaakt',
             html: true,
           }">
           Start toernooi

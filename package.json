@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "welke": "which vite",
     "build": "vite build",
     "preview": "vite preview",
     "deploy": "vite build --base=/kraakscore/ && gh-pages -d dist"
