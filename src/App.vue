@@ -684,14 +684,10 @@ async function sluitToernooi() {
           return; // afbreken
         }
       }
-      await saveTournament("Toernooi opgeslagen.");
+      await saveTournament();
       // opnieuw toernooien laden in variabele
       await getSavedToernooien();
-
-      const doPdf = await bevestig("PDF maken","Wil je nu de PDF met de uitslag en ranking maken?","question");
-      if (doPdf) {
-        await maakPdf();
-      }
+      await maakPdf();
       resetApp();
       //      //      console.log("Toernooi opgeslagen, nu Ranking ophalen.");
       // await filterToernooien();
