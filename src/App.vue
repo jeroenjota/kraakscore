@@ -410,7 +410,7 @@ async function maakPdf(showPdf = true) {
   //  console.log (tot.value, vanaf.value, "thisToernooiDatum:", thisToernooiDatum.value);
   filterToernooien();
   //  console.log("Gefilterde toernooien:", filteredToernooien.value);
-  await getRanking();  // hoe vaak doe je dit wel niet???
+  await getRanking("ranking opgehaald");  // hoe vaak doe je dit wel niet???
   filterRankingByPeriod();
 
   const datum = thisToernooiDatum.value || new Date();
@@ -418,7 +418,7 @@ async function maakPdf(showPdf = true) {
   //  console.log("PDF document wordt aangemaakt, groepstoernooi:", groepsToernooi.value, "Datum:", datum);
   uitslagPDF(doc, datum, groepsToernooi.value);
   doc.addPage();
-  //  console.log("Ranking wordt toegevoegd aan PDF, gefilterde ranking:", filteredRanking.value, "Gefilterde toernooien:", filteredToernooien.value, "Toernooi datum:", thisToernooiDatum.value);
+  // console.log("Ranking wordt toegevoegd aan PDF, gefilterde ranking:", filteredRanking.value, "Gefilterde toernooien:", filteredToernooien.value, "Toernooi datum:", thisToernooiDatum.value);
   rankingPDF(doc, filteredRanking.value, filteredToernooien.value, thisToernooiDatum.value);
   let tnNaam = "Kraken " + niceDate(thisToernooiDatum.value, true) + ".pdf";
   tnNaam = tnNaam.replace(/\s+/g, '_').toLowerCase(); // vervang spaties door streepjes en zet om naar kleine letters
@@ -506,15 +506,16 @@ async function pdfBestaat(datum) {
   }
 }
 
-function filterToernooien() {
+async function filterToernooien() {
   // Filter de toernooien op basis van de geselecteerde periode
+  // console.log("toernooien:", toernooien.value);
   filteredToernooien.value = toernooien.value
     .filter(tn => {
       const date = new Date(stripTime(tn.datum));
       return date >= new Date(stripTime(vanaf.value)) && date <= new Date(stripTime(tot.value));
     })
     .sort((a, b) => new Date(a.datum) - new Date(b.datum));
-  //  console.log("Gefilterde toernooien:", filteredToernooien.value);
+    // console.log("Gefilterde toernooien:", filteredToernooien.value);
 }
 
 function getSemesters() {
@@ -676,7 +677,6 @@ async function sluitToernooi() {
 
     if (!thisToernooiID.value) {
       // toernooi nog niet opgeslagen, dus nu opslaan
-      // nog niet eerder opgeslagen
       // console.log("Toernooi nog niet opgeslagen, nu opslaan.");
       if (scoresEntered.value && !allMatchesPlayed()) {
         const ok = await bevestig("Niet alle wedstrijden gespeeld","Niet alle wedstrijden zijn gespeeld. Weet je zeker dat je het toernooi wilt opslaan?","warning");
@@ -685,12 +685,20 @@ async function sluitToernooi() {
         }
       }
       await saveTournament("Toernooi opgeslagen.");
+      // opnieuw toernooien laden in variabele
+      await getSavedToernooien();
+
+      const doPdf = await bevestig("PDF maken","Wil je nu de PDF met de uitslag en ranking maken?","question");
+      if (doPdf) {
+        await maakPdf();
+      }
+      resetApp();
       //      //      console.log("Toernooi opgeslagen, nu Ranking ophalen.");
-      filterToernooien();
-      await getRanking("Ranking bijgewerkt na opslaan.");
-      filterRankingByPeriod();
-      //      //      console.log("Ranking opgehaald, nu PDF maken.");
-      await maakPdf();
+      // await filterToernooien();
+      // await getRanking("Ranking bijgewerkt na opslaan.");
+      // await filterRankingByPeriod();
+      // //      //      console.log("Ranking opgehaald, nu PDF maken.");
+      // await maakPdf();
     } else {
       if (editMode.value) {
         // als we in edit mode zijn, dan eerst opslaan
@@ -1191,7 +1199,7 @@ const getRanking = async (msg) => {
   }
 };
 
-function filterRankingByPeriod() {
+async function filterRankingByPeriod() {
   const start = new Date(vanaf.value)
   const end = new Date(tot.value)
   //  console.log("Filtering ranking from", start, "to", end);
