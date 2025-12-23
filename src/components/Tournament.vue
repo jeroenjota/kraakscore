@@ -125,7 +125,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["reset"]);
+const emit = defineEmits(["saveToernooi"]);
 
 const toernooiTeams = ref([...props.initialTeams]);
 const matches = ref([]);
@@ -227,7 +227,7 @@ function updateGroupResult(groupIndex, matchIndex, tableIndex, scoreL, scoreR) {
   // console.log("Score updated")
   window.dispatchEvent(new Event("storage"));
   // console.log("Opgeslagen: groupMatches.value", groupMatches.value)
-  // saveToLocalStorage();
+  saveToLocalStorage();
   updateFinalists();
 }
 
@@ -334,17 +334,24 @@ function saveToLocalStorage() {
   // console.log("Opslaan in localStorage")
   // console.log("toernooiTeams.value:", toernooiTeams.value)
   localStorage.setItem("tournamentTeams", JSON.stringify(toernooiTeams.value));
-
-  localStorage.setItem("tournamentGroups", JSON.stringify(groups.value));
+  localStorage.setItem(
+    "tournamentGroupMatches",
+    JSON.stringify(groupMatches.value)
+  );
+  localStorage.setItem("tournamentMatches", JSON.stringify(matches.value));
+  localStorage.setItem(
+    "tournamentGroups",
+    JSON.stringify(groups.value)
+  );
   // console.log("Opgeslagen: Groepen:" , groups.value)
   // console.log("Opgeslagen: groupMatches.value", groupMatches.value)
   localStorage.setItem(
     "tournamentFinalMatches",
     JSON.stringify(finalMatches.value)
   );
-  // console.log("Opgeslagen: finalMatches.value", finalMatches.value)
-  // console.log(totalMatchesPlayed())
-  // er zijn al wedstrijden gespeeld
+  // database bijwerken
+  emit("saveToernooi");
+
 }
 
 function totalMatchesPlayed() {
@@ -411,23 +418,23 @@ function loadFromLocalStorage() {
 onMounted(() => {
   if (!props.toernooiPlayed) {
     localStorage.clear();
-    localStorage.setItem("tournamentTeams", JSON.stringify(toernooiTeams.value));
     if (props.groepsToernooi) {
       groups.value = splitIntoGroups(toernooiTeams.value);
       // console.log("groep.value", groups.value)
       groupMatches.value = groups.value.map((group, index) =>
         generateMatches(group, index)
       );
-      localStorage.setItem("tournamentGroupMatches", JSON.stringify(groupMatches.value));
+      // localStorage.setItem("tournamentGroupMatches", JSON.stringify(groupMatches.value));
       // console.log("Score updated")
       window.dispatchEvent(new Event("storage"));
       // console.log("groupMatches.value", groupMatches.value)
     } else {
       matches.value = generateMatches(toernooiTeams.value, 0);
       // console.log("matches:", matches.value)
-      localStorage.setItem("tournamentMatches", JSON.stringify(matches.value));
+      // localStorage.setItem("tournamentMatches", JSON.stringify(matches.value));
       window.dispatchEvent(new Event("storage"));
     }
+    saveToLocalStorage();
   } else {
     // console.log("Laad toernooi uit localStorage");
     loadFromLocalStorage();

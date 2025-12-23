@@ -190,8 +190,9 @@ ul.dbl{
 
 .teamDisabled {
   /* color: var(--color-gray-500); */
-  text-decoration: line-through;
+  
   font-size: .9rem;
+  color: gray;
   /* background-color: lightgray; */
   /* visibility:hidden; */
   pointer-events: none;
