@@ -17,23 +17,6 @@
         <div
           v-if="!thisToernooiID && !tournamentStarted && serverAvailable"
           class="items-center">
-          <select
-            id="toernooien"
-            v-model="selectToernooi"
-            class="m-1 rounded border bg-white p-1"
-            v-tooltip="{
-              content: 'Selecteer een opgeslagen toernooi',
-              html: true,
-            }"
-            @change="handleSelectTournament">
-            <option value="Toernooien" disabled>Toernooien</option>
-            <option
-              v-for="(tn, tnindex) in toernooien"
-              :key="tnindex"
-              :value="tn">
-              {{ niceDate(tn.datum, true) }}
-            </option>
-          </select>
           <button
             @click="toggleShowRanking"
             class="mr-0 mt-2 rounded bg-blue-800 p-2 px-2 text-white">
@@ -58,6 +41,23 @@
               :key="semester"
               :value="semester">
               {{ semester }}
+            </option>
+          </select>
+          <select
+            id="toernooien"
+            v-model="selectToernooi"
+            class="m-1 rounded border bg-white p-1"
+            v-tooltip="{
+              content: 'Selecteer een opgeslagen toernooi',
+              html: true,
+            }"
+            @change="handleSelectTournament">
+            <option value="Toernooien" disabled>Toernooien</option>
+            <option
+              v-for="(tn, tnindex) in filteredToernooien"
+              :key="tnindex"
+              :value="tn">
+              {{ niceDate(tn.datum, true) }}
             </option>
           </select>
           <!-- <p @click="toggleShowRanking" v-if="!thisToernooiID" class="copyright" v-tooltip="'Toon ranking'">©2025 Jota
@@ -427,7 +427,7 @@ async function maakPdf(showPdf = true) {
   filterToernooien();
 //  console.log("filteredRanking:", filteredRanking.value);
 //  console.log("Gefilterde toernooien:", filteredToernooien.value);
-  await getRanking("ranking opgehaald"); // hoe vaak doe je dit wel niet???
+  // await getRanking("ranking opgehaald"); // hoe vaak doe je dit wel niet???
   filterRankingByPeriod();
 
   const datum = thisToernooiDatum.value || new Date();
