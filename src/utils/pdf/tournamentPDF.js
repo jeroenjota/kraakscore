@@ -25,24 +25,24 @@ const finalMatches = ref([
 
 // Ophalen en parsen van data uit localStorage
 function getMatchesFromStorage() {
-//  //  // console.log("getMatchesFromStorage")
+//  // console.log("getMatchesFromStorage")
   teams.value = JSON.parse(localStorage.getItem("tournamentTeams"));
-//  //  //  console.log("gesplistst", gesplitst)
+//  //  console.log("gesplistst", gesplitst)
   const g = localStorage.getItem("tournamentGroups");
   const gm = localStorage.getItem("tournamentGroupMatches");
   const m = localStorage.getItem("tournamentMatches");
   const fm = localStorage.getItem("tournamentFinalMatches");
-//  //  // console.log( "gesplitst:", gesplitst, "g:", g, "gm:", gm, "m:", m, "fm:", fm)
+//  // console.log( "gesplitst:", gesplitst, "g:", g, "gm:", gm, "m:", m, "fm:", fm)
   if (gesplitst) {
     groups.value = JSON.parse(g);
     groupMatches.value = JSON.parse(gm);
   } else {
     rounds.value = JSON.parse(m);
-//    //    //  console.log("Opgehaald: matches:", rounds.value)
+//    //  console.log("Opgehaald: matches:", rounds.value)
   }
   if (fm) {
     finalMatches.value = JSON.parse(fm);
-//    //    //  console.log("finales:", finalMatches.value)
+//    //  console.log("finales:", finalMatches.value)
   }
 }
 
@@ -56,20 +56,20 @@ function gespeeld(index) {
 
 function finalBekend() {
   const isBekend = finalMatches.value.length >= 2 && finalMatches.value[0].teamL && finalMatches.value[0].teamR && finalMatches.value[1].teamL && finalMatches.value[1].teamR
-//  //  // console.log("Bekend: ", isBekend, finalMatches.value[0].teamL, finalMatches.value[0].teamR)
+//  // console.log("Bekend: ", isBekend, finalMatches.value[0].teamL, finalMatches.value[0].teamR)
   return isBekend
 }
 
 function finalPlayed() {
   const isPlayed = (finalMatches.value[0].scoreL || finalMatches.value[0].scoreR) && (finalMatches.value[1].scoreLL || finalMatches.value[1].scoreR)
-//  //  // console.log("Played: ", isPlayed)
+//  // console.log("Played: ", isPlayed)
   return isPlayed
 }
 
 export async function uitslagPDF(doc, datum, groepstoernooi = false) {
   gesplitst = groepstoernooi
   getMatchesFromStorage();
-//  //  // console.log("Gesplitst Na:", gesplitst)
+//  // console.log("Gesplitst Na:", gesplitst)
   let countPlayed = 0;
   let countRondeMatch = 0;
   const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();

@@ -31,7 +31,7 @@ async function get(endpoint, params = {}, message) {
 
 async function post(endpoint, body = {}, config = {}, message) {
   try {
-//    console.log("POST request to:", endpoint, "with body:", body);
+    //    console.log("POST request to:", endpoint, "with body:", body);
     const response = await apiClient.post(endpoint, body, config);
     return { success: true, data: response.data };
   } catch (error) {
@@ -57,6 +57,10 @@ async function remove(endpoint, message) {
   }
 }
 
+function normalizeFilename(name) {
+  return name.replace(/\s+/g, '-').toLowerCase();
+}
+
 const dbService = {
   fetchToernooien: async () =>
     await get('/toernooien', {}, 'Fout bij het ophalen van toernooien'),
@@ -73,11 +77,11 @@ const dbService = {
     );
   },
 
-  fetchAllPlayers: async () => 
+  fetchAllPlayers: async () =>
     await get('/spelers', {}, 'Fout bij het ophalen van spelers'),
 
   saveToernooi: async (toernooiData) => {
-//    // console.log("Toernooi data om op te slaan:", toernooiData);
+    // console.log("Toernooi data om op te slaan:", toernooiData);
     const response = await post('/toernooien', toernooiData, {}, 'Fout bij het opslaan van toernooi');
     return response;
   },
@@ -114,20 +118,53 @@ const dbService = {
   fetchRanking: async () =>
     await get('/ranking', {}, 'Fout bij het ophalen van ranking'),
 
-  postPDF: async (formData) =>
-    await post(
-      '/upload',
+  /**
+   * Upload een PDF
+   * @param {FormData} formData
+   * @returns {Promise<{ url: string, filename: string }>}
+   */
+  uploadPDF: async (formData) => {
+    const result = await post(
+      '/pdfs',
       formData,
-      { headers: { 'Content-Type': 'multipart/form-data' } },
+      {}, // Content-Type NIET handmatig zetten
       'Fout bij het uploaden van PDF'
-    ),
+    );
 
-  fetchPDF: async (pdfUrl) => {
-    const result = await get(`/pdf-exists/${pdfUrl}`, {}, 'Fout bij het ophalen van PDF status');
-////    console.log('PDF fetch result:', result);
+    return result.data;
+  },
+
+  /**
+   * Check of PDF bestaat
+   * @param {string} filename
+   * @returns {Promise<boolean>}
+   */
+  pdfExists: async (filename) => {
+    console.log('Controleren of PDF bestaat:', filename);
+
+    const result = await get(
+      `/pdfs/${encodeURIComponent(filename)}/exists`,
+      {},
+      'Fout bij het controleren of PDF bestaat'
+    );
+
     return result.data.exists;
   },
 
+  /**
+   * Open een bestaande PDF (geen API-call nodig)
+   * @param {string} filename
+   */
+  openPDF: (filename) => {
+    
+    const BASE_PATH = import.meta.env.VITE_BASE_URL || '/';
+
+    window.open(`${BASE_PATH}pdfs/${encodeURIComponent(filename)}`, '_blank');
+  }
+
+
+
+  
 };
 
 export default dbService;

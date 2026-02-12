@@ -280,6 +280,8 @@ import { rankingPDF } from "./utils/pdf/rankingPDF.js";
 import jsPDF from "jspdf";
 import Qrcode from "./components/Qrcode.vue";
 import DOMPurify from "dompurify";
+// import dotenv from "dotenv";
+// dotenv.config();
 
 import {
   PrinterIcon,
@@ -330,7 +332,7 @@ const updateScale = () => {
   windowWidth.value = window.innerWidth;
   windowHeight.value = window.innerHeight;
   scale.value = winScale(windowWidth.value);
-//  // console.log("Window resized:", windowWidth.value, "Scale set to:", scale.value);
+// console.log("Window resized:", windowWidth.value, "Scale set to:", scale.value);
 };
 
 const toggleZoom = () => {
@@ -349,9 +351,6 @@ instructions +=
   "<br/> en druk op enter (of klik OK)<br/>Of selecteer een bestaand team in de lijst rechts";
 instructions += "<br/> Bij 4 of meer teams kan het toernooi worden gestart";
 
-// const api = import.meta.env.VITE_API_URL || 'http://piweb:54321';
-// const api = import.meta.env.VITE_API_URL;
-////////// console.log ("API URL:", api);
 const groepsToernooi = ref(false); // boolean check groeps/single toernooi
 const thisToernooiID = ref(null); // het huidige actieve toernooi
 const thisToernooiDatum = ref(new Date()); // de datum van het huidige toernooi
@@ -375,7 +374,7 @@ const tot = ref(new Date().toISOString().split("T")[0]);
 
 async function bevestig(kop, vraag, type) {
   await nextTick();
-//  // console.log("dialog:", dialog.value);
+// console.log("dialog:", dialog.value);
 
   if (!dialog.value) {
     console.error("ConfirmDialog component is not available.");
@@ -389,7 +388,7 @@ async function bevestig(kop, vraag, type) {
     cancelButtonText: "Nee",
     icon: type || null,
   });
-//  // console.log('Bevestiging:', bevestigd)
+// console.log('Bevestiging:', bevestigd)
   return bevestigd;
 }
 
@@ -404,26 +403,28 @@ function setPeriode() {
 }
 
 async function maakPdf(showPdf = true) {
-  pdfUrl.value = await pdfBestaat(niceDate(thisToernooiDatum.value, true));
+// console.log("PDF maken voor toernooi:", thisToernooiID.value, "Datum:", thisToernooiDatum.value)
+  const pdfFileName = getPdfFileName(thisToernooiDatum.value);
 
-//  //  console.log("MaakPDF: PDF bestaat al:", pdfUrl.value);
-
-  if (pdfUrl.value !== null) {
+  if (await dbService.pdfExists(pdfFileName)) {
     const ok = await bevestig(
       "Afdruk",
       "De PDF bestaat al. Wil je deze opnieuw aanmaken?",
       "question"
     );
-    if (ok) {
+    if(ok) {
       pdfUrl.value = null; // reset de PDF URL
     } else {
-      window.open(pdfUrl.value, "_blank"); // open de bestaande PDF
+      dbService.openPDF(pdfFileName);
       return; // PDF bestaat al, dus niets meer doen
     }
   }
-//  //  console.log("Maak PDF voor toernooi:", thisToernooiID.value, "Datum:", thisToernooiDatum.value);
-//  //  console.log("Geen toernooi geselecteerd, sla eerst het toernooi op.");
-//  //  console.log (tot.value, vanaf.value, "thisToernooiDatum:", thisToernooiDatum.value);
+  console.log("PDF URL:", pdfUrl.value);
+
+  
+//  console.log("Maak PDF voor toernooi:", thisToernooiID.value, "Datum:", thisToernooiDatum.value);
+//  console.log("Geen toernooi geselecteerd, sla eerst het toernooi op.");
+//  console.log (tot.value, vanaf.value, "thisToernooiDatum:", thisToernooiDatum.value);
   filterToernooien();
 //  console.log("filteredRanking:", filteredRanking.value);
 //  console.log("Gefilterde toernooien:", filteredToernooien.value);
@@ -432,10 +433,10 @@ async function maakPdf(showPdf = true) {
 
   const datum = thisToernooiDatum.value || new Date();
   const doc = new jsPDF();
-//  //  console.log("PDF document wordt aangemaakt, groepstoernooi:", groepsToernooi.value, "Datum:", datum);
+//  console.log("PDF document wordt aangemaakt, groepstoernooi:", groepsToernooi.value, "Datum:", datum);
   uitslagPDF(doc, datum, groepsToernooi.value);
   doc.addPage();
-//  // console.log("Ranking wordt toegevoegd aan PDF, gefilterde ranking:", filteredRanking.value, "Gefilterde toernooien:", filteredToernooien.value, "Toernooi datum:", thisToernooiDatum.value);
+// console.log("Ranking wordt toegevoegd aan PDF, gefilterde ranking:", filteredRanking.value, "Gefilterde toernooien:", filteredToernooien.value, "Toernooi datum:", thisToernooiDatum.value);
   rankingPDF(
     doc,
     filteredRanking.value,
@@ -453,7 +454,7 @@ async function maakPdf(showPdf = true) {
   }
 }
 
-async function cleanDatabase() {
+async function cleanDatabase() { 
   try {
     const ok = await bevestig(
       "Opschonen database",
@@ -513,31 +514,66 @@ async function cleanDatabase() {
 
 async function savePDF(doc, tnNaam) {
   // Sla de PDF op op de server
-  const baseUrl = "https://www.jota.nl/";
-  const blob = doc.output("blob");
   const formData = new FormData();
-  formData.append("file", blob, tnNaam);
-  const response = await dbService.postPDF(formData);
-//  //  console.log("PDF geüpload, response:", response.data);
-  pdfUrl.value = baseUrl + response.data.url;
-}
-
-async function pdfBestaat(datum) {
-  let pdfNaam = `Kraken ${datum}.pdf`;
-  pdfNaam = pdfNaam.replace(/\s+/g, "_").toLowerCase();
-  const pdf = "https://www.jota.nl/laurierboom/uploads/pdfs/" + pdfNaam;
-  if (await dbService.fetchPDF(pdfNaam)) {
-//    //    //    //    // console.log("PDF bestaat al:", pdf);
-    return pdf; // <- belangrijk: return hier de waarde
-  } else {
-//    //    //    //    // console.log("PDF bestaat niet:", pdf);
-    return null;
+  formData.append("file", doc.output("blob"), tnNaam);
+  try {
+    const response = await dbService.uploadPDF(formData);
+    if (response.data.success) {
+      toast.success("PDF succesvol opgeslagen op de server!", {
+        position: "top-center",
+        timeout: 3000,
+      });
+    } else {
+      toast.error("Fout bij het opslaan van de PDF: " + response.data.message, {
+        position: "top-center",
+        timeout: 5000,
+      });
+    }
+  } catch (error) {
+    console.error("Fout bij het uploaden van de PDF:", error);
+    toast.error("Fout bij het uploaden van de PDF: " + error.message, {
+      position: "top-center",
+      timeout: 5000,
+    });
   }
 }
 
+async function openOrUploadPDF(file) {
+  const filename = file.name.replace(/\s+/g, '-').toLowerCase();
+
+  const exists = await dbService.pdfExists(filename);
+
+  if (exists) {
+    dbService.openPDF(filename);
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const { url } = await dbService.uploadPDF(formData);
+  window.open(url, '_blank');
+}
+
+function getPdfFileName(datum) {
+  return `Kraken_${niceDate(datum, true)}.pdf`.replace(/\s+/g, '_').toLowerCase();
+}
+
+// async function pdfBestaat(datum) {
+ 
+//   const result = await dbService.pdfExists(pdfNaam);
+//   console.log(result.exists);
+//   if (result.exists){
+//     const pdf = await dbService.fetchPDF(pdfNaam);
+//     return pdf;
+//   } else{
+//     return null;
+//   }
+// }
+
 async function filterToernooien() {
   // Filter de toernooien op basis van de geselecteerde periode
-//  // console.log("toernooien:", toernooien.value);
+// console.log("toernooien:", toernooien.value);
   filteredToernooien.value = toernooien.value
     .filter((tn) => {
       const date = new Date(stripTime(tn.datum));
@@ -547,7 +583,7 @@ async function filterToernooien() {
       );
     })
     .sort((a, b) => new Date(a.datum) - new Date(b.datum));
-//  // console.log("Gefilterde toernooien:", filteredToernooien.value);
+// console.log("Gefilterde toernooien:", filteredToernooien.value);
 }
 
 function getSemesters() {
@@ -562,7 +598,7 @@ function getSemesters() {
   return Array.from(uniqueDates).sort();
 }
 function getCurrentSemester() {
-//  //  console.log("Huidige semester:", currentSemester.value);
+//  console.log("Huidige semester:", currentSemester.value);
   setPeriode();
 }
 
@@ -573,7 +609,7 @@ function setActiveSemester() {
     currentSemester.value = `${date.getFullYear()}-${Math.ceil(
       (date.getMonth() + 1) / 6
     )}`;
-//    //    //    //    // console.log("Huidige semester ingesteld:", currentSemester.value);
+//    //    // console.log("Huidige semester ingesteld:", currentSemester.value);
   } else {
     currentSemester.value = `${new Date().getFullYear()}-${Math.ceil(
       (new Date().getMonth() + 1) / 6
@@ -614,26 +650,26 @@ const isTeamDisabled = (team) => {
 
 function toggleEditMode() {
   editMode.value = !editMode.value;
-//  //  console.log("Edit mode toggled:", editMode.value);
+//  console.log("Edit mode toggled:", editMode.value);
 }
 
 async function getSavedToernooien() {
   const response = await dbService.fetchToernooien();
-//  //  console.log("Toernooien opgehaald:", response.data);
+//  console.log("Toernooien opgehaald:", response.data);
   toernooien.value = response.data;
-//  // console.log("Toernooien:", toernooien.value);
+// console.log("Toernooien:", toernooien.value);
   selectToernooi.value = "Toernooien";
 }
 
 async function getAllSpelers() {
   const response = await dbService.fetchAllPlayers();
   spelers.value = response.data.map((speler) => speler.naam);
-//  // console.log("Alle spelers opgehaald:", spelers.value);
+// console.log("Alle spelers opgehaald:", spelers.value);
 }
 
 function editTeam(i) {
   // plaats de team naam in het input veld
-//  //  console.log(i, "toernooiTeams:", toernooiTeams.value[i], "tournamentStarted:", tournamentStarted);
+//  console.log(i, "toernooiTeams:", toernooiTeams.value[i], "tournamentStarted:", tournamentStarted);
   if (!tournamentStarted.value) {
     newTeam.value = toernooiTeams.value[i];
     // tijdelijk weghalen uit array
@@ -709,11 +745,11 @@ function scoresAreEntered() {
     JSON.parse(localStorage.getItem("tournamentMatches")) ||
     JSON.parse(localStorage.getItem("tournamentGroupMatches"));
   scoresEntered.value = hasScores !== null;
-//  // console.log("scoresEntered:", scoresEntered.value);
+// console.log("scoresEntered:", scoresEntered.value);
 }
 
 async function sluitToernooi() {
-//  // console.log("Sluit toernooi af, started, scoresEntered, ID:", tournamentStarted.value, scoresEntered.value, thisToernooiID.value);
+// console.log("Sluit toernooi af, started, scoresEntered, ID:", tournamentStarted.value, scoresEntered.value, thisToernooiID.value);
   if (tournamentStarted.value && scoresEntered.value && editMode.value) {
     if (!thisToernooiID.value) {
       // toernooi nog niet opgeslagen, dus nu opslaan
@@ -753,7 +789,7 @@ async function sluitToernooi() {
     resetApp();
   } else {
     // tournamentStarted == false  of er zijn nog geen scores ingevoerd
-//    // console.log("Toernooi nog niet gestart, reset de app.");
+// console.log("Toernooi nog niet gestart, reset de app.");
     resetApp();
   }
 }
@@ -783,27 +819,28 @@ async function handleSelectTournament() {
 
 async function selectTournament(tn) {
   thisToernooiID.value = tn;
+// console.log("Selecteer toernooi met ID:", tn)
   // laad de toernooiTeams van het geselecteerde toernooi
   await loadTournament(tn);
-  const pdf = await pdfBestaat(niceDate(thisToernooiDatum.value, true));
-  pdfUrl.value = pdf;
+  // const pdf = await pdfBestaat(niceDate(thisToernooiDatum.value, true));
+  // pdfUrl.value = pdf;
   toernooiSaved.value = true; // toernooi is geladen, dus opgeslagen
-//  //  console.log("Datum van het toernooi:", thisToernooiDatum.value);
+//  console.log("Datum van het toernooi:", thisToernooiDatum.value);
 }
 
 async function loadTournament(tn) {
-//  //  console.log("loadTournament", tn)
-//  //  console.log("Loading tournament data from:", api);
+//  console.log("loadTournament", tn)
+//  console.log("Loading tournament data from:", api);
   const response = await dbService.fetchToernooi(tn);
   const data = response.data;
-//  //      // console.log("Toernooi data:", data);
+// console.log("Toernooi data:", data)
   // sla de toernooi data op in localStorage
   thisToernooiID.value = data.id;
   repeatRounds.value = data.repeatRounds || 1;
   // toernooiTeams
   thisToernooiDatum.value = data.datum ? new Date(data.datum) : new Date();
   groepsToernooi.value = data.groepsToernooi !== 0;
-//  //      // console.log("tournamentTeams", data.teams);
+//      // console.log("tournamentTeams", data.teams);
   localStorage.setItem("tournamentTeams", data.teams);
   if (!groepsToernooi.value || groepsToernooi.value === 0) {
     localStorage.setItem("tournamentMatches", data.matches);
@@ -833,7 +870,7 @@ async function standardTeamsToApi(msg) {
       players: sp,
     };
   });
-//  // console.log("saveToApi teams:", bewaardeTeams)
+// console.log("saveToApi teams:", bewaardeTeams)
   const sendTeams = {
     teams: bewaardeTeams,
   };
@@ -891,7 +928,7 @@ async function saveTournamentChanges(msg = "Toernooi opgeslagen") {
 
 async function saveTournament(msg = "Toernooi opslaan") {
   if (!serverAvailable.value) {
-//    //    //    console.log("Server niet beschikbaar, kan toernooi niet opslaan.");
+//    //    console.log("Server niet beschikbaar, kan toernooi niet opslaan.");
     toast.warning("Server niet beschikbaar, kan toernooi niet opslaan.", {
       position: "top-center",
       timeout: 5000,
@@ -899,13 +936,13 @@ async function saveTournament(msg = "Toernooi opslaan") {
     return;
   }
   // tournament
-  thisToernooiDatum.value = new Date().toISOString().split("T")[0];
-  const tn = await dbService.getToernooiIdByDate(thisToernooiDatum.value);
-  if (tn.data) {
-    saveTournamentChanges("")
-    // er is al een toernooi voor deze datum, dus niet opslaan
+  const tnId = thisToernooiID.value || null;
+  if (tnId) {
+    // toernooi bestaat al, dus update
+    await saveTournamentChanges(msg);
     return;
   }
+  thisToernooiDatum.value = new Date().toISOString().split("T")[0];
   const tnTeams = localStorage.getItem("tournamentTeams");
   const matches = localStorage.getItem("tournamentMatches");
   const groups = localStorage.getItem("tournamentGroups");
@@ -916,7 +953,7 @@ async function saveTournament(msg = "Toernooi opslaan") {
     .replace(/\s+/g, "_")
     .toLowerCase();
 
-//  //  console.log("saveToApi tournamentTeams:", tnTeams, "groups:", groups, "groupMatches:", groupMatches, "finalMatches:", finalMatches)
+//  console.log("saveToApi tournamentTeams:", tnTeams, "groups:", groups, "groupMatches:", groupMatches, "finalMatches:", finalMatches)
 
   const toernooi = {
     datum: thisToernooiDatum.value,
@@ -933,8 +970,9 @@ async function saveTournament(msg = "Toernooi opslaan") {
   try {
     // sla het toernooi op in de database
     const response = await dbService.saveToernooi(toernooi);
-//    // console.log("response bij save:", response.data.message);
+// console.log("response bij save:", response.data.message);
     thisToernooiID.value = response.data.id; // sla het ID van het toernooi op
+// console.log("Toernooi opgeslagen met ID:", thisToernooiID.value)
     toernooiSaved.value = true; // toernooi is opgeslagen
     if (msg) {
       toast.success(msg, {
@@ -988,11 +1026,11 @@ async function removeTournament(tn) {
 
 async function addTeam() {
   if (newTeam.value.trim()) {
-//    // console.log("Add team:", newTeam.value);
+// console.log("Add team:", newTeam.value);
     newTeam.value = cleanTeamName(newTeam.value);
     const idx = savedTeams.value.indexOf(newTeam.value);
-//    // console.log(savedTeams.value);
-//    // console.log("New team:", newTeam.value, "Index in lijst:", idx);
+// console.log(savedTeams.value);
+// console.log("New team:", newTeam.value, "Index in lijst:", idx);
     // check if element exists
     if (idx < 0) {
       // dit team bestaat nog niet in de lijst op de server
@@ -1097,14 +1135,17 @@ async function removeAllStandardTeams() {
 
 function cleanTeamName(thisTeam) {
   // vervang elk mogelijke koppel teken door /
-  // en maak hoofdletters van de namen
+  // en maak beginhoofdletters van de namen
   let tm = thisTeam.replace(/[^a-zA-Z0-9]+/g, "/");
+  // added 12-2-2026 Behalve als de speler twee letters heeft, dan heleaaml uppercase, omdat dat vaak initialen zijn
+
   var splitStr = tm.toLowerCase().split("/");
   for (var i = 0; i < splitStr.length; i++) {
     // You do not need to check if i is larger than splitStr length, as your for does that for you
     // Assign it back to the array
     splitStr[i] =
       splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);
+    if (splitStr[i].length <= 2) { splitStr[i] = splitStr[i].toUpperCase(); } 
   }
   // Directly return the joined string
   return splitStr.sort().join("/");
@@ -1115,7 +1156,7 @@ const filteredTeams = computed(() =>
 );
 
 watch(filteredTeams, (newTeams) => {
-//  // console.log("toernooiTeams gewijzigd:", newTeams);
+// console.log("toernooiTeams gewijzigd:", newTeams);
   localStorage.setItem("tournamentTeams", JSON.stringify(newTeams));
 });
 
@@ -1174,7 +1215,7 @@ async function startTournament() {
     tournamentStarted.value = true;
     editMode.value = true;
     // sla de toernooiTeams op in localStorage
-//    // console.log("toernooiTeams:", toernooiTeams.value);
+// console.log("toernooiTeams:", toernooiTeams.value);
     localStorage.setItem(
       "tournamentTeams",
       JSON.stringify(toernooiTeams.value)
@@ -1211,10 +1252,10 @@ function addTeamsToList() {
 }
 
 async function getSavedTeamsFromApi() {
-//  //    console.log("getSavedTeamsFromApi")
+//    console.log("getSavedTeamsFromApi")
   if (!serverAvailable.value) return; // als de server niet beschikbaar is, doe niets
   // haal de opgeslagen teams op van de API
-//  //  console.log("Ophalen van opgeslagen teams van de API:", api);
+//  console.log("Ophalen van opgeslagen teams van de API:", api);
   await dbService
     .fetchSavedTeams()
     .then((response) => {
@@ -1247,7 +1288,7 @@ async function isServerActive() {
   const response = await dbService.checkServer();
   if (response.success) {
     serverAvailable.value = true;
-//    //    //    //    // console.log("Server is actief:", response.data);
+    // console.log("Server is actief:", response.data);
   } else {
     serverAvailable.value = false;
     console.warn("Server niet beschikbaar:", response.status);
@@ -1261,7 +1302,7 @@ const getRanking = async (msg) => {
     const response = await dbService.fetchRanking();
     
     // console.log(response)
-//    //    //    console.log("Ranking opgehaald:", response.data);
+//    //    console.log("Ranking opgehaald:", response.data);
     rankingData.value = response.data;
     if (msg) {
       toast.success(msg, {
@@ -1282,8 +1323,8 @@ const getRanking = async (msg) => {
 async function filterRankingByPeriod() {
   const start = new Date(vanaf.value);
   const end = new Date(tot.value);
-//  //  console.log("Filtering ranking from", start, "to", end);
-//  //  console.log("Ranking data:", rankingData.value);
+//  console.log("Filtering ranking from", start, "to", end);
+//  console.log("Ranking data:", rankingData.value);
   const resultAll = rankingData.value.map((speler) => {
     const filteredScores = speler.scores.filter((s) => {
       const d = new Date(s.datum);
@@ -1293,7 +1334,7 @@ async function filterRankingByPeriod() {
       .sort((a, b) => b.punten - a.punten)
       .slice(0, 6);
     const totaal = beste6.reduce((sum, s) => sum + s.punten, 0);
-//    //    //    //    //    console.log("Totaal punten voor", speler.speler, ":", totaal)
+//    //    //    console.log("Totaal punten voor", speler.speler, ":", totaal)
     return {
       speler: speler.speler,
       scores: filteredScores,
@@ -1302,7 +1343,7 @@ async function filterRankingByPeriod() {
   });
   const result = resultAll.filter((s) => s.totaal > 0);
   result.sort((a, b) => b.totaal - a.totaal);
-//  //  console.log("Result:", result)
+//  console.log("Result:", result)
   let lastTotaal = null;
   let plaats = 0;
   let echtePlaats = 0;
@@ -1315,12 +1356,13 @@ async function filterRankingByPeriod() {
     }
     return { ...s, plaats };
   });
-//  //  console.log("Filtered ranking:", metPlaats)
+//  console.log("Filtered ranking:", metPlaats)
   filteredRanking.value = metPlaats;
 }
 
 onMounted(async () => {
   updateScale();
+  // console.log("Test db-server", await dbService.checkServer());
   window.addEventListener("resize", updateScale);
   registerConfirmDialog(dialog.value);
   await isServerActive(); // kijk o de server beschikbaar is
