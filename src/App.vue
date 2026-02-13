@@ -1190,6 +1190,7 @@ async function startTournament() {
         "question",
       );
     }
+    if (groepsToernooi.value) repeatRounds.value = 1; // bij groepsfase altijd 1 ronde, anders wordt het te veel
     let rndTxt = "ronde";
     if (repeatRounds.value > 1) rndTxt = "rondes";
     let msg = `Het schema wordt gemaakt voor ${repeatRounds.value} ${rndTxt} \nmet ${filteredTeams.value.length} teams`;

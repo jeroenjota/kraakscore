@@ -8,10 +8,12 @@ export function getPdfFileName(datum) {
     + '.pdf';
 }
 
-
 export function getPdfUrl(datum) {
-  const base = import.meta.env.VITE_UPLOADS_URL || '';
+  const publicBase = import.meta.env.VITE_PUBLIC_URL || '';
+  const uploadsBase = import.meta.env.VITE_UPLOADS_URL || '';
   const filename = getPdfFileName(datum);
 
-  return `${base}/pdfs/${encodeURIComponent(filename)}`;
+  // Combineer public URL + uploads path + pdf
+  return `${publicBase}${uploadsBase}/pdfs/${encodeURIComponent(filename)}`;
 }
+
