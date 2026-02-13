@@ -1,28 +1,11 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import tailwindcss from "@tailwindcss/vite";
-import dotenv from 'dotenv';
+import tailwindcss from '@tailwindcss/vite'
 
-dotenv.config();
-
-// https://vite.dev/config/
-export default defineConfig({
-  // base: "./",
-  // Zorg ervoor dat de base URL overeenkomt met de repository naam
-  // in dit geval is de repository naam "kraakscore"
-  // lokaal gehost op www.jota.nl/kraakscore/
-  server: {
-    proxy: {
-      '/pdfs': {
-        target: 'http://localhost:54321', // jouw Express server
-        changeOrigin: true,
-      },
-    },
-  },
-  base: "/kraakscore/",
+export default defineConfig(({ mode }) => ({
+  base: mode === 'production' ? '/kraakscore/' : '/',
   plugins: [
     vue(),
     tailwindcss(),
   ],
-})
-
+}))

@@ -1,9 +1,11 @@
+//  dbService.js - API client voor communicatie met de backend server
+
 import axios from 'axios';
 import { useToast } from 'vue-toastification'; // import toast composable
 
-const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-  timeout: 7500,
+export const apiClient = axios.create({
+  baseURL: import.meta.env.VITE_BASE_URL_API,
+  timeout: 5000,
 });
 
 const toast = useToast();
@@ -55,10 +57,6 @@ async function remove(endpoint, message) {
   } catch (error) {
     return handleError(error, message);
   }
-}
-
-function normalizeFilename(name) {
-  return name.replace(/\s+/g, '-').toLowerCase();
 }
 
 const dbService = {
@@ -131,7 +129,7 @@ const dbService = {
       'Fout bij het uploaden van PDF'
     );
 
-    return result.data;
+    return result;
   },
 
   /**
@@ -156,14 +154,11 @@ const dbService = {
    * @param {string} filename
    */
   openPDF: (filename) => {
-    
-    const BASE_PATH = import.meta.env.VITE_BASE_URL || '/';
 
-    window.open(`${BASE_PATH}pdfs/${encodeURIComponent(filename)}`, '_blank');
+    const BASE_PATH = import.meta.env.VITE_UPLOADS_URL || '/';
+
+    window.open(`${BASE_PATH}/pdfs/${encodeURIComponent(filename)}`, '_blank');
   }
-
-
-
   
 };
 
