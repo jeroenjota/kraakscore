@@ -57,7 +57,7 @@
         html: true,
       }">
       <div class="flex-2">
-        <label class="w-full text-xs text-black" for="newPlayer"
+        <label class="w-full text-sm text-black" for="newPlayer"
           >Nieuwe speler</label
         >
       </div>
