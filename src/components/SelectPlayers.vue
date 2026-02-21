@@ -5,7 +5,7 @@
     <div
       v-tooltip="{
         content:
-          'Selecteer twee spelers om een team samen te stellen. De namen moeten uniek zijn!',
+          'Selecteer twee spelers om een team samen te stellen en klik OK.',
         html: true,
       }">
       <p class="text-center text-lg text-blue-700">Nieuw team</p>

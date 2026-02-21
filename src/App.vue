@@ -199,7 +199,7 @@
               {{ index + 1 }}: {{ team }}
             </li>
           </ul>
-          <p class="text-xs">klik: aanpassen, ctrl/long+klik=wissen</p>
+          <p class="text-xs"></p>
         </div>
       </div>
 
