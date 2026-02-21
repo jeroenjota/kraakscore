@@ -199,7 +199,7 @@
               {{ index + 1 }}: {{ team }}
             </li>
           </ul>
-          <p class="text-xs"></p>
+          <p class="text-xs">Klik op team om te verwijderen</p>
         </div>
       </div>
 
