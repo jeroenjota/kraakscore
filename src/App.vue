@@ -144,6 +144,10 @@
       </div>
 
       <div v-if="!showRanking" class="teams">
+        <div class="flex w-full flex-row gap-2 rounded">
+            <SelectPlayers :spelers="spelers" :toernooiTeams="toernooiTeams" @addTeam="addTeam"/>
+        </div>
+        <!-- 
         <div class="flex gap-2 text-center">
           <input
             id="newTeam"
@@ -163,21 +167,21 @@
           </button>
         </div>
 
-        <div class="flex items-center gap-2 p-1">
+         -->
+        <div class="flex items-center gap-2 p-1" v-tooltip="{ content: 'Alleen bij minder dan 7 teams', html: true }" >
           <label for="repeatRounds">Aantal volle rondes:</label>
           <input
             id="repeatRounds"
             type="number"
-            v-model.number="repeatRounds"
+            v-model="repeatRounds"
             min="1"
-            max="2"
+            :max="toernooiTeams.length > 6 ? 1 : 2"
             class="w-12 rounded border p-2"
             style="width: 25%" />
         </div>
         <div class="flex gap-2 text-center">
           <div></div>
         </div>
-
         <div v-if="toernooiTeams.length > 0" class="teamlist">
           <h2
             class="font-semibold"
@@ -202,57 +206,59 @@
       <!-- rechter div -->
       <!-- kan ofwel de standaard deelnemers lijst ofwel de stand laten zien -->
       <!-- Afhankelijk of er al dan niet al een schema is gemaakt -->
+      <!-- AANPASSING Twee kolommen met spelers om de teams uit samen te stellen -->
 
-      <!-- Opgeslagen team lijst -->
-      <div
-        id="savedTeams"
-        class="teamlijst rounded"
-        v-if="!tournamentStarted && !showRanking">
-        <h2 @click.exact="addAll" @click.ctrl="removeAllStandardTeams">
-          Opgeslagen teams
-        </h2>
-        <ul
-          class="dbl"
-          v-tooltip="{ content: 'Selecteer een opgeslagen team', html: true }">
-          <li v-for="(tm, index) in savedTeams" :key="index">
-            <p
-              @click.exact="getTeam(tm)"
-              @click.ctrl="removeStandardTeam(tm)"
-              v-longpress="() => removeStandardTeam(tm)"
-              :class="{
-                teamSelected: teamSelected(tm),
-                teamDisabled: !teamSelected(tm) && !availableTeams.includes(tm),
-              }">
-              <span v-if="teamSelected(tm)">&#10004;</span> {{ tm }}
-            </p>
-          </li>
-        </ul>
-        <p class="text-xs">click: Meedoen, ctrl/long+click=Wissen</p>
-        <button
-          v-if="toernooiTeams.length === 0"
-          class="border-t-black bg-sky-300 px-1 py-1 text-blue-800"
-          @click="cleanDatabase"
-          v-tooltip="{
-            content:
-              'Verwijder teams die geen toernooi hebben gespeeld<br/>en spelers die niet in een team zitten ',
-            html: true,
-          }">
-          Teams opschonen
-        </button>
-
-        <button
-          v-if="toernooiTeams.length > 3"
-          @click="startTournament"
-          class="rounded bg-green-800 px-2 py-2 text-white"
-          style="margin-right: 2px; width: 200px"
-          :disabled="tournamentStarted"
-          v-tooltip="{
-            content:
-              'Maak het toernooischema <br/>Bij 8 teams worden willekeurig twee groepen aangemaakt',
-            html: true,
-          }">
-          Start toernooi
-        </button>
+      <div class="teamlijst">
+        <!-- Opgeslagen team lijst -->
+        <div
+          id="savedTeams"
+          class="rounded"
+          v-if="!tournamentStarted && !showRanking">
+          <h2 @click.exact="addAll" @click.ctrl="removeAllStandardTeams" class="text-center text-lg text-blue-700" >
+            Bestaande teams
+          </h2>
+          <ul
+            class="dbl"
+            v-tooltip="{ content: 'Selecteer een opgeslagen team', html: true }">
+            <li v-for="(tm, index) in savedTeams" :key="index">
+              <p
+                @click.exact="getTeam(tm)"
+                @click.ctrl="removeStandardTeam(tm)"
+                v-longpress="() => removeStandardTeam(tm)"
+                :class="{
+                  teamSelected: teamSelected(tm),
+                  teamDisabled: !teamSelected(tm) && !availableTeams.includes(tm),
+                }">
+                <span v-if="teamSelected(tm)">&#10004;</span> {{ tm }}
+              </p>
+            </li>
+          </ul>
+          <p class="text-xs">click: Meedoen, ctrl/long+click=Wissen</p>
+          <button
+            v-if="toernooiTeams.length === 0"
+            class="border-t-black bg-sky-300 px-1 py-1 text-blue-800"
+            @click="cleanDatabase"
+            v-tooltip="{
+              content:
+                'Verwijder teams die geen toernooi hebben gespeeld<br/>en spelers die niet in een team zitten ',
+              html: true,
+            }">
+            Teams opschonen
+          </button>
+          <button
+            v-if="toernooiTeams.length > 3"
+            @click="startTournament"
+            class="rounded bg-green-800 px-2 py-2 text-white"
+            style="margin-right: 2px; width: 200px"
+            :disabled="tournamentStarted"
+            v-tooltip="{
+              content:
+                'Maak het toernooischema <br/>Bij 8 teams worden willekeurig twee groepen aangemaakt',
+              html: true,
+            }">
+            Start toernooi
+          </button>
+        </div>
       </div>
     </div>
 
@@ -271,6 +277,8 @@
 import { ref, computed, watch, onMounted, nextTick } from "vue";
 import Ranking from "./components/Ranking.vue";
 import Tournament from "./components/Tournament.vue";
+
+import SelectPlayers from "./components/SelectPlayers.vue";
 // import Pdf from './components/Pdf.vue'
 import { niceDate, getSemester, stripTime } from "./utils/dateUtils.js";
 import longpress from "./directives/longpress.js";
@@ -281,6 +289,7 @@ import jsPDF from "jspdf";
 import Qrcode from "./components/Qrcode.vue";
 import DOMPurify from "dompurify";
 import { getPdfUrl } from "./utils/pdfUtils.js";
+import { cleanTeamName } from "./utils/editUtils.js";
 // import dotenv from "dotenv";
 // dotenv.config();
 
@@ -524,22 +533,22 @@ async function savePDF(doc, tnNaam) {
   }
 }
 
-async function openOrUploadPDF(file) {
-  const filename = file.name.replace(/\s+/g, "-").toLowerCase();
+// async function openOrUploadPDF(file) {
+//   const filename = file.name.replace(/\s+/g, "-").toLowerCase();
 
-  const exists = await dbService.pdfExists(filename);
+//   const exists = await dbService.pdfExists(filename);
 
-  if (exists) {
-    dbService.openPDF(filename);
-    return;
-  }
+//   if (exists) {
+//     dbService.openPDF(filename);
+//     return;
+//   }
 
-  const formData = new FormData();
-  formData.append("file", file);
+//   const formData = new FormData();
+//   formData.append("file", file);
 
-  const { url } = await dbService.uploadPDF(formData);
-  window.open(url, "_blank");
-}
+//   const { url } = await dbService.uploadPDF(formData);
+//   window.open(url, "_blank");
+// }
 
 function getPdfFileName(datum) {
   return `Kraken_${niceDate(datum, true)}.pdf`
@@ -547,16 +556,16 @@ function getPdfFileName(datum) {
     .toLowerCase();
 }
 
-async function pdfBestaat(datum) {
-  const result = await dbService.pdfExists(pdfNaam);
-  // console.log(result.exists);
-  if (result.exists) {
-    const pdf = await dbService.fetchPDF(pdfNaam);
-    return pdf;
-  } else {
-    return null;
-  }
-}
+// async function pdfBestaat(datum) {
+//   const result = await dbService.pdfExists(pdfNaam);
+//   // console.log(result.exists);
+//   if (result.exists) {
+//     const pdf = await dbService.fetchPDF(pdfNaam);
+//     return pdf;
+//   } else {
+//     return null;
+//   }
+// }
 
 async function filterToernooien() {
   // Filter de toernooien op basis van de geselecteerde periode
@@ -627,13 +636,13 @@ const availableTeams = computed(() => {
   return availTeams;
 });
 
-const isTeamDisabled = (team) => {
-  // check if teamplayers are in one of the selected teams
-  if (team.id === selectedTeam.value.id) return false;
+// const isTeamDisabled = (team) => {
+//   // check if teamplayers are in one of the selected teams
+//   if (team.id === selectedTeam.value.id) return false;
 
-  const selectedPlayers = selectedTeam.value.players;
-  return team.players.some((p) => selectedPlayers.includes(p));
-};
+//   const selectedPlayers = selectedTeam.value.players;
+//   return team.players.some((p) => selectedPlayers.includes(p));
+// };
 
 function toggleEditMode() {
   editMode.value = !editMode.value;
@@ -809,9 +818,9 @@ async function selectTournament(tn) {
   // console.log("Selecteer toernooi met ID:", tn)
   // laad de toernooiTeams van het geselecteerde toernooi
   await loadTournament(tn);
-  
+
   pdfUrl.value = getPdfUrl(thisToernooiDatum.value);
-  toernooiSaved.value = true; 
+  toernooiSaved.value = true;
   // toernooi is geladen, dus opgeslagen
   //  console.log("Datum van het toernooi:", thisToernooiDatum.value);
 }
@@ -1012,7 +1021,8 @@ async function removeTournament(tn) {
   });
 }
 
-async function addTeam() {
+async function addTeam(team) {
+  newTeam.value = team
   if (newTeam.value.trim()) {
     // console.log("Add team:", newTeam.value);
     newTeam.value = cleanTeamName(newTeam.value);
@@ -1027,27 +1037,30 @@ async function addTeam() {
       //      // console.log("Alle spelers:", spelers.value);
       //      // console.log("Nieuwe teamleden:", leden);
       // check of een van de leden al in de spelers lijst zit
-      for (let i = 0; i < leden.length; i++) {
-        const speler = leden[i].trim();
-        if (spelers.value.includes(speler)) {
-          const ok = await bevestig(
-            "Speler bestaat al",
-            `De naam ${speler} komt al voor in een ander team. Is dit dezelfde ${speler}?`,
-            "question",
-          );
-          if (!ok) {
-            alert(
-              `Kies een andere naam voor ${speler} (bijvoorbeeld een letter extra) en probeer het opnieuw.`,
-            );
-            return; // conflict
-          }
-        }
-      }
+      // for (let i = 0; i < leden.length; i++) {
+      //   const speler = leden[i].trim();
+      //   if (spelers.value.includes(speler)) {
+      //     const ok = await bevestig(
+      //       "Speler bestaat al",
+      //       `De naam ${speler} komt al voor in een ander team. Is dit dezelfde ${speler}?`,
+      //       "question",
+      //     );
+      //     if (!ok) {
+      //       alert(
+      //         `Kies een andere naam voor ${speler} (bijvoorbeeld een letter extra) en probeer het opnieuw.`,
+      //       );
+      //       return; // conflict
+      //     }
+      //   }
+      // }
     }
     if (toernooiTeams.value.length >= 8) {
       alert("Maximaal 8 teams toegestaan!");
       newTeam.value = "";
       return;
+    }
+    if (toernooiTeams.value.length >= 6) {
+      repeatRounds.value = 1; // bij meer dan 6 teams altijd 1 ronde, anders wordt het te veel
     }
     // nee, dus toevoegen
     // addPlayers(newTeam.value)   // spelers toevoegen eventueel
@@ -1119,26 +1132,6 @@ async function removeAllStandardTeams() {
     savedTeams.value = [];
     localStorage.setItem("savedTeams", JSON.stringify(savedTeams.value));
   }
-}
-
-function cleanTeamName(thisTeam) {
-  // vervang elk mogelijke koppel teken door /
-  // en maak beginhoofdletters van de namen
-  let tm = thisTeam.replace(/[^a-zA-Z0-9]+/g, "/");
-  // added 12-2-2026 Behalve als de speler twee letters heeft, dan heleaaml uppercase, omdat dat vaak initialen zijn
-
-  var splitStr = tm.toLowerCase().split("/");
-  for (var i = 0; i < splitStr.length; i++) {
-    // You do not need to check if i is larger than splitStr length, as your for does that for you
-    // Assign it back to the array
-    splitStr[i] =
-      splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);
-    if (splitStr[i].length <= 2) {
-      splitStr[i] = splitStr[i].toUpperCase();
-    }
-  }
-  // Directly return the joined string
-  return splitStr.sort().join("/");
 }
 
 const filteredTeams = computed(() =>
