@@ -45,20 +45,18 @@
         </select>
         <select
           id="toernooien"
-          :value="selectToernooi"
-          @input="$emit('update:selectToernooi', $event.target.value)"
           class="m-1 rounded border bg-white p-1"
           v-tooltip="{
             content: 'Selecteer een opgeslagen toernooi',
             html: true,
           }"
-          @change="$emit('handleSelectTournament')"
+          @change="onTournamentSelect($event)"
           data-testid="tournament-select">
-          <option value="Toernooien" disabled>Toernooien</option>
+          <option value="" disabled selected>Toernooien</option>
           <option
             v-for="(tn, tnindex) in filteredToernooien"
             :key="tnindex"
-            :value="tn">
+            :value="tnindex">
             {{ niceDate(tn.datum, true) }}
           </option>
         </select>
@@ -140,7 +138,21 @@ import { PrinterIcon, TrashIcon, PencilSquareIcon, InboxIcon } from '@heroicons/
 import Qrcode from './Qrcode.vue'
 import { niceDate } from '../utils/dateUtils.js'
 
-defineProps({
+const emit = defineEmits([
+  'toggleZoom',
+  'toggleRanking',
+  'setPeriode',
+  'handleSelectTournament',
+  'toggleEditMode',
+  'saveTournamentChanges',
+  'removeTournament',
+  'closeTournament',
+  'makePdf',
+  'update:currentSemester',
+  'update:selectToernooi',
+])
+
+const props = defineProps({
   serverAvailable: Boolean,
   thisToernooiID: [Number, String, Object],
   tournamentStarted: Boolean,
@@ -156,17 +168,11 @@ defineProps({
   pdfUrl: String,
 })
 
-defineEmits([
-  'toggleZoom',
-  'toggleRanking',
-  'setPeriode',
-  'handleSelectTournament',
-  'toggleEditMode',
-  'saveTournamentChanges',
-  'removeTournament',
-  'closeTournament',
-  'makePdf',
-  'update:currentSemester',
-  'update:selectToernooi',
-])
+function onTournamentSelect(event) {
+  const index = event.target.value
+  if (index !== '' && props.filteredToernooien[index]) {
+    emit('update:selectToernooi', props.filteredToernooien[index])
+    emit('handleSelectTournament')
+  }
+}
 </script>
