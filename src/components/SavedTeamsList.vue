@@ -1,4 +1,5 @@
 <template>
+  <div class="teamlijst">
   <div
     id="savedTeams"
     class="rounded"
@@ -53,6 +54,7 @@
       data-testid="start-button">
       Start toernooi
     </button>
+  </div>
   </div>
 </template>
 
