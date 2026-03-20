@@ -1,3 +1,9 @@
+/**
+ * rankingPDF – generates the ranking page of the tournament PDF.
+ * Renders a table of all players ranked by their best 6 tournament scores
+ * in the current semester, with per-tournament score columns.
+ * Scoring: 1st = 12 pts, 2nd = 9 pts, 3rd = 6 pts, 4th = 3 pts, participation = 1 pt.
+ */
 import autoTable from "jspdf-autotable";
 import { niceDate, getSemester } from "../dateUtils";
 

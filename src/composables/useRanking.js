@@ -1,3 +1,10 @@
+/**
+ * useRanking – player ranking composable.
+ * Fetches raw ranking data from the server and provides a method to
+ * filter rankings by the active semester period. Rankings are calculated
+ * from each player’s best 6 tournament scores, with tied totals sharing
+ * the same rank position.
+ */
 import dbService from '../services/dbServices.js'
 import { useToast } from 'vue-toastification'
 
@@ -5,6 +12,7 @@ export function useRanking(state) {
   const toast = useToast()
   const { serverAvailable, rankingData, filteredRanking, vanaf, tot } = state
 
+  // Fetch the full ranking from the API
   async function getRanking(msg) {
     if (!serverAvailable.value) return
     try {
@@ -20,6 +28,11 @@ export function useRanking(state) {
     }
   }
 
+  /**
+   * Filter rankings to the active semester date range.
+   * For each player: keep only scores within vanaf–tot,
+   * take the best 6, sum them, sort descending, and assign tied ranks.
+   */
   function filterRankingByPeriod() {
     const start = new Date(vanaf.value)
     const end = new Date(tot.value)

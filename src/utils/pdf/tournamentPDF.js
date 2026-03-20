@@ -1,3 +1,9 @@
+/**
+ * tournamentPDF – generates the first page of the tournament PDF.
+ * Contains round-by-round results for regular tournaments or group-stage
+ * tables + finals for group tournaments. Uses jsPDF-AutoTable for layout
+ * and embeds decorative images (logo, trophy, etc.).
+ */
 import { autoTable } from "jspdf-autotable";
 
 import imgRaam from '../../assets/raam.jpg'

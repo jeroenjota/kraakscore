@@ -1,8 +1,14 @@
-//  dbService.js - API client voor communicatie met de backend server
+/**
+ * dbServices.js – API client for communicating with the kraak-api backend.
+ * Wraps Axios with centralised error handling via toast notifications.
+ * Exports a dbService object with methods for tournaments, teams, players,
+ * rankings, and PDF management.
+ */
 
 import axios from 'axios';
 import { useToast } from 'vue-toastification'; // import toast composable
 
+// Axios instance with base URL from environment and 5 s timeout
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL_API,
   timeout: 5000,
@@ -10,6 +16,7 @@ export const apiClient = axios.create({
 
 const toast = useToast();
 
+// Centralised error handler – shows a toast and returns a failure object
 function handleError(error, message) {
   const errorMessage = error.response?.data?.message || error.message || 'Onbekende fout';
   toast.error(`${message}: ${errorMessage}`, {
@@ -22,6 +29,7 @@ function handleError(error, message) {
   };
 }
 
+// Generic GET wrapper with error handling
 async function get(endpoint, params = {}, message) {
   try {
     const response = await apiClient.get(endpoint, { params });
@@ -31,6 +39,7 @@ async function get(endpoint, params = {}, message) {
   }
 }
 
+// Generic POST wrapper with error handling
 async function post(endpoint, body = {}, config = {}, message) {
   try {
     //    console.log("POST request to:", endpoint, "with body:", body);
@@ -41,6 +50,7 @@ async function post(endpoint, body = {}, config = {}, message) {
   }
 }
 
+// Generic PUT wrapper with error handling
 async function put(endpoint, body = {}, message) {
   try {
     const response = await apiClient.put(endpoint, body);
@@ -50,6 +60,7 @@ async function put(endpoint, body = {}, message) {
   }
 }
 
+// Generic DELETE wrapper with error handling
 async function remove(endpoint, message) {
   try {
     const response = await apiClient.delete(endpoint);
@@ -59,7 +70,9 @@ async function remove(endpoint, message) {
   }
 }
 
+// ---- Service methods grouped by domain ----
 const dbService = {
+  // --- Tournaments ---
   fetchToernooien: async () =>
     await get('/toernooien', {}, 'Fout bij het ophalen van toernooien'),
 
@@ -75,6 +88,7 @@ const dbService = {
     );
   },
 
+  // --- Players ---
   fetchAllPlayers: async () =>
     await get('/spelers', {}, 'Fout bij het ophalen van spelers'),
 
@@ -91,18 +105,21 @@ const dbService = {
     await remove(`/toernooien/${id}`, `Fout bij het verwijderen van toernooi ${id}`),
 
 
+  // --- Teams ---
   fetchSavedTeams: async () =>
     await get('/savedTeams', {}, 'Fout bij het ophalen van teams'),
 
   saveStandardTeams: async (teams) =>
     await post('/standardTeams', teams, {}, 'Fout bij het opslaan van standaard teams'),
 
+  // --- Database maintenance ---
   cleanTeamsAndPlayers: async () => {
     const response = await post('/cleanTeamsAndPlayers', {}, {}, 'Fout bij het opschonen van teams en spelers');
     // console.log('Clean response:', response); 
     return response;
   },
 
+  // --- Server health ---
   checkServer: async () => {
     try {
       const response = await apiClient.get('/ping', { timeout: 3000 });
@@ -113,6 +130,7 @@ const dbService = {
     }
   },
 
+  // --- Ranking ---
   fetchRanking: async () =>
     await get('/ranking', {}, 'Fout bij het ophalen van ranking'),
 

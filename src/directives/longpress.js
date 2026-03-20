@@ -1,3 +1,8 @@
+/**
+ * v-longpress – Vue custom directive for long-press detection.
+ * Fires the bound handler after a 600 ms press-and-hold on mouse or touch.
+ * Cancels on click release, mouse-out, touch-end, or touch-cancel.
+ */
 // longpress.js
 export default {
   mounted(el, binding) {

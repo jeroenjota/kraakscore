@@ -1,3 +1,8 @@
+/**
+ * Application entry point.
+ * Creates the Vue app, registers global plugins (Toast notifications,
+ * FloatingVue tooltips), and mounts the root component.
+ */
 import { createApp } from 'vue'
 import App from './App.vue'
 import Toast from 'vue-toastification'

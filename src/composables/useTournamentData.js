@@ -1,3 +1,9 @@
+/**
+ * useTournamentData – tournament CRUD composable.
+ * Handles loading, saving, updating, and deleting tournaments via the API.
+ * Tournament match data is stored in localStorage for real-time editing and
+ * persisted to the server on save.
+ */
 import dbService from '../services/dbServices.js'
 import { useToast } from 'vue-toastification'
 import { niceDate } from '../utils/dateUtils.js'
@@ -10,6 +16,7 @@ export function useTournamentData(state, { bevestig, getRanking, filterRankingBy
     repeatRounds, toernooiSaved, pdfUrl, selectToernooi, tournamentStarted,
   } = state
 
+  // Load a tournament by ID from the server and populate localStorage with its data
   async function loadTournament(tn) {
     const response = await dbService.fetchToernooi(tn)
     const data = response.data
@@ -28,6 +35,7 @@ export function useTournamentData(state, { bevestig, getRanking, filterRankingBy
     tournamentStarted.value = true
   }
 
+  // Select and load a tournament, setting the PDF URL and marking it as saved
   async function selectTournament(tn) {
     thisToernooiID.value = tn
     await loadTournament(tn)
@@ -35,6 +43,7 @@ export function useTournamentData(state, { bevestig, getRanking, filterRankingBy
     toernooiSaved.value = true
   }
 
+  // Handler for the tournament dropdown selection
   async function handleSelectTournament() {
     if (selectToernooi.value && selectToernooi.value.id) {
       await selectTournament(selectToernooi.value.id)
@@ -43,6 +52,7 @@ export function useTournamentData(state, { bevestig, getRanking, filterRankingBy
     }
   }
 
+  // Push local match/team changes of an existing tournament to the server
   async function saveTournamentChanges(msg = 'Toernooi opgeslagen') {
     if (!selectToernooi.value || !serverAvailable.value) return
     const pdfNaam = ('Kraken ' + niceDate(thisToernooiDatum.value, true) + '.pdf')
@@ -65,6 +75,7 @@ export function useTournamentData(state, { bevestig, getRanking, filterRankingBy
     }
   }
 
+  // Save a tournament: update if it already has an ID, or create a new one
   async function saveTournament(msg = 'Toernooi opslaan') {
     if (!serverAvailable.value) {
       toast.warning('Server niet beschikbaar, kan toernooi niet opslaan.', {
@@ -112,6 +123,7 @@ export function useTournamentData(state, { bevestig, getRanking, filterRankingBy
     }
   }
 
+  // Delete a tournament after triple confirmation (safety for production data)
   async function removeTournament(tn) {
     if (!serverAvailable.value) return
     let ok = await bevestig(

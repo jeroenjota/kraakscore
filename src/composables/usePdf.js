@@ -1,3 +1,9 @@
+/**
+ * usePdf – PDF generation composable.
+ * Creates a two-page PDF: page 1 is the tournament results (uitslagPDF),
+ * page 2 is the semester ranking table (rankingPDF). The generated file
+ * is uploaded to the server and then opened in a new browser tab.
+ */
 import dbService from '../services/dbServices.js'
 import { useToast } from 'vue-toastification'
 import { uitslagPDF } from '../utils/pdf/tournamentPDF.js'
@@ -10,12 +16,18 @@ export function usePdf(state, { bevestig, filterToernooien, filterRankingByPerio
   const toast = useToast()
   const { thisToernooiDatum, groepsToernooi, filteredRanking, filteredToernooien, pdfUrl } = state
 
+  // Build a standardised PDF filename from a date, e.g. "kraken_20_mrt_2026.pdf"
   function getPdfFileName(datum) {
     return `Kraken_${niceDate(datum, true)}.pdf`
       .replace(/\s+/g, '_')
       .toLowerCase()
   }
 
+  /**
+   * Generate the tournament PDF (results + ranking), upload it, and open it.
+   * If a PDF for the same date already exists the user is asked whether to
+   * regenerate or just open the existing one.
+   */
   async function maakPdf() {
     const pdfFileName = (`Kraken_${niceDate(thisToernooiDatum.value, true)}.pdf`)
       .replace(/\s+/g, '_')

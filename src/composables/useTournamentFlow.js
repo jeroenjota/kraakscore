@@ -1,3 +1,9 @@
+/**
+ * useTournamentFlow – tournament lifecycle composable.
+ * Orchestrates the high-level flow: starting a tournament, checking
+ * completion, closing/saving, and resetting the application state.
+ * Coordinates between team management, PDF generation, and server sync.
+ */
 import dbService from '../services/dbServices.js'
 import { useToast } from 'vue-toastification'
 
@@ -15,6 +21,7 @@ export function useTournamentFlow(state, deps) {
     setActiveSemester, maakPdf,
   } = deps
 
+  // Check whether every match (regular or group) has at least one score entered
   function allMatchesPlayed() {
     const gm = localStorage.getItem('tournamentGroupMatches')
     const m = localStorage.getItem('tournamentMatches')
@@ -38,6 +45,7 @@ export function useTournamentFlow(state, deps) {
     )
   }
 
+  // Clear all tournament-related localStorage entries (optionally keep teams)
   function resetLocalStorage(inclTeams = true) {
     if (inclTeams) {
       localStorage.removeItem('tournamentTeams')
@@ -52,6 +60,7 @@ export function useTournamentFlow(state, deps) {
     localStorage.removeItem('toernooiTeams')
   }
 
+  // Update the scoresEntered flag by checking if any match data exists in localStorage
   function scoresAreEntered() {
     const hasScores =
       JSON.parse(localStorage.getItem('tournamentMatches')) ||
@@ -59,6 +68,7 @@ export function useTournamentFlow(state, deps) {
     scoresEntered.value = hasScores !== null
   }
 
+  // Reset the entire app to the initial state: clear data, reload from server
   function resetApp() {
     selectToernooi.value = 'Toernooien'
     thisToernooiID.value = null
@@ -76,6 +86,11 @@ export function useTournamentFlow(state, deps) {
     filterRankingByPeriod()
   }
 
+  /**
+   * Start a new tournament.
+   * Checks for a duplicate on today's date, optionally creates group format
+   * for 7+ teams, and confirms with the user before beginning.
+   */
   async function startTournament() {
     if (filteredTeams.value.length >= 4) {
       const nu = new Date(Date.now()).toISOString().split('T')[0]
@@ -127,6 +142,11 @@ export function useTournamentFlow(state, deps) {
     }
   }
 
+  /**
+   * Close the current tournament.
+   * If scores were entered in edit mode, save the tournament, generate
+   * the PDF, and reset. Otherwise just reset.
+   */
   async function sluitToernooi() {
     if (tournamentStarted.value && scoresEntered.value && editMode.value) {
       if (!thisToernooiID.value) {

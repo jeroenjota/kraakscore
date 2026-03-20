@@ -1,8 +1,15 @@
+/**
+ * useSemester – semester period management composable.
+ * A semester spans half a year: semester 1 = Jan–Jun, semester 2 = Jul–Dec.
+ * This composable derives the active semester from the tournament date,
+ * sets the vanaf/tot date range, and filters tournaments and rankings accordingly.
+ */
 import { stripTime } from '../utils/dateUtils.js'
 
 export function useSemester(state, { filterRankingByPeriod }) {
   const { currentSemester, vanaf, tot, toernooien, filteredToernooien, thisToernooiDatum } = state
 
+  // Keep only tournaments whose date falls within the vanaf–tot range
   function filterToernooien() {
     filteredToernooien.value = toernooien.value
       .filter((tn) => {
@@ -15,6 +22,7 @@ export function useSemester(state, { filterRankingByPeriod }) {
       .sort((a, b) => new Date(a.datum) - new Date(b.datum))
   }
 
+  // Compute the start and end dates for the current semester and refresh filters
   function setPeriode() {
     const [year, semester] = currentSemester.value.split('-')
     const startMonth = semester === '1' ? '01' : '07'
@@ -24,6 +32,7 @@ export function useSemester(state, { filterRankingByPeriod }) {
     filterRankingByPeriod()
   }
 
+  // Build a sorted list of unique semester strings ("YYYY-S") from all tournaments
   function getSemesters() {
     const uniqueDates = new Set()
     toernooien.value.forEach((tn) => {
@@ -34,6 +43,7 @@ export function useSemester(state, { filterRankingByPeriod }) {
     return Array.from(uniqueDates).sort()
   }
 
+  // Derive the active semester from the current tournament date (or today) and apply it
   function setActiveSemester() {
     if (thisToernooiDatum.value) {
       const date = new Date(thisToernooiDatum.value)

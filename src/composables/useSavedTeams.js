@@ -1,3 +1,10 @@
+/**
+ * useSavedTeams – persistent team list composable.
+ * Manages the "saved teams" list that is stored both in localStorage and
+ * on the server. Teams from the current tournament are auto-saved after
+ * a tournament starts, and individual teams can be removed from the
+ * standard list via a confirmation dialog.
+ */
 import dbService from '../services/dbServices.js'
 import { useToast } from 'vue-toastification'
 import { cleanTeamName } from '../utils/editUtils.js'
@@ -6,6 +13,7 @@ export function useSavedTeams(state, { bevestig }) {
   const toast = useToast()
   const { serverAvailable, savedTeams, toernooiTeams } = state
 
+  // Fetch saved teams from the API, deduplicate, and persist to localStorage
   async function getSavedTeamsFromApi() {
     if (!serverAvailable.value) return
     await dbService
@@ -30,6 +38,7 @@ export function useSavedTeams(state, { bevestig }) {
       })
   }
 
+  // Upload the current saved teams list to the server
   async function standardTeamsToApi(msg) {
     const bewaardeTeams = savedTeams.value.map((team) => {
       const sp = team.split('/')
@@ -49,6 +58,7 @@ export function useSavedTeams(state, { bevestig }) {
       })
   }
 
+  // Merge tournament teams into the saved-teams list and sync to server
   function addTeamsToList() {
     let teamsSaved = false
     if (!toernooiTeams.value.every((tm) => savedTeams.value.includes(tm))) {
@@ -66,6 +76,7 @@ export function useSavedTeams(state, { bevestig }) {
     }
   }
 
+  // Remove a team from the standard list after double confirmation (only if not in active tournament)
   async function removeStandardTeam(tm) {
     const idx = savedTeams.value.indexOf(tm)
     const idx2 = toernooiTeams.value.indexOf(tm)

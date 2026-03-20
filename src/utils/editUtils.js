@@ -1,3 +1,9 @@
+/**
+ * Normalise a team name string.
+ * - Replaces any non-alphanumeric separator with "/"
+ * - Capitalises each player name; names ≤ 2 chars become fully uppercase (initials)
+ * - Sorts player names alphabetically so "B/A" and "A/B" are treated equally
+ */
 function cleanTeamName(thisTeam) {
   // vervang elk mogelijke koppel teken door /
   // en maak beginhoofdletters van de namen

@@ -1,3 +1,8 @@
+/**
+ * useToastMessage – HTML-capable toast composable.
+ * Wraps vue-toastification to allow rendering rich HTML inside toasts
+ * by converting an HTML string into a Vue VNode.
+ */
 import { useToast } from 'vue-toastification'
 import { h } from 'vue'
 
