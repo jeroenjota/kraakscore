@@ -1,6 +1,11 @@
+<!--
+  Qrcode.vue – QR-code share modal.
+  Renders a button that opens a small modal displaying a QR code for the
+  tournament PDF URL. Includes a "copy link" button for the clipboard.
+-->
 <template>
   <div>
-    <!-- Deel-knop -->
+    <!-- Share button -->
     <button
       @click="open = true"
       class="bg-gray-200   text-white px-4 py-2 rounded hover:bg-blue-600 btn" v-tooltip="'QR-code voor de link naar de PDF'"

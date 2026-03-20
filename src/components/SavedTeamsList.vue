@@ -1,5 +1,10 @@
+<!--
+  SavedTeamsList.vue – Persistent teams sidebar.
+  Lists all saved teams. Click to toggle a team into the tournament;
+  Ctrl+click or long-press to remove it from the standard list.
+  Also shows the "Start toernooi" and "Teams opschonen" buttons.
+-->
 <template>
-  <div class="teamlijst">
   <div
     id="savedTeams"
     class="rounded"

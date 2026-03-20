@@ -1,3 +1,9 @@
+<!--
+  SelectPlayers.vue – Player selection & new-player entry.
+  Two dropdown lists let the user pick two players to form a team.
+  Players already assigned to a tournament team are filtered out.
+  A separate input field allows adding brand-new player names.
+-->
 <!--  Select Players component -->
 <template>
   <!-- twee kolommen met spelers namen om teams samen te stellen -->
@@ -98,11 +104,13 @@ const props = defineProps({
 const emit = defineEmits(["addTeam"]);
 const newPlayerName = ref("");
 
-// geselecteerde namen per kolom
+// Selected player names per column
 const selectedLeft = ref(null);
 const selectedRight = ref(null);
 const teams = ref([]);
-// gefilterde opties: verwijder naam die al in andere kolom gekozen is
+
+// Filtered options: exclude the player chosen in the other dropdown
+// and any player already in the tournament
 const optionsLeft = computed(() =>
   props.spelers.filter(
     (name) =>
@@ -119,6 +127,7 @@ const optionsRight = computed(() =>
   ),
 );
 
+// Combine two selected players into a normalised team name and emit it
 function addTeam(left, right) {
   console.log("Toevoegen team:", left, right);
   if (left && right) {
@@ -138,6 +147,7 @@ function bothPlayersEntered() {
   return selectedLeft.value && selectedRight.value;
 }
 
+// Add a new player name to the global list (if unique)
 function addNewPlayer() {
   if (newPlayerName.value.trim() !== "") {
     if (!props.spelers.includes(newPlayerName.value.trim())) {

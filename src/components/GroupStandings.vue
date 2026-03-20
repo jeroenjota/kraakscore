@@ -1,3 +1,10 @@
+<!--
+  GroupStandings.vue – Tournament standings table.
+  Displays team standings (position, name, games played, match points) for either
+  a single group or the overall regular tournament. Standings are computed reactively
+  from the match data and sorted by points descending. An optional "Rnk" column
+  shows ranking points (12 / 9 / 6 / 3 / 1) for non-group standings.
+-->
 <template>
     <h2 v-if="group">Groep {{ group }}</h2>
     <table :id="setID(group)">
@@ -41,8 +48,10 @@ function setID(group){
     return "standTabel" + group
 }
 
+// Ranking points awarded per finishing position
 const rankings = ref([12,9,6,3,1,1,1,1])
 
+// Compute standings reactively from teams + match data
 const standings = computed(() => {
   // console.log("Computing standings:", props.teams, props.matches)
   return props.teams.map(name => {

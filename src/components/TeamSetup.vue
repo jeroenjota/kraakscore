@@ -1,5 +1,11 @@
+<!--
+  TeamSetup.vue – Team entry panel.
+  Shows the SelectPlayers component for composing new teams, a repeat-rounds
+  input, and the numbered list of teams added to the current tournament.
+  Click a team to edit; Ctrl+click or long-press to remove.
+-->
 <template>
-  <div v-if="!showRanking" class="teams" data-testid="teams-section">
+    <!-- Player selector for building a new team -->
     <div class="flex w-full flex-row gap-2 rounded">
       <SelectPlayers
         :spelers="spelers"

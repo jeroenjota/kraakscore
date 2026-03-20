@@ -1,6 +1,12 @@
+<!--
+  AppHeader.vue – Application header / toolbar.
+  Shows the app title, semester & tournament selectors, edit/save/delete
+  actions, and during an active tournament the close, print-PDF, QR-code,
+  and WhatsApp share buttons.
+-->
 <template>
-  <div class="kop">
     <div class="titelregel flex items-center justify-between">
+      <!-- Title – click to zoom -->
       <h1
         class="text-2xl font-bold"
         @click="$emit('toggleZoom')"
@@ -168,6 +174,7 @@ const props = defineProps({
   pdfUrl: String,
 })
 
+// Map the dropdown index to the actual tournament object and emit events
 function onTournamentSelect(event) {
   const index = event.target.value
   if (index !== '' && props.filteredToernooien[index]) {

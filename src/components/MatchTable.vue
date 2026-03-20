@@ -1,3 +1,9 @@
+<!--
+  MatchTable.vue – Score entry table for a single round or final match.
+  Renders one row per match with team names and two number inputs for scores.
+  Inputs are disabled when not in edit mode or when a team has a bye ("VRIJ").
+  Emits 'update-result' with (index, scoreL, scoreR) on change.
+-->
 <template>
 
   <table class="w-full rondes table" :id="matchType">
@@ -51,6 +57,7 @@ const scores = ref([])
 
 // console.log('Edit mode in MatchTable:', props.editMode);
 
+// Mirror prop matches into local scores refs so v-model can bind to them
 watchEffect(() => {
   scores.value = props.matches.map(match => ({
     tafel: match.tafel - 1,
@@ -60,11 +67,13 @@ watchEffect(() => {
 // console.log("Scores::", scores.value)
 })
 
+// Check if one of the teams in this match is a bye ("VRIJ")
 function hasVRIJ(match){
   let VRIJ = props.matches[match].teamL === "VRIJ" ||  props.matches[match].teamR === "VRIJ"
   return VRIJ
 }
 
+// Emit the updated scores when both fields have a value
 function update(index) {
   // console.log("update index:", index, "scores:", scores.value)
   const { scoreL, scoreR } = scores.value[index]

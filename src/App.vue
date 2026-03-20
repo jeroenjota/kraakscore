@@ -1,3 +1,15 @@
+<!--
+  App.vue – Root application component.
+  Wires together all composables (state, zoom, UI, ranking, semester, teams,
+  saved-teams, database, PDF, tournament data & flow) and renders the
+  main layout:
+    - AppHeader          (navigation, semester/tournament selectors, actions)
+    - Ranking             (player ranking table, shown when toggled)
+    - TeamSetup           (player selectors, team list, repeat-rounds input)
+    - SavedTeamsList      (persistent team list, start-tournament button)
+    - Tournament          (match schedule, score entry, standings)
+  Also registers the global ConfirmDialog and the longpress directive.
+-->
 <template>
   <ConfirmDialog ref="dialog" />
   <div
@@ -104,6 +116,7 @@ import { useTournamentFlow } from './composables/useTournamentFlow'
 const { toastHTML } = useToastMessage()
 const dialog = ref(null)
 
+/** Open a confirm dialog and return the user's boolean choice. */
 async function bevestig(kop, vraag, type) {
   await nextTick()
   if (!dialog.value) {
@@ -119,6 +132,7 @@ async function bevestig(kop, vraag, type) {
   })
 }
 
+// --- Initialise composables and destructure their returned API ---
 const state = useAppState()
 const {
   scoresEntered, showRanking, filteredRanking, serverAvailable,
@@ -137,6 +151,8 @@ const { getSavedTeamsFromApi, addTeamsToList, removeStandardTeam } = useSavedTea
 const { isServerActive, getSavedToernooien, getAllSpelers, cleanDatabase: cleanDatabaseFn } = useDatabase(state, { getSavedTeamsFromApi })
 const { maakPdf } = usePdf(state, { bevestig, filterToernooien, filterRankingByPeriod })
 
+// flowDeps uses late-bound references so that saveTournament / saveTournamentChanges
+// / selectTournament (created below) can be injected after useTournamentFlow runs.
 const flowDeps = {
   bevestig, filteredTeams, addTeamsToList, getSavedTeamsFromApi,
   getSavedToernooien, getRanking, filterRankingByPeriod,
@@ -153,6 +169,7 @@ const { handleSelectTournament, saveTournamentChanges, saveTournament, removeTou
   setActiveSemester, setPeriode,
 })
 
+// Patch the late-bound references now that useTournamentData has been initialised
 flowDeps.saveTournament = saveTournament
 flowDeps.saveTournamentChanges = saveTournamentChanges
 flowDeps.selectTournament = selectTournament
@@ -164,10 +181,12 @@ function cleanDatabase() {
   cleanDatabaseFn(bevestig)
 }
 
+// Keep localStorage in sync whenever the team list changes
 watch(filteredTeams, (newTeams) => {
   localStorage.setItem('tournamentTeams', JSON.stringify(newTeams))
 })
 
+// Bootstrap: check server, load data, apply semester filters
 onMounted(async () => {
   updateScale()
   window.addEventListener('resize', updateScale)

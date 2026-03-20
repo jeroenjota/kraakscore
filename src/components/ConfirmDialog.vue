@@ -1,7 +1,10 @@
+<!--
+  ConfirmDialog.vue – Promise-based modal confirmation dialog.
+  Call the exposed open({ title, message, icon, ... }) method to show the dialog;
+  it returns a Promise<boolean> that resolves when the user clicks confirm or cancel.
+  Supports icon types: warning, info, success, error, question.
+-->
 <template>
-  <div
-    v-if="visible"
-    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
     <div class="bg-white rounded-2xl p-6 w-80 shadow-lg text-center">
         <h2 class="text-2xl font-bold text-gray-800 mb-2">{{ title }}</h2>
       <div class="flex justify-between items-start">
@@ -38,6 +41,11 @@ const icon = ref(null); // type of icon, bv 'warning', 'info', 'success', 'error
 
 let resolver = null;
 
+/**
+ * Show the dialog and return a promise.
+ * @param {object} options - { title, message, confirmButtonText, cancelButtonText, icon }
+ * @returns {Promise<boolean>}
+ */
 function open(options) {
   title.value = options.title || "Bevestigen";
   message.value = options.message || "";

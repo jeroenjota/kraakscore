@@ -1,3 +1,9 @@
+<!--
+  Ranking.vue – Semester ranking table component.
+  Displays a full player ranking for the active semester period, showing
+  per-tournament scores and the best-6 total. Includes a print button
+  that generates a standalone ranking PDF via jsPDF.
+-->
 <template>
 
   <div class="relative flex flex-col w-full h-full overflow-scroll text-gray-700 bg-white shadow-md bg-clip-border ">
@@ -73,10 +79,12 @@ const props = defineProps({
   }
 });
 
+// Filter tournaments to the active semester range and sort by date
 const toernooien = computed(() => {
   return props.toernooien.filter(t => new Date(t.datum) >= new Date(props.vanaf) && new Date(t.datum) <= new Date(props.tot)).sort((b, a) => new Date(b.datum) - new Date(a.datum));
 });
 
+// Generate a standalone ranking PDF and trigger browser download
 function maakRankingPdf() {
   // console.log("Ranking PDF aanmaken", props.ranking, toernooien.value, props.vanaf, props.tot);
   const doc = new jsPDF();
@@ -85,6 +93,7 @@ function maakRankingPdf() {
 }
 
 
+// Show rank number only when it differs from the previous row (shared ranks)
 function toonPlaats(index) {
   if (index === 0) return props.ranking[0].plaats
   if (props.ranking[index].plaats !== props.ranking[index - 1].plaats) {
@@ -93,6 +102,7 @@ function toonPlaats(index) {
   return ''
 }
 
+// Count the number of tournaments a player scored points in
 function gespeeld(index) {
   let gespeeld = 0;
   props.ranking[index].scores.forEach((res) => {

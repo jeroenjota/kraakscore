@@ -1,5 +1,11 @@
+<!--
+  Tournament.vue – Main tournament component.
+  Renders the match schedule for either a regular tournament (round-robin)
+  or a group tournament (two groups + finals). Handles score updates,
+  standings calculation, finalist determination, and localStorage persistence.
+-->
 <template>
-  <div id="tournament">
+    <!-- ==================== GROUP TOURNAMENT (2 groups + finals) ==================== -->
     <div v-if="groups.length === 2">
       <div class="schema">
         <div v-for="(ronde, index) in groupMatches[0]" :key="index">
@@ -70,6 +76,7 @@
         </div>
       </div>
     </div>
+    <!-- ==================== REGULAR TOURNAMENT (round-robin) ==================== -->
     <!--  geen groepen -->
     <div v-else class="schema">
       <h2 class="text-xl font-bold">Schema</h2>
@@ -121,24 +128,27 @@ const props = defineProps({
 
 const emit = defineEmits(["saveToernooi"]);
 
+// --- Local reactive state ---
 const toernooiTeams = ref([...props.initialTeams]);
-const matches = ref([]);
+const matches = ref([]);        // round-robin match schedule
 const repeatRounds = ref(props.repeatRounds);
-const groups = ref([]);
-const groupMatches = ref([]);
-const finalMatches = ref([
-  { tafel: 1, teamL: null, teamR: null, scoreL: null, scoreR: null, pl: 1 }, // finale
-  { tafel: 2, teamL: null, teamR: null, scoreL: null, scoreR: null, pl: 3 }, // 3e plaats
-  { tafel: 3, teamL: null, teamR: null, scoreL: null, scoreR: null, pl: 5 }, // 5e plaats
-  { tafel: 4, teamL: null, teamR: null, scoreL: null, scoreR: null, pl: 7 }, // 7e plaats
+const groups = ref([]);          // two groups for a group tournament
+const groupMatches = ref([]);    // per-group match schedules
+const finalMatches = ref([       // cross-group finals (1st place, 3rd, 5th, 7th)
+  { tafel: 1, teamL: null, teamR: null, scoreL: null, scoreR: null, pl: 1 },
+  { tafel: 2, teamL: null, teamR: null, scoreL: null, scoreR: null, pl: 3 },
+  { tafel: 3, teamL: null, teamR: null, scoreL: null, scoreR: null, pl: 5 },
+  { tafel: 4, teamL: null, teamR: null, scoreL: null, scoreR: null, pl: 7 },
 ]);
 
 // console.log("Edit mode in Tournament:", props.editMode);
 
+// Fisher-Yates-ish shuffle for randomising team order
 function shuffle(array) {
   return array.sort(() => Math.random() - 0.5);
 }
 
+// Split teams into two roughly equal groups (shuffled)
 function splitIntoGroups(teamList) {
   // Voor meer dan 6 toernooiTeams, worden de teams verdeeld in twee groepen
   // Toernooi van 14 juli 2025
@@ -166,6 +176,12 @@ function splitIntoGroups(teamList) {
   return [shuffled.slice(0, half), shuffled.slice(half)];
 }
 
+/**
+ * Generate a round-robin schedule for the given teams.
+ * Adds a "VRIJ" (bye) team when odd. Repeats for repeatRounds.
+ * @param {string[]} tms - team names
+ * @param {number} grp - group index (0 or 1), offsets table numbers
+ */
 function generateMatches(tms, grp) {
   // console.log("grp:", grp)
   const inputTeams = [...tms];
@@ -217,6 +233,8 @@ function generateMatches(tms, grp) {
   return schedule.value;
 }
 
+// --- Score update handlers (write to localStorage and emit save) ---
+
 function updateGroupResult(groupIndex, matchIndex, tableIndex, scoreL, scoreR) {
   // console.log("index:", groupIndex, matchIndex, tableIndex, scoreL, scoreR)
   groupMatches.value[groupIndex][matchIndex][tableIndex].scoreL = scoreL;
@@ -251,6 +269,7 @@ function updateFinalResult(index, scoreL, scoreR) {
   saveToLocalStorage();
 }
 
+// Calculate standings: sum match points per team, sort descending
 function calculateStandings(teamsList, matchesList) {
   const table = teamsList.map((name) => ({
     name,
@@ -285,6 +304,7 @@ function calculateStandings(teamsList, matchesList) {
   return table;
 }
 
+// Determine finalists from group standings once all group matches are played
 function updateFinalists() {
   // Alleen bij 2 groepen
   if (groups.value.length !== 2) return;
@@ -331,6 +351,7 @@ function updateFinalists() {
   saveToLocalStorage();
 }
 
+// Persist all tournament data to localStorage and trigger a server save
 function saveToLocalStorage() {
   // console.log("Opslaan in localStorage")
   // console.log("toernooiTeams.value:", toernooiTeams.value)
@@ -361,6 +382,7 @@ function totalMatchesPlayed() {
   return ttlPlayed;
 }
 
+// Restore tournament data from localStorage (used when loading a saved tournament)
 function loadFromLocalStorage() {
   const t = localStorage.getItem("tournamentTeams");
   if (t) {
@@ -409,6 +431,7 @@ function loadFromLocalStorage() {
 }
 
 
+// On mount: generate a fresh schedule or load an existing one from localStorage
 onMounted(() => {
   if (!props.toernooiPlayed) {
 // console.log("Nieuw toernooi, genereer schema")

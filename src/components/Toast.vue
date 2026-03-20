@@ -1,3 +1,9 @@
+<!--
+  Toast.vue – Simple success toast notification.
+  A minimal, styled pop-up that slides in at the top-right corner.
+  (Note: the main app uses vue-toastification for most toasts;
+  this component is an alternative for custom rendering.)
+-->
 <script setup lang="ts">
 defineProps({
   message: {
