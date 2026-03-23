@@ -5,15 +5,17 @@
   Click a team to edit; Ctrl+click or long-press to remove.
 -->
 <template>
-    <!-- Player selector for building a new team -->
-    <div class="flex w-full flex-row gap-2 rounded">
+  <!-- Player selector for building a new team -->
+
+  <div>
+    <div class="flex w-full flex-row gap-2 rounded bg-sky-200">
       <SelectPlayers
         :spelers="spelers"
         :toernooiTeams="toernooiTeams"
         @addTeam="$emit('addTeam', $event)" />
     </div>
     <div
-      class="flex items-center gap-2 p-1"
+      class="flex items-center gap-2 border-t border-blue-900 bg-sky-200 p-1"
       v-tooltip="{ content: 'Alleen bij minder dan 7 teams', html: true }">
       <label for="repeatRounds">Aantal volle rondes:</label>
       <input
@@ -27,15 +29,12 @@
         style="width: 25%"
         data-testid="repeat-rounds-input" />
     </div>
-    <div class="flex gap-2 text-center">
-      <div></div>
-    </div>
-    <div v-if="toernooiTeams.length > 0" class="teamlist" data-testid="team-list">
+    <div v-if="toernooiTeams.length > 0" class="flex-1 rounded border-t border-blue-900 bg-sky-200 p-1" data-testid="team-list">
       <h2
         class="font-semibold"
         @click.ctrl="$emit('removeTeamsFromToernooi')"
         v-longpress="() => $emit('removeTeamsFromToernooi')">
-        Lijst:
+        Teamlijst:
       </h2>
       <ul class="list-number list-outside" style="margin-left: 8px">
         <li
@@ -53,21 +52,21 @@
 </template>
 
 <script setup>
-import SelectPlayers from './SelectPlayers.vue'
-import longpress from '../directives/longpress.js'
+import SelectPlayers from "./SelectPlayers.vue";
+import longpress from "../directives/longpress.js";
 
 defineProps({
   spelers: Array,
   toernooiTeams: Array,
   repeatRounds: Number,
   showRanking: Boolean,
-})
+});
 
 defineEmits([
-  'addTeam',
-  'editTeam',
-  'removeTeam',
-  'removeTeamsFromToernooi',
-  'update:repeatRounds',
-])
+  "addTeam",
+  "editTeam",
+  "removeTeam",
+  "removeTeamsFromToernooi",
+  "update:repeatRounds",
+]);
 </script>

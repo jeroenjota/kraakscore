@@ -6,6 +6,7 @@
  */
 import dbService from '../services/dbServices.js'
 import { useToast } from 'vue-toastification'
+import { niceDate } from '../utils/dateUtils.js'
 
 export function useTournamentFlow(state, deps) {
   const toast = useToast()
@@ -94,12 +95,13 @@ export function useTournamentFlow(state, deps) {
   async function startTournament() {
     if (filteredTeams.value.length >= 4) {
       const nu = new Date(Date.now()).toISOString().split('T')[0]
+      console.log('Checking for existing tournament on date:', thisToernooiDatum.value)
       const response = await dbService.getToernooiIdByDate(nu)
       const tnID = response.data
       if (tnID) {
         const ok = await bevestig(
           'Toernooi bestaat al',
-          'Een toernooi op deze datum bestaat al, wil je deze overschrijven?',
+          `Een toernooi op ${niceDate(thisToernooiDatum.value, false, true)} bestaat al, wil je deze overschrijven?`,
           'warning',
         )
         if (ok) {
@@ -124,9 +126,18 @@ export function useTournamentFlow(state, deps) {
       }
       if (groepsToernooi.value) repeatRounds.value = 1
       const rndTxt = repeatRounds.value > 1 ? 'rondes' : 'ronde'
-      let msg = `Het schema wordt gemaakt voor ${repeatRounds.value} ${rndTxt} \nmet ${filteredTeams.value.length} teams`
-      if (groepsToernooi.value) msg += ', verdeeld over twee groepen'
-      msg += '\n\nIs dit de bedoeling?'
+      const datumTxt = niceDate(thisToernooiDatum.value, false, true)
+      let msg = `Het schema wordt gemaakt voor **${datumTxt}**
+met **${repeatRounds.value} ${rndTxt}** en **${filteredTeams.value.length} teams**`;
+
+      if (groepsToernooi.value) {
+        msg += `
+verdeeld over twee groepen`;
+      }
+
+      msg += `
+
+Is dit de bedoeling?`;
       const ok = await bevestig('Toernooi starten', msg, 'question')
       if (!ok) return
       thisToernooiDatum.value = null

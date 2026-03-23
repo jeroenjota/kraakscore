@@ -5,6 +5,7 @@
   and WhatsApp share buttons.
 -->
 <template>
+  <div>
     <div class="titelregel flex items-center justify-between">
       <!-- Title – click to zoom -->
       <h1

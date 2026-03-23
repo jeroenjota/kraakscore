@@ -11,7 +11,6 @@
   Also registers the global ConfirmDialog and the longpress directive.
 -->
 <template>
-  <ConfirmDialog ref="dialog" />
   <div
     class="maindiv app-scaled mx-auto max-w-4xl space-y-4 rounded"
     :style="zoomStyle"
@@ -42,7 +41,7 @@
       @closeTournament="sluitToernooi"
       @makePdf="maakPdf" />
 
-    <div class="toprow" v-if="!tournamentStarted" data-testid="toprow">
+    <div class="toprow gap-1/2 flex justify-between" v-if="!tournamentStarted" data-testid="toprow">
       <div v-if="showRanking" class="ranking" data-testid="ranking-section">
         <Ranking
           :ranking="filteredRanking"
@@ -51,30 +50,35 @@
           :tot="tot" />
       </div>
 
-      <TeamSetup
-        v-if="!showRanking"
-        :spelers="spelers"
-        :toernooiTeams="toernooiTeams"
-        :repeatRounds="repeatRounds"
-        :showRanking="showRanking"
-        @addTeam="addTeam"
-        @editTeam="editTeam"
-        @removeTeam="removeTeam"
-        @removeTeamsFromToernooi="removeTeamsFromToernooi" />
-
-      <SavedTeamsList
-        :savedTeams="savedTeams"
-        :availableTeams="availableTeams"
-        :toernooiTeams="toernooiTeams"
-        :tournamentStarted="tournamentStarted"
-        :showRanking="showRanking"
-        :teamSelected="teamSelected"
-        @addAll="addAll"
-        @removeAllStandardTeams="removeAllStandardTeams"
-        @getTeam="getTeam"
-        @removeStandardTeam="removeStandardTeam"
-        @cleanDatabase="cleanDatabase"
-        @startTournament="startTournament" />
+      <div v-if="!showRanking" class="flex-1/2 flex flex-col rounded-2xl p-1" data-testid="teamsetup-section"  >
+        <DateSelect
+          v-model="thisToernooiDatum" />
+        <TeamSetup
+          v-if="!showRanking"
+          :spelers="spelers"
+          :toernooiTeams="toernooiTeams"
+          :repeatRounds="repeatRounds"
+          :showRanking="showRanking"
+          @addTeam="addTeam"
+          @editTeam="editTeam"
+          @removeTeam="removeTeam"
+          @removeTeamsFromToernooi="removeTeamsFromToernooi" />
+      </div>
+      <div class="flex-1/2 items-center rounded-2xl p-1" v-if="!showRanking">
+        <SavedTeamsList
+          :savedTeams="savedTeams"
+          :availableTeams="availableTeams"
+          :toernooiTeams="toernooiTeams"
+          :tournamentStarted="tournamentStarted"
+          :showRanking="showRanking"
+          :teamSelected="teamSelected"
+          @addAll="addAll"
+          @removeAllStandardTeams="removeAllStandardTeams"
+          @getTeam="getTeam"
+          @removeStandardTeam="removeStandardTeam"
+          @cleanDatabase="cleanDatabase"
+          @startTournament="startTournament" />
+      </div>
     </div>
 
     <Tournament
@@ -87,6 +91,7 @@
       :toernooiPlayed="thisToernooiID !== null"
       @saveToernooi="saveTournament" />
   </div>
+  <ConfirmDialog ref="dialog" />
 </template>
 
 <script setup>
@@ -95,6 +100,7 @@ import Ranking from './components/Ranking.vue'
 import Tournament from './components/Tournament.vue'
 import ConfirmDialog from './components/ConfirmDialog.vue'
 import AppHeader from './components/AppHeader.vue'
+import DateSelect from './components/DateSelect.vue'
 import TeamSetup from './components/TeamSetup.vue'
 import SavedTeamsList from './components/SavedTeamsList.vue'
 
@@ -211,15 +217,6 @@ onMounted(async () => {
     }
   }
 })
-</script>
-
-<script>
-import longpress from './directives/longpress.js'
-export default {
-  directives: {
-    longpress,
-  },
-}
 </script>
 
 <style scoped></style>

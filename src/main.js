@@ -5,6 +5,7 @@
  */
 import { createApp } from 'vue'
 import App from './App.vue'
+import longpress from './directives/longpress.js'
 import Toast from 'vue-toastification'
 import FloatingVue from 'floating-vue'
 import 'floating-vue/dist/style.css'
@@ -12,6 +13,7 @@ import "/styles.css";
 import 'vue-toastification/dist/index.css'  
 
 const app = createApp(App)
+app.directive('longpress', longpress)
 app.use(FloatingVue)
 app.use(Toast, {
   position: "top-center",

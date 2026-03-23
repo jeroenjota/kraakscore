@@ -310,7 +310,7 @@ export async function uitslagPDF(doc, datum, groepstoernooi = false) {
           uitslag.push(finMatch.teamR)
           uitslag.push(finMatch.teamL)
         }
-        obj = [`${i*2+1}e pl:`, finMatch.teamL + " vs " + finMatch.teamR, `${finMatch.scoreL || ""} - ${finMatch.scoreR || ""}`];
+        obj = [`${i*2+1}e pl:`, finMatch.teamL + " - " + finMatch.teamR, `${finMatch.scoreL || ""} - ${finMatch.scoreR || ""}`];
         table.push(obj)
       }
       yPos += 2

@@ -5,24 +5,42 @@
   Emits 'update-result' with (index, scoreL, scoreR) on change.
 -->
 <template>
-
-  <table class="w-full rondes table" :id="matchType">
+  <table class="rondes table w-full" :id="matchType">
     <tbody>
       <tr v-for="(match, index) in matches" :key="index">
-        <td style="width:9%; text-align: center;" class="border px-2"><span v-if="!matchType">T {{ match.tafel }}</span><span v-else>Pl {{ match.pl }} </span></td>
-        <td style="width:23%; text-align: left;" class="border px-2">{{ match.teamL }}</td>
-        <td style="width:5%; text-align: center;" class="border px-2">vs</td>
-        <td style="width:23%; text-align: left;" class="border px-2">{{ match.teamR }}</td>
-        <td style="width:15%; text-align: left;" class="border px-2">
-          <input style="width:100%; margin:0" type="number" v-model.number="scores[index].scoreL" min="0" step="10"
-            :disabled="!editMode || hasVRIJ(index)"
-            @change="update(index)" @keypress="blokkeerLetters"/>
-
+        <td style="width: 9%; text-align: center" class="border px-2">
+          <span v-if="!matchType">T {{ match.tafel }}</span
+          ><span v-else>Pl {{ match.pl }} </span>
         </td>
-        <td style="width:3%; text-align: center;" class="border px-2">-</td>
-        <td style="width:15%; text-align: left;" class="border px-2">
-          <input style="width:100%; margin:0" type="number" v-model.number="scores[index].scoreR" min="0" step="10"
-            @change="update(index)" @keypress="blokkeerLetters" :disabled="!editMode || hasVRIJ(index)"/>
+        <td style="width: 23%; text-align: left" class="border px-2">
+          {{ match.teamL }}
+        </td>
+        <td style="width: 5%; text-align: center" class="border px-2">vs</td>
+        <td style="width: 23%; text-align: left" class="border px-2">
+          {{ match.teamR }}
+        </td>
+        <td style="width: 15%; text-align: left" class="border px-2">
+          <input
+            style="width: 100%; margin: 0"
+            type="number"
+            v-model.number="scores[index].scoreL"
+            min="0"
+            step="10"
+            :disabled="!editMode || hasVRIJ(index)"
+            @change="update(index)"
+            @keypress="blokkeerLetters" />
+        </td>
+        <td style="width: 3%; text-align: center" class="border px-2">-</td>
+        <td style="width: 15%; text-align: left" class="border px-2">
+          <input
+            style="width: 100%; margin: 0"
+            type="number"
+            v-model.number="scores[index].scoreR"
+            min="0"
+            step="10"
+            @change="update(index)"
+            @keypress="blokkeerLetters"
+            :disabled="!editMode || hasVRIJ(index)" />
         </td>
       </tr>
     </tbody>
@@ -30,9 +48,8 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watchEffect } from 'vue'
-import { useInputFilters } from '../composables/useInputFilters';
-
+import { onMounted, ref, watchEffect } from "vue";
+import { useInputFilters } from "../composables/useInputFilters";
 
 const { blokkeerLetters } = useInputFilters();
 
@@ -43,45 +60,45 @@ const props = defineProps({
     type: String,
   },
   editMode: {
-    type: Boolean
-  }
-
-})
-
+    type: Boolean,
+  },
+});
 
 // console.log('Edit mode in MatchTable:', editMode);
 
-const emit = defineEmits(['update-result'])
+const emit = defineEmits(["update-result"]);
 
-const scores = ref([])
+const scores = ref([]);
 
 // console.log('Edit mode in MatchTable:', props.editMode);
 
 // Mirror prop matches into local scores refs so v-model can bind to them
 watchEffect(() => {
-  scores.value = props.matches.map(match => ({
+  scores.value = props.matches.map((match) => ({
     tafel: match.tafel - 1,
-    scoreL: match.scoreL ?? '',
-    scoreR: match.scoreR ?? ''
-  }))
-// console.log("Scores::", scores.value)
-})
+    scoreL: match.scoreL ?? "",
+    scoreR: match.scoreR ?? "",
+  }));
+  // console.log("Scores::", scores.value)
+});
 
 // Check if one of the teams in this match is a bye ("VRIJ")
-function hasVRIJ(match){
-  let VRIJ = props.matches[match].teamL === "VRIJ" ||  props.matches[match].teamR === "VRIJ"
-  return VRIJ
+function hasVRIJ(match) {
+  let VRIJ =
+    props.matches[match].teamL === "VRIJ" ||
+    props.matches[match].teamR === "VRIJ";
+  return VRIJ;
 }
 
 // Emit the updated scores when both fields have a value
 function update(index) {
   // console.log("update index:", index, "scores:", scores.value)
-  const { scoreL, scoreR } = scores.value[index]
-  if (scoreL !== '' && scoreR !== '') {
-    emit('update-result', index, Number(scoreL), Number(scoreR))
+  const { scoreL, scoreR } = scores.value[index];
+  if (scoreL !== "" && scoreR !== "") {
+    emit("update-result", index, Number(scoreL), Number(scoreR));
   }
 }
 onMounted(() => {
- // console.log("MatchTable mounted with matches:", props.matches)
-})
+  // console.log("MatchTable mounted with matches:", props.matches)
+});
 </script>

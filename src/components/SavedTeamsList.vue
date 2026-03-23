@@ -7,7 +7,7 @@
 <template>
   <div
     id="savedTeams"
-    class="rounded"
+    class="rounded bg-sky-200 p-1 text-sm"
     v-if="!tournamentStarted && !showRanking"
     data-testid="saved-teams-section">
     <h2
@@ -60,12 +60,11 @@
       Start toernooi
     </button>
   </div>
-  </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import longpress from '../directives/longpress.js'
+import { computed } from "vue";
+import longpress from "../directives/longpress.js";
 
 const props = defineProps({
   savedTeams: Array,
@@ -74,17 +73,17 @@ const props = defineProps({
   tournamentStarted: Boolean,
   showRanking: Boolean,
   teamSelected: Function,
-})
+});
 
-const isTeamSelected = (tm) => props.toernooiTeams.includes(tm)
+const isTeamSelected = (tm) => props.toernooiTeams.includes(tm);
 
 defineEmits([
-  'addAll',
-  'removeAllStandardTeams',
-  'getTeam',
-  'removeStandardTeam',
-  'cleanDatabase',
-  'startTournament',
-  'teamSelected',
-])
+  "addAll",
+  "removeAllStandardTeams",
+  "getTeam",
+  "removeStandardTeam",
+  "cleanDatabase",
+  "startTournament",
+  "teamSelected",
+]);
 </script>

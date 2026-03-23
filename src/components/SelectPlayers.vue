@@ -7,14 +7,14 @@
 <!--  Select Players component -->
 <template>
   <!-- twee kolommen met spelers namen om teams samen te stellen -->
-  <div class="h-auto w-full">
+  <div class="h-auto w-full p-1">
     <div
       v-tooltip="{
         content:
           'Selecteer twee spelers om een team samen te stellen en klik OK.',
         html: true,
       }">
-      <p class="text-center text-lg text-blue-700">Nieuw team</p>
+      <h2 class="text-center text-lg text-blue-700">Nieuw team</h2>
       <div class="justify-left flex gap-2 p-1">
         <!-- linker kolom -->
         <div class="flex-2">
@@ -64,7 +64,7 @@
       }">
       <div class="flex-2">
         <label class="w-full text-sm text-black" for="newPlayer"
-          >Nieuwe speler</label
+          >Nwe speler</label
         >
       </div>
       <div>:</div>

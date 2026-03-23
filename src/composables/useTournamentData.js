@@ -76,7 +76,7 @@ export function useTournamentData(state, { bevestig, getRanking, filterRankingBy
   }
 
   // Save a tournament: update if it already has an ID, or create a new one
-  async function saveTournament(msg = 'Toernooi opslaan') {
+  async function saveTournament(msg = '') {
     if (!serverAvailable.value) {
       toast.warning('Server niet beschikbaar, kan toernooi niet opslaan.', {
         position: 'top-center',
@@ -137,7 +137,7 @@ export function useTournamentData(state, { bevestig, getRanking, filterRankingBy
     ok = await bevestig('Echt verwijderen?', 'WEET JE HET ECHT HEEL ZEKER?', 'error')
     if (!ok) return
     await dbService.deleteToernooi(tn.id)
-    resetApp()
+    await resetApp()
     toast.success(`Toernooi op ${niceDate(tn.datum)} is verwijderd.`, {
       position: 'top-center',
       timeout: 3000,

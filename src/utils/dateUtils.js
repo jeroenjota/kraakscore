@@ -4,13 +4,14 @@
  * @param {boolean} jaar - include the year in the output
  * @returns {string} e.g. "20 mrt" or "20 mrt 2026"
  */
-export function niceDate(date, jaar = false) {
+export function niceDate(date, jaar = false, dagVanWeek = false) {
   if (!date) return "";
   const d = new Date(date);
   return d.toLocaleDateString("nl-NL", {
     day: "numeric",
     month: "short",
     ...(jaar && { year: "numeric" }),
+    ...(dagVanWeek && { weekday: "long" }),
   });
 }
 

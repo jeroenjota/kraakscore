@@ -5,22 +5,28 @@
   Supports icon types: warning, info, success, error, question.
 -->
 <template>
-    <div class="bg-white rounded-2xl p-6 w-80 shadow-lg text-center">
-        <h2 class="text-2xl font-bold text-gray-800 mb-2">{{ title }}</h2>
-      <div class="flex justify-between items-start">
-          <p class="text-gray-600 mb-6 text-left">{{ message }}</p>
-        <div v-if="icon" class="text-4xl mb-4">
+  <div
+    v-if="visible"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div
+      class="animate-fadeIn w-80 rounded-2xl bg-white p-6 text-center shadow-lg">
+      <h2 class="mb-2 text-2xl font-bold text-gray-800">{{ title }}</h2>
+      <div class="flex items-start justify-between">
+        <div
+          class="mb-6 max-w-none text-left text-gray-600"
+          v-html="renderedMessage"></div>
+        <div v-if="icon" class="mb-4 text-4xl">
           {{ iconHtml }}
         </div>
       </div>
       <div class="flex justify-end gap-3">
         <button
-          class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+          class="rounded-lg bg-gray-200 px-4 py-2 text-gray-700 transition hover:bg-gray-300"
           @click="cancel">
           {{ cancelButtonText }}
         </button>
         <button
-          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          class="rounded-lg bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700"
           @click="confirmAction">
           {{ confirmButtonText }}
         </button>
@@ -31,6 +37,12 @@
 
 <script setup>
 import { ref, computed } from "vue";
+import { marked } from "marked";
+import DOMPurify from "dompurify";
+
+marked.setOptions({
+  breaks: true,
+});
 
 const visible = ref(false);
 const title = ref("");
@@ -40,6 +52,11 @@ const cancelButtonText = ref("Annuleren");
 const icon = ref(null); // type of icon, bv 'warning', 'info', 'success', 'error'
 
 let resolver = null;
+
+const renderedMessage = computed(() => {
+  const raw = marked.parse(message.value || "", { breaks: true })
+  return DOMPurify.sanitize(raw);
+});
 
 /**
  * Show the dialog and return a promise.
