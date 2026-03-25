@@ -39,31 +39,10 @@
 
       <div v-if="!showRanking" class="teams">
         <div class="flex w-full flex-row gap-2 rounded">
-            <SelectPlayers :spelers="spelers" :toernooiTeams="toernooiTeams" @addTeam="addTeam"/>
+            <SelectPlayers :spelers="spelers" :toernooiTeams="toernooiTeams" v-model:toernooiDatum="thisToernooiDatum" @addTeam="addTeam"/>
         </div>
-        <!-- 
-        <div class="flex gap-2 text-center">
-          <input
-            id="newTeam"
-            @keyup.enter="addTeam"
-            placeholder="Teamnaam"
-            class="teamnaam rounded border p-1"
-            v-model="newTeam"
-            style="width: 50%"
-            :disabled="toernooiTeams.length > 7"
-            v-tooltip="{ content: instructions, html: true }" />
-          <button
-            @click="addTeam"
-            class="rounded bg-blue-800 px-4 py-2 text-white"
-            style="width: 50%"
-            :disabled="toernooiTeams.length > 7 || newTeam.trim() === ''">
-            OK
-          </button>
-        </div>
-
-         -->
-        <div class="flex items-center gap-2 p-1" v-tooltip="{ content: 'Alleen bij minder dan 7 teams', html: true }" >
-          <label for="repeatRounds">Aantal volle rondes:</label>
+        <div class="flex items-center gap-2 rounded border p-1" v-tooltip="{ content: 'Alleen bij minder dan 7 teams', html: true }" >
+          <label class="text-center text-lg text-blue-700" for="repeatRounds">Aantal volle rondes:</label>
           <input
             id="repeatRounds"
             type="number"

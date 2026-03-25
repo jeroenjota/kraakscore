@@ -2,13 +2,21 @@
 <template>
   <!-- twee kolommen met spelers namen om teams samen te stellen -->
   <div class="h-auto w-full">
-    <div
+    <div class="mb-1 flex items-center rounded border border-blue-700 p-1">
+      <div class="flex-1">
+        <p class="text-center text-lg text-blue-700">Toernooidatum</p>
+      </div>
+      <DateSelect v-model="localDatum" />
+    </div>
+    <div class="mb-1 rounded border p-1"
       v-tooltip="{
         content:
           'Selecteer twee spelers om een team samen te stellen en klik OK.',
         html: true,
       }">
-      <p class="text-center text-lg text-blue-700">Nieuw team</p>
+      <div>
+        <p class="text-center text-lg text-blue-700">Nieuw team</p>
+      </div>
       <div class="justify-left flex gap-2 p-1">
         <!-- linker kolom -->
         <div class="flex-2">
@@ -50,7 +58,7 @@
     </div>
 
     <div
-      class="justify-left flex gap-2 p-1"
+      class="justify-left mb-1 flex gap-2 rounded border p-1"
       v-tooltip="{
         content:
           'Voeg een nieuwe speler toe aan de lijst. De naam moet uniek zijn!',
@@ -82,9 +90,9 @@
 <script setup>
 import { ref, computed } from "vue";
 import { cleanTeamName } from "../utils/editUtils";
+import DateSelect from "./DateSelect.vue";
 
 const props = defineProps({
-  // Define any props if needed
   spelers: {
     type: Array,
     default: () => [],
@@ -93,9 +101,22 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  toernooiDatum: {
+    type: [String, Date],
+    default: () => new Date().toISOString().split("T")[0],
+  },
 });
 
-const emit = defineEmits(["addTeam"]);
+const emit = defineEmits(["addTeam", "update:toernooiDatum"]);
+
+const localDatum = computed({
+  get: () => {
+    const d = props.toernooiDatum;
+    if (!d) return new Date().toISOString().split("T")[0];
+    return new Date(d).toISOString().split("T")[0];
+  },
+  set: (val) => emit("update:toernooiDatum", val),
+});
 const newPlayerName = ref("");
 
 // geselecteerde namen per kolom
