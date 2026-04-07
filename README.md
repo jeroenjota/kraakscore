@@ -63,6 +63,35 @@ I cannot be held accountable for any problems that arise from using the app.
 
 #### Build with Vue3 in Vite
 
+## Testing
+
+The project uses Vitest with Vue Test Utils for testing.
+
+```bash
+# Run tests in watch mode
+npm test
+
+# Run tests once
+npm run test:run
+
+# Run tests with coverage report
+npm run test:coverage
+```
+
+Tests are located in `src/__tests__/` and cover:
+- App initialization and server connectivity
+- Semester and period filtering
+- Team management (add, remove, edit, validation)
+- Saved teams CRUD operations
+- Tournament lifecycle (start, close, reset)
+- Tournament CRUD (select, load, save, delete)
+- Ranking calculation and filtering
+- PDF generation
+- UI state (zoom, conditional rendering)
+- Database maintenance (cleanup)
+
+Tests use `data-testid` attributes on DOM elements and mock external dependencies (dbService, localStorage, jsPDF).
+
 ## Recent changes
 - Removed the unused Pdf.vue component
 - Updated date utility functions
