@@ -628,6 +628,7 @@ async function sluitToernooi() {
       await saveTournament();
       // opnieuw toernooien laden in variabele
       await getSavedToernooien();
+      await getRanking();
       await maakPdf();
       resetApp();
       //      //      //      console.log("Toernooi opgeslagen, nu Ranking ophalen.");
@@ -736,29 +737,24 @@ async function standardTeamsToApi(msg) {
   const sendTeams = {
     teams: bewaardeTeams,
   };
-  await dbService
-    .saveStandardTeams(sendTeams)
-    // await axios.post(`${api}/standardTeams`, sendTeams)
-    .then(() => {
-      if (msg) {
-        toast.success(msg, {
-          position: "top-center",
-          timeout: 3000,
-        });
-      }
-      //      // console.log("Lijst ook opgeslagen op de server:", bewaardeTeams);
-    })
-    .catch((error) => {
-      toast.error(
-        "Fout bij het opslaan van standaard teams: " + error.message,
-        {
-          position: "top-center",
-          timeout: 3000,
-        },
-      );
-      // console.error("Fout bij het opslaan van standaard teams:", error);
-      console.error("Fout bij het opslaan van standaard teams:", error);
-    });
+  try {
+    await dbService.saveStandardTeams(sendTeams);
+    if (msg) {
+      toast.success(msg, {
+        position: "top-center",
+        timeout: 3000,
+      });
+    }
+  } catch (error) {
+    toast.error(
+      "Fout bij het opslaan van standaard teams: " + error.message,
+      {
+        position: "top-center",
+        timeout: 3000,
+      },
+    );
+    console.error("Fout bij het opslaan van standaard teams:", error);
+  }
 }
 
 async function saveTournamentChanges(msg = "Toernooi opgeslagen") {
@@ -935,12 +931,8 @@ async function addTeam(team) {
 }
 
 function addAll() {
-  return;
-  // not used
-
   // voeg alle teams uit de savedTeams toe aan de toernooiTeams
-  // for testing purposes
-  savedTeams.value.forEach((tm, index) => {
+  savedTeams.value.forEach((tm) => {
     getTeam(tm);
   });
 }
@@ -984,10 +976,6 @@ async function removeStandardTeam(tm) {
 }
 
 async function removeAllStandardTeams() {
-  // not used
-  return;
-
-  // voor testing purposes
   const ok = await bevestig(
     "Alle teams verwijderen",
     `Alle toernooiTeams verwijderen uit de standaardlijst?`,
@@ -1101,35 +1089,28 @@ function addTeamsToList() {
 }
 
 async function getSavedTeamsFromApi() {
-  //    console.log("getSavedTeamsFromApi")
-  if (!serverAvailable.value) return; // als de server niet beschikbaar is, doe niets
-  // haal de opgeslagen teams op van de API
-  //  console.log("Ophalen van opgeslagen teams van de API:", api);
-  await dbService
-    .fetchSavedTeams()
-    .then((response) => {
-      const teamLijst = response.data.sort();
-      //      //      //      //      // console.log("teamLijst opgehaald van de API:", teamLijst);
-      savedTeams.value = []; // reset de teamLijst
-      teamLijst.forEach((tm, index) => {
-        const thisTeam = cleanTeamName(tm.team);
-        // check of het team al in de lijst staat
-        if (!savedTeams.value.includes(thisTeam)) {
-          savedTeams.value.push(thisTeam);
-        }
-      });
-      localStorage.setItem(
-        "savedTeams",
-        JSON.stringify(savedTeams.value.sort()),
-      );
-    })
-    .catch((error) => {
-      console.error("Fout bij het ophalen van teams:", error);
-      toast.error("Fout bij het ophalen van teams: " + error.message, {
-        position: "bottom-center",
-        timeout: 2000,
-      });
+  if (!serverAvailable.value) return;
+  try {
+    const response = await dbService.fetchSavedTeams();
+    const teamLijst = response.data.sort();
+    savedTeams.value = [];
+    teamLijst.forEach((tm) => {
+      const thisTeam = cleanTeamName(tm.team);
+      if (!savedTeams.value.includes(thisTeam)) {
+        savedTeams.value.push(thisTeam);
+      }
     });
+    localStorage.setItem(
+      "savedTeams",
+      JSON.stringify(savedTeams.value.sort()),
+    );
+  } catch (error) {
+    console.error("Fout bij het ophalen van teams:", error);
+    toast.error("Fout bij het ophalen van teams: " + error.message, {
+      position: "bottom-center",
+      timeout: 2000,
+      });
+  }
 }
 
 async function isServerActive() {
