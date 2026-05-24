@@ -81,7 +81,7 @@
       <!-- Afhankelijk of er al dan niet al een schema is gemaakt -->
       <!-- AANPASSING Twee kolommen met spelers om de teams uit samen te stellen -->
 
-      <div class="teamlijst">
+      <div class="teamlijst" :class="{ 'teamlijst-collapsed': !showSavedTeamsList }">
         <!-- TODO Opties instellen -->
          <!-- 
         <div id="optionsForm" v-if="!tournamentStarted && !showRanking && !showSavedTeamsList">
@@ -100,15 +100,25 @@
           class="rounded"
           v-if="!tournamentStarted && !showRanking">
           <h2 @click.exact="toggleSavedTeamsList" @click.ctrl="removeAllStandardTeams" class="cursor-pointer text-center text-lg text-blue-700" >
-            Bestaande teams {{ showSavedTeamsList ? "-" : "+" }}
+              <span v-if="!showSavedTeamsList">Bestaande teams &#x25BC;</span>
+              <span v-else>Bestaande teams &#x25B2;</span>  
+            <!-- Bestaande teams {{ showSavedTeamsList ? "-" : "+" }} -->
           </h2>
+          <div v-show="showSavedTeamsList" class="px-1 pb-1">
+            <input
+              ref="savedTeamsSearchRef"
+              v-model="savedTeamsSearch"
+              type="text"
+              placeholder="Zoek team..."
+              class="w-full rounded border border-blue-300 px-2 py-1 text-sm" />
+          </div>
           <ul
             v-show="showSavedTeamsList"
             class="dbl"
             v-tooltip="{ content: 'Selecteer een opgeslagen team', html: true }">
-            <li v-for="(tm, index) in savedTeams" :key="index">
+            <li v-for="(tm, index) in filteredSavedTeams" :key="`${tm}-${index}`">
               <p
-                @click.exact="getTeam(tm)"
+                @click.exact="selectSavedTeam(tm)"
                 @click.ctrl="removeStandardTeam(tm)"
                 v-longpress="() => removeStandardTeam(tm)"
                 :class="{
@@ -255,6 +265,8 @@ const selectToernooi = ref("Toernooien"); // voor de DropDown met toernooien
 const newTeam = ref(""); // voor het invulvak TeamNaam
 const toernooiTeams = ref([]); // de teams in het huidige toernooi
 const savedTeams = ref([]); // de opgeslagen teams in localStorage
+const savedTeamsSearch = ref(""); // zoektekst voor de opgeslagen teams
+const savedTeamsSearchRef = ref(null); // input ref voor focus op zoekvak
 const showSavedTeamsList = ref(false); // inklapbare lijst met bestaande teams
 const showOptions = ref(false); // boolean om opties te tonen of te verbergen
 const editMode = ref(false); // boolean om edit mode aan te geven
@@ -269,6 +281,19 @@ const tot = ref(new Date().toISOString().split("T")[0]);
 function toggleSavedTeamsList() {
   showSavedTeamsList.value = !showSavedTeamsList.value;
 }
+
+async function selectSavedTeam(tm) {
+  getTeam(tm);
+  savedTeamsSearch.value = "";
+  await nextTick();
+  savedTeamsSearchRef.value?.focus();
+}
+
+watch(showSavedTeamsList, async (isOpen) => {
+  if (!isOpen) return;
+  await nextTick();
+  savedTeamsSearchRef.value?.focus();
+});
 
 function toggleShowOptions() {
   showOptions.value = !showOptions.value;
@@ -536,6 +561,12 @@ const availableTeams = computed(() => {
   });
   //  console.log("availableTeams:", availTeams);
   return availTeams;
+});
+
+const filteredSavedTeams = computed(() => {
+  const query = savedTeamsSearch.value.trim().toLowerCase();
+  if (!query) return savedTeams.value;
+  return savedTeams.value.filter((team) => team.toLowerCase().includes(query));
 });
 
 // const isTeamDisabled = (team) => {
