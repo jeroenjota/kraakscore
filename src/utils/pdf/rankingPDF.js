@@ -28,6 +28,30 @@ function getMeeTellendeDatums(spelerRanking) {
   );
 }
 
+function getTeamCount(toernooi) {
+  if (!toernooi?.teams) return 0;
+  if (Array.isArray(toernooi.teams)) return toernooi.teams.length;
+  if (typeof toernooi.teams === 'string') {
+    try {
+      const parsed = JSON.parse(toernooi.teams);
+      return Array.isArray(parsed) ? parsed.length : 0;
+    } catch {
+      return 0;
+    }
+  }
+  return 0;
+}
+
+function formatToernooiHeader(toernooi) {
+  return niceDate(toernooi.datum);
+}
+
+function formatToernooiTeamLabel(toernooi) {
+  const aantalTeams = getTeamCount(toernooi);
+  const teamLabel = aantalTeams === 1 ? 'team' : 'teams';
+  return `(${aantalTeams} ${teamLabel})`;
+}
+
 
 export function rankingPDF(doc, ranking, toernooien, datum) {
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -51,7 +75,7 @@ export function rankingPDF(doc, ranking, toernooien, datum) {
   doc.setFontSize(10);
   doc.line(marge, 35, pageWidth - marge, 35);
   autoTable(doc, {
-    head: [["Pl", "Speler", "Gesp", ...toernooien.map(t => niceDate(t.datum)), "Beste 6"]],
+    head: [["Pl", "Speler", "Gesp", ...toernooien.map(t => formatToernooiHeader(t)), "Beste 6"]],
     body: ranking.map((r, index) => [
       toonPlaats(ranking , index),
       r.speler,
@@ -77,6 +101,10 @@ export function rankingPDF(doc, ranking, toernooien, datum) {
       // For the header row, column index 1 = "Speler"
       if (data.section === 'head' && data.column.index === 1) {
         data.cell.styles.halign = 'left';
+      }
+      if (data.section === 'head' && data.column.index >= 3 && data.column.index <= data.table.columns.length - 2) {
+        data.cell.styles.fontSize = 12;
+        data.cell.styles.minCellHeight = 12;
       }
       if (data.section === 'body') {
         const colIndex = data.column.index;
@@ -119,6 +147,26 @@ export function rankingPDF(doc, ranking, toernooien, datum) {
           data.cell.styles.fontStyle = 'bold';
         }
       }
+    },
+    didDrawCell: function (data) {
+      if (data.section !== 'head') return;
+
+      const toernooiStartCol = 3;
+      const toernooiEndCol = data.table.columns.length - 2;
+      const inToernooiKolom = data.column.index >= toernooiStartCol && data.column.index <= toernooiEndCol;
+      if (!inToernooiKolom) return;
+
+      const toernooi = toernooien[data.column.index - toernooiStartCol];
+      if (!toernooi) return;
+
+      doc.setFont("times");
+      doc.setFontSize(6);
+      doc.text(
+        formatToernooiTeamLabel(toernooi),
+        data.cell.x + data.cell.width / 2,
+        data.cell.y + data.cell.height - 0.5,
+        { align: "center", baseline: "bottom" }
+      );
     },
   });
   // centreer de tekst onder de tabel

@@ -82,15 +82,28 @@
       <!-- AANPASSING Twee kolommen met spelers om de teams uit samen te stellen -->
 
       <div class="teamlijst">
+        <!-- TODO Opties instellen -->
+         <!-- 
+        <div id="optionsForm" v-if="!tournamentStarted && !showRanking && !showSavedTeamsList">
+          <h2
+            @click="toggleShowOptions"
+            class="cursor-pointer text-center text-lg text-blue-700">
+            <span v-if="!showOptions">Toon opties</span>
+            <span v-else>Verberg opties</span>
+          </h2>
+          <Options v-if="showOptions" />
+         </div>
+         -->
         <!-- Opgeslagen team lijst -->
         <div
           id="savedTeams"
           class="rounded"
           v-if="!tournamentStarted && !showRanking">
-          <h2 @click.exact="addAll" @click.ctrl="removeAllStandardTeams" class="text-center text-lg text-blue-700" >
-            Bestaande teams
+          <h2 @click.exact="toggleSavedTeamsList" @click.ctrl="removeAllStandardTeams" class="cursor-pointer text-center text-lg text-blue-700" >
+            Bestaande teams {{ showSavedTeamsList ? "-" : "+" }}
           </h2>
           <ul
+            v-show="showSavedTeamsList"
             class="dbl"
             v-tooltip="{ content: 'Selecteer een opgeslagen team', html: true }">
             <li v-for="(tm, index) in savedTeams" :key="index">
@@ -106,32 +119,35 @@
               </p>
             </li>
           </ul>
-          <p class="text-xs">click: Meedoen, ctrl/long+click=Wissen</p>
-          <button
-            v-if="toernooiTeams.length === 0"
-            class="border-t-black bg-sky-300 px-1 py-1 text-blue-800"
-            @click="cleanDatabase"
-            v-tooltip="{
-              content:
-                'Verwijder teams die geen toernooi hebben gespeeld<br/>en spelers die niet in een team zitten ',
-              html: true,
-            }">
-            Teams opschonen
-          </button>
-          <button
-            v-if="toernooiTeams.length > 3"
-            @click="startTournament"
-            class="rounded bg-green-800 px-2 py-2 text-white"
-            style="margin-right: 2px; width: 200px"
-            :disabled="tournamentStarted"
-            v-tooltip="{
-              content:
-                'Maak het toernooischema <br/>Bij 8 teams worden willekeurig twee groepen aangemaakt',
-              html: true,
-            }">
-            Start toernooi
-          </button>
+          <div class="saved-teams-sticky-footer" v-show="showSavedTeamsList">
+            <p class="text-xs">click: Meedoen, ctrl/long+click=Wissen</p>
+            <button
+              v-if="toernooiTeams.length === 0"
+              class="border-t-black bg-sky-300 px-1 py-1 text-blue-800"
+              @click="cleanDatabase"
+              v-tooltip="{
+                content:
+                  'Verwijder teams die geen toernooi hebben gespeeld<br/>en spelers die niet in een team zitten ',
+                html: true,
+              }">
+              Teams opschonen
+            </button>
+          </div>
         </div>
+        <button
+          v-show="showSavedTeamsList"
+          v-if="toernooiTeams.length > 3"
+          @click="startTournament"
+          class="saved-teams-start-btn rounded bg-green-800 px-2 py-2 text-white"
+          style="margin-right: 2px; width: 200px"
+          :disabled="tournamentStarted"
+          v-tooltip="{
+            content:
+              'Maak het toernooischema <br/>Bij 8 teams worden willekeurig twee groepen aangemaakt',
+            html: true,
+          }">
+          Start toernooi
+        </button>
       </div>
     </div>
 
@@ -151,6 +167,7 @@ import { ref, computed, watch, onMounted, nextTick } from "vue";
 import Ranking from "./components/Ranking.vue";
 import Tournament from "./components/Tournament.vue";
 import Header from "./components/Header.vue";
+import Options from "./components/Options.vue";
 
 import SelectPlayers from "./components/SelectPlayers.vue";
 // import Pdf from './components/Pdf.vue'
@@ -238,6 +255,8 @@ const selectToernooi = ref("Toernooien"); // voor de DropDown met toernooien
 const newTeam = ref(""); // voor het invulvak TeamNaam
 const toernooiTeams = ref([]); // de teams in het huidige toernooi
 const savedTeams = ref([]); // de opgeslagen teams in localStorage
+const showSavedTeamsList = ref(false); // inklapbare lijst met bestaande teams
+const showOptions = ref(false); // boolean om opties te tonen of te verbergen
 const editMode = ref(false); // boolean om edit mode aan te geven
 const tournamentStarted = ref(false); // boolean om aan te geven of het toernooi gestart is
 const repeatRounds = ref(1); // aantal herhalingen van de rondes in het huidige toernooi
@@ -246,6 +265,14 @@ const pdfUrl = ref(null); // URL van de PDF met uitslag van het huidige toernooi
 
 const vanaf = ref(new Date().toISOString().split("T")[0]); // startdatum van de periode
 const tot = ref(new Date().toISOString().split("T")[0]);
+
+function toggleSavedTeamsList() {
+  showSavedTeamsList.value = !showSavedTeamsList.value;
+}
+
+function toggleShowOptions() {
+  showOptions.value = !showOptions.value;
+}
 
 async function bevestig(kop, vraag, type) {
   await nextTick();
