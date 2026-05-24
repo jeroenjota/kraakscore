@@ -17,6 +17,17 @@ function gespeeld(ranking, index) {
   return gespeeld || 0;
 }
 
+function getMeeTellendeDatums(spelerRanking) {
+  return new Set(
+    (spelerRanking.scores || [])
+      .map((score, index) => ({ ...score, index }))
+      .filter((score) => score.punten > 0)
+      .sort((a, b) => b.punten - a.punten || a.index - b.index)
+      .slice(0, 6)
+      .map((score) => score.datum)
+  );
+}
+
 
 export function rankingPDF(doc, ranking, toernooien, datum) {
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -66,6 +77,28 @@ export function rankingPDF(doc, ranking, toernooien, datum) {
       // For the header row, column index 1 = "Speler"
       if (data.section === 'head' && data.column.index === 1) {
         data.cell.styles.halign = 'left';
+      }
+      if (data.section === 'body') {
+        const colIndex = data.column.index;
+        const rowIndex = data.row.index;
+        const toernooiStartCol = 3;
+        const toernooiEndCol = data.table.columns.length - 2;
+        const inToernooiKolom = colIndex >= toernooiStartCol && colIndex <= toernooiEndCol;
+
+        if (inToernooiKolom) {
+          const speler = ranking[rowIndex];
+          const toernooi = toernooien[colIndex - toernooiStartCol];
+          const score = speler?.scores?.find((s) => s.datum === toernooi?.datum);
+
+          if (score && score.punten > 0) {
+            const meetellendeDatums = getMeeTellendeDatums(speler);
+            const teltMee = meetellendeDatums.has(score.datum);
+            if (teltMee) {
+              data.cell.styles.fontStyle = 'bold';
+              data.cell.styles.fontSize = 11;
+            }
+          }
+        }
       }
       if (data.section === 'body' && (data.column.index === 1 || data.column.index === 0 || data.column.index === data.table.columns.length - 1)) {
         data.cell.styles.fontSize = 14;

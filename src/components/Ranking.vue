@@ -30,7 +30,13 @@
             <span v-if="gespeeld(index) !== 0">{{ gespeeld(index) }}</span> <span v-else>-</span>
           </td>
           <td class="p-1 text-center border text-xs" v-for="res in r.scores" :key="res.datum">
-            <span v-if="res.punten !== 0">{{ res.punten }}</span> <span v-else>-</span>
+            <span
+              v-if="res.punten !== 0"
+              :class="scoreStyleClass(r, res)"
+            >
+              {{ res.punten }}
+            </span>
+            <span v-else>-</span>
           </td>
           <td class="p-1 border text-center font-bold text-blue-800"><span v-if="r.totaal !== 0">{{ r.totaal }}</span>
             <span v-else>-</span></td>
@@ -39,6 +45,7 @@
     </table>
     <p class="text-white text-center text-sm">Punten: 1e = 12; 2e = 9 ; 3e = 6; 4e = 3; 5e of meer: 1 | Beste 6 scores
       tellen</p>
+    <p class="text-white text-center text-xs">Vet + onderstreept = telt mee, doorgehaald = telt niet mee</p>
   </div>
 </template>
 
@@ -99,6 +106,24 @@ function gespeeld(index) {
     if (res.punten !== 0) gespeeld++;
   });
   return gespeeld || 0;
+}
+
+function getMeeTellendeDatums(spelerRanking) {
+  return new Set(
+    (spelerRanking.scores || [])
+      .map((score, index) => ({ ...score, index }))
+      .filter((score) => score.punten > 0)
+      .sort((a, b) => b.punten - a.punten || a.index - b.index)
+      .slice(0, 6)
+      .map((score) => score.datum)
+  );
+}
+
+function scoreStyleClass(spelerRanking, score) {
+  const meetellendeDatums = getMeeTellendeDatums(spelerRanking);
+  return meetellendeDatums.has(score.datum)
+    ? 'font-bold text-[13px]'
+    : '';
 }
 
 </script>
