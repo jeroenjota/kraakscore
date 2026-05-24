@@ -309,9 +309,16 @@ async function maakPdf(showPdf = true) {
   );
   let tnNaam = "Kraken " + niceDate(thisToernooiDatum.value, true) + ".pdf";
   tnNaam = tnNaam.replace(/\s+/g, "_").toLowerCase(); // vervang spaties door streepjes en zet om naar kleine letters
-  savePDF(doc, tnNaam);
+  const opgeslagen = await savePDF(doc, tnNaam);
+  if (!opgeslagen) return;
+
+  // Korte wachttijd zodat de browser de nieuw opgeslagen PDF direct kan vinden.
+  await new Promise((resolve) => setTimeout(resolve, 600));
+
   pdfUrl.value = getPdfUrl(thisToernooiDatum.value);
-  dbService.openPDF(tnNaam);
+  if (showPdf) {
+    dbService.openPDF(tnNaam);
+  }
 }
 
 async function cleanDatabase() {
@@ -383,11 +390,13 @@ async function savePDF(doc, tnNaam) {
         position: "top-center",
         timeout: 3000,
       });
+      return true;
     } else {
       toast.error("Fout bij het opslaan van de PDF: " + response.message, {
         position: "top-center",
         timeout: 5000,
       });
+      return false;
     }
   } catch (error) {
     console.error("Fout bij het uploaden van de PDF:", error);
@@ -395,6 +404,7 @@ async function savePDF(doc, tnNaam) {
       position: "top-center",
       timeout: 5000,
     });
+    return false;
   }
 }
 
