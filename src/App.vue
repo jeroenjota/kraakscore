@@ -100,7 +100,7 @@
           class="rounded"
           v-if="!tournamentStarted && !showRanking">
           <h2 @click.exact="toggleSavedTeamsList" @click.ctrl="removeAllStandardTeams" class="cursor-pointer text-center text-lg text-blue-700" >
-              <span v-if="!showSavedTeamsList">Bestaande teams &#x25BC;</span>
+              <span v-if="!showSavedTeamsList" v-tooltip="{ content: 'Toon opgeslagen teams', html: true }">Bestaande teams &#x25BC;</span>
               <span v-else>Bestaande teams &#x25B2;</span>  
             <!-- Bestaande teams {{ showSavedTeamsList ? "-" : "+" }} -->
           </h2>
@@ -115,7 +115,7 @@
           <ul
             v-show="showSavedTeamsList"
             class="dbl"
-            v-tooltip="{ content: 'Selecteer een opgeslagen team', html: true }">
+            >
             <li v-for="(tm, index) in filteredSavedTeams" :key="`${tm}-${index}`">
               <p
                 @click.exact="selectSavedTeam(tm)"
@@ -135,11 +135,7 @@
               v-if="toernooiTeams.length === 0"
               class="border-t-black bg-sky-300 px-1 py-1 text-blue-800"
               @click="cleanDatabase"
-              v-tooltip="{
-                content:
-                  'Verwijder teams die geen toernooi hebben gespeeld<br/>en spelers die niet in een team zitten ',
-                html: true,
-              }">
+>
               Teams opschonen
             </button>
           </div>
@@ -156,7 +152,7 @@
               'Maak het toernooischema <br/>Bij 8 teams worden willekeurig twee groepen aangemaakt',
             html: true,
           }">
-          Start toernooi
+          Start toernooi met {{ toernooiTeams.length }} teams
         </button>
       </div>
     </div>
