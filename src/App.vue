@@ -160,6 +160,8 @@
     <Tournament
       v-if="tournamentStarted"
       :initialTeams="filteredTeams"
+      :tournamentId="thisToernooiID"
+      :tournamentDate="thisToernooiDatum"
       :repeatRounds="repeatRounds"
       :edit-mode="editMode"
       :groepsToernooi="groepsToernooi"
@@ -278,8 +280,33 @@ function toggleSavedTeamsList() {
   showSavedTeamsList.value = !showSavedTeamsList.value;
 }
 
+function toIsoDate(value) {
+  if (!value) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+function logTournamentEvent(eventType, details = {}) {
+  dbService.logTournamentEvent({
+    eventType,
+    tournamentId: thisToernooiID.value ?? null,
+    tournamentDate: toIsoDate(thisToernooiDatum.value),
+    actor: 'frontend',
+    details,
+  });
+}
+
 async function selectSavedTeam(tm) {
+  const wasSelected = toernooiTeams.value.includes(cleanTeamName(tm));
   getTeam(tm);
+  const isSelected = toernooiTeams.value.includes(cleanTeamName(tm));
+  logTournamentEvent('team_selection_toggled', {
+    team: cleanTeamName(tm),
+    actionType: isSelected ? 'selected' : 'deselected',
+    wasSelected,
+    selectedCount: toernooiTeams.value.length,
+    source: 'saved_team_list',
+  });
   savedTeamsSearch.value = "";
   await nextTick();
   savedTeamsSearchRef.value?.focus();
@@ -843,6 +870,12 @@ async function saveTournamentChanges(msg = "Toernooi opgeslagen") {
         timeout: 3000,
       });
     }
+    logTournamentEvent('tournament_saved', {
+      mode: 'update',
+      teamCount: JSON.parse(localStorage.getItem('tournamentTeams') || '[]').length,
+      groepsToernooi: groepsToernooi.value || false,
+      repeatRounds: repeatRounds.value || 1,
+    });
     await getRanking();
     filterRankingByPeriod();
   }
@@ -896,6 +929,12 @@ async function saveTournament(msg = "Toernooi opslaan") {
     thisToernooiID.value = response.data.id; // sla het ID van het toernooi op
     // console.log("Toernooi opgeslagen met ID:", thisToernooiID.value)
     toernooiSaved.value = true; // toernooi is opgeslagen
+    logTournamentEvent('tournament_saved', {
+      mode: 'create',
+      teamCount: toernooi.teams.length,
+      groepsToernooi: toernooi.groepsToernooi,
+      repeatRounds: toernooi.repeatRounds,
+    });
     if (msg) {
       toast.success(msg, {
         position: "top-center",
@@ -1121,6 +1160,12 @@ async function startTournament() {
       "tournamentTeams",
       JSON.stringify(toernooiTeams.value),
     );
+    logTournamentEvent('tournament_started', {
+      teamCount: filteredTeams.value.length,
+      teams: [...filteredTeams.value],
+      groepsToernooi: groepsToernooi.value,
+      repeatRounds: repeatRounds.value,
+    });
     toast.info("Toernooi is begonnen, je kunt hier de scores invoeren.", {
       position: "top-center",
       timeout: 8000,

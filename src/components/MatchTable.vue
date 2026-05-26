@@ -1,6 +1,6 @@
 <template>
 
-  <table class="w-full rondes table" :id="matchType">
+  <table class="rondes table w-full" :id="matchType">
     <tbody>
       <tr v-for="(match, index) in matches" :key="index">
         <td style="width:9%; text-align: center;" class="border px-2"><span v-if="!matchType">T {{ match.tafel }}</span><span v-else>Pl {{ match.pl }} </span></td>
@@ -26,6 +26,7 @@
 <script setup>
 import { onMounted, ref, watchEffect } from 'vue'
 import { useInputFilters } from '../composables/useInputFilters';
+import dbService from '../services/dbServices';
 
 
 const { blokkeerLetters } = useInputFilters();
@@ -33,6 +34,22 @@ const { blokkeerLetters } = useInputFilters();
 const props = defineProps({
   matches: Array,
   teams: Array,
+  tournamentId: {
+    type: [Number, String],
+    default: null,
+  },
+  tournamentDate: {
+    type: [Date, String],
+    default: null,
+  },
+  round: {
+    type: [Number, String],
+    default: null,
+  },
+  group: {
+    type: String,
+    default: null,
+  },
   matchType: {
     type: String,
   },
@@ -69,7 +86,40 @@ function update(index) {
   // console.log("update index:", index, "scores:", scores.value)
   const { scoreL, scoreR } = scores.value[index]
   if (scoreL !== '' && scoreR !== '') {
-    emit('update-result', index, Number(scoreL), Number(scoreR))
+    const match = props.matches[index] ?? {}
+    const oldScoreL = Number(match.scoreL ?? 0)
+    const oldScoreR = Number(match.scoreR ?? 0)
+    const newScoreL = Number(scoreL)
+    const newScoreR = Number(scoreR)
+
+    let actionType = 'unchanged'
+    if (newScoreL === 0 && newScoreR === 0 && (oldScoreL !== 0 || oldScoreR !== 0)) {
+      actionType = 'clear'
+    } else if (oldScoreL === 0 && oldScoreR === 0 && (newScoreL !== 0 || newScoreR !== 0)) {
+      actionType = 'create'
+    } else if (oldScoreL !== newScoreL || oldScoreR !== newScoreR) {
+      actionType = 'update'
+    }
+
+    dbService.logScoreEntry({
+      tournamentId: props.tournamentId,
+      tournamentDate: props.tournamentDate
+        ? new Date(props.tournamentDate).toISOString()
+        : null,
+      round: props.round,
+      group: props.group,
+      matchType: props.matchType ?? 'group',
+      table: match.tafel ?? null,
+      place: match.pl ?? null,
+      teamL: match.teamL ?? null,
+      teamR: match.teamR ?? null,
+      oldScoreL,
+      oldScoreR,
+      scoreL: newScoreL,
+      scoreR: newScoreR,
+      actionType,
+    })
+    emit('update-result', index, newScoreL, newScoreR)
   }
 }
 onMounted(() => {

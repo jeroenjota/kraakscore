@@ -116,6 +116,19 @@ const dbService = {
   fetchRanking: async () =>
     await get('/ranking', {}, 'Fout bij het ophalen van ranking'),
 
+  logTournamentEvent: async (event) => {
+    try {
+      await apiClient.post('/events/log', event);
+      return { success: true };
+    } catch (error) {
+      console.warn('Event logging mislukt:', error?.message || error);
+      return { success: false, error: error?.message || 'Onbekende fout' };
+    }
+  },
+
+  logScoreEntry: async (entry) =>
+    await post('/score-entries/log', entry, {}, 'Fout bij het loggen van score entry'),
+
   /**
    * Upload een PDF
    * @param {FormData} formData
