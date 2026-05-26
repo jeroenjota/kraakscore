@@ -12,6 +12,10 @@
           <MatchTable
             :matches="groupMatches[0][index]"
             :teams="groups[0]"
+            :tournamentId="tournamentId"
+            :tournamentDate="tournamentDate"
+            :round="index + 1"
+            group="A"
             :oldToernooi="toernooiPlayed"
             :edit-mode="editMode"
             @update-result="
@@ -31,6 +35,10 @@
           <MatchTable
             :matches="groupMatches[1][index]"
             :teams="groups[1]"
+            :tournamentId="tournamentId"
+            :tournamentDate="tournamentDate"
+            :round="index + 1"
+            group="B"
             :oldToernooi="toernooiPlayed"
             :edit-mode="editMode"
             @update-result="
@@ -64,6 +72,10 @@
             :matchType="matchTypes[index]"
             :matches="[match]"
             :teams="[match.teamL, match.teamR]"
+            :tournamentId="tournamentId"
+            :tournamentDate="tournamentDate"
+            :round="'finales'"
+            group="finales"
             :oldToernooi="toernooiPlayed"
             :edit-mode="editMode"
             @update-result="(i, a, b) => updateFinalResult(index, a, b)" />
@@ -78,6 +90,10 @@
         <MatchTable
           :matches="matches[index]"
           :teams="toernooiTeams"
+          :tournamentId="tournamentId"
+          :tournamentDate="tournamentDate"
+          :round="index + 1"
+          group="single"
           :oldToernooi="toernooiPlayed"
           :edit-mode="editMode"
           @update-result="(i, a, b) => updateSingleResult(index, i, a, b)" />
@@ -101,6 +117,14 @@ const props = defineProps({
   initialTeams: {
     type: Array,
     required: true,
+  },
+  tournamentId: {
+    type: [Number, String],
+    default: null,
+  },
+  tournamentDate: {
+    type: [Date, String],
+    default: null,
   },
   repeatRounds: {
     type: Number,
