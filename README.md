@@ -18,6 +18,8 @@ The season (6 months) result will be calculated over the best 8 tournament posit
 ## Usage
 If there are old data from a previous tournament, Click [*reset*]. All tournament data can be saved to the backend API and will then be deleted in de localstorage. The saved teams/players will be available. 
 
+The frontend now targets the central Laurierboom API via the `/api/kraak` namespace.
+
 Saved tournaments can be edited (CAREFULL!), printed and deleted with the buttons in de header.
 
 For new teams or players, fill in the name(s) of the player/teams in the **Teamname** field and press enter (or click "[*OK*]" )

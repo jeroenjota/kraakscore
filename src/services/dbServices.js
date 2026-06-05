@@ -3,8 +3,32 @@
 import axios from 'axios';
 import { useToast } from 'vue-toastification'; // import toast composable
 
+function resolveApiBaseUrl() {
+  if (import.meta.env.VITE_BASE_URL_API) {
+    return String(import.meta.env.VITE_BASE_URL_API).replace(/\/$/, '');
+  }
+
+  if (typeof window === 'undefined') {
+    return '';
+  }
+
+  return `${window.location.protocol}//${window.location.hostname}:54321/api/kraak`;
+}
+
+function resolveUploadsBaseUrl() {
+  if (import.meta.env.VITE_UPLOADS_URL) {
+    return String(import.meta.env.VITE_UPLOADS_URL).replace(/\/$/, '');
+  }
+
+  if (typeof window === 'undefined') {
+    return '';
+  }
+
+  return `${window.location.protocol}//${window.location.hostname}:54321/api/kraak`;
+}
+
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_BASE_URL_API,
+  baseURL: resolveApiBaseUrl(),
   timeout: 5000,
 });
 
@@ -168,7 +192,7 @@ const dbService = {
    */
   openPDF: (filename) => {
 
-    const BASE_PATH = import.meta.env.VITE_UPLOADS_URL || '/';
+    const BASE_PATH = resolveUploadsBaseUrl() || '/';
 
     window.open(`${BASE_PATH}/pdfs/${encodeURIComponent(filename)}`, '_blank');
   }
