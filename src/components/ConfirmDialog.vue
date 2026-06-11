@@ -10,7 +10,17 @@
           {{ iconHtml }}
         </div>
       </div>
-      <div class="flex justify-end gap-3">
+      <div v-if="actions.length > 0" class="flex flex-col gap-2">
+        <button
+          v-for="action in actions"
+          :key="action.value"
+          class="px-4 py-2 rounded-lg transition"
+          :class="action.className || 'bg-blue-600 text-white hover:bg-blue-700'"
+          @click="selectAction(action.value)">
+          {{ action.label }}
+        </button>
+      </div>
+      <div v-else class="flex justify-end gap-3">
         <button
           class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
           @click="cancel">
@@ -34,6 +44,7 @@ const title = ref("");
 const message = ref("");
 const confirmButtonText = ref("OK");
 const cancelButtonText = ref("Annuleren");
+const actions = ref([]);
 const icon = ref(null); // type of icon, bv 'warning', 'info', 'success', 'error'
 
 let resolver = null;
@@ -43,6 +54,7 @@ function open(options) {
   message.value = options.message || "";
   confirmButtonText.value = options.confirmButtonText || "OK";
   cancelButtonText.value = options.cancelButtonText || "Annuleren";
+  actions.value = Array.isArray(options.actions) ? options.actions : [];
   icon.value = options.icon || null;
   visible.value = true;
 
@@ -54,6 +66,12 @@ function open(options) {
 function confirmAction() {
   visible.value = false;
   if (resolver) resolver(true);
+  resolver = null;
+}
+
+function selectAction(value) {
+  visible.value = false;
+  if (resolver) resolver(value);
   resolver = null;
 }
 

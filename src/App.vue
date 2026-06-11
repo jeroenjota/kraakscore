@@ -6,6 +6,7 @@
     <Header
       :thisToernooiID="thisToernooiID"
       :tournamentStarted="tournamentStarted"
+      :canUndoTournamentStart="canUndoTournamentStart"
       :serverAvailable="serverAvailable"
       :showRanking="showRanking"
       v-model:currentSemester="currentSemester"
@@ -24,6 +25,7 @@
       @toggleEditMode="toggleEditMode"
       @saveTournamentChanges="saveTournamentChanges"
       @removeTournament="removeTournament"
+      @undoTournamentStart="undoTournamentStart"
       @sluitToernooi="sluitToernooi"
       @maakPdf="maakPdf"
     />
@@ -270,8 +272,15 @@ const showOptions = ref(false); // boolean om opties te tonen of te verbergen
 const editMode = ref(false); // boolean om edit mode aan te geven
 const tournamentStarted = ref(false); // boolean om aan te geven of het toernooi gestart is
 const repeatRounds = ref(1); // aantal herhalingen van de rondes in het huidige toernooi
+const startUndoSnapshot = ref(null); // snapshot om toernooistart ongedaan te maken
 
 const pdfUrl = ref(null); // URL van de PDF met uitslag van het huidige toernooi
+
+const canUndoTournamentStart = computed(
+  () =>
+    tournamentStarted.value &&
+    !!startUndoSnapshot.value,
+);
 
 const vanaf = ref(new Date().toISOString().split("T")[0]); // startdatum van de periode
 const tot = ref(new Date().toISOString().split("T")[0]);
@@ -322,7 +331,7 @@ function toggleShowOptions() {
   showOptions.value = !showOptions.value;
 }
 
-async function bevestig(kop, vraag, type) {
+async function bevestig(kop, vraag, type, extra = {}) {
   await nextTick();
   // console.log("dialog:", dialog.value);
 
@@ -337,6 +346,7 @@ async function bevestig(kop, vraag, type) {
     confirmButtonText: "Ja",
     cancelButtonText: "Nee",
     icon: type || null,
+    ...extra,
   });
   // console.log('Bevestiging:', bevestigd)
   return bevestigd;
@@ -354,6 +364,14 @@ function setPeriode() {
 
 async function maakPdf(showPdf = true) {
   // console.log("PDF maken voor toernooi:", thisToernooiID.value, "Datum:", thisToernooiDatum.value)
+  if (!allMatchesPlayed()) {
+    toast.warning("De PDF kan pas gemaakt worden als alle wedstrijden minimaal een score hebben.", {
+      position: "top-center",
+      timeout: 5000,
+    });
+    return false;
+  }
+
   const pdfFileName = getPdfFileName(thisToernooiDatum.value);
   if (await dbService.pdfExists(pdfFileName)) {
     pdfUrl.value = getPdfUrl(thisToernooiDatum.value);
@@ -391,8 +409,17 @@ async function maakPdf(showPdf = true) {
 
   pdfUrl.value = getPdfUrl(thisToernooiDatum.value);
   if (showPdf) {
-    dbService.openPDF(tnNaam);
+    const openPdfNow = await bevestig(
+      "PDF opgeslagen",
+      "De PDF is opgeslagen. Wil je deze nu openen?",
+      "question",
+    );
+    if (openPdfNow) {
+      dbService.openPDF(tnNaam);
+    }
   }
+
+  return true;
 }
 
 async function refreshRankingDataForPdf(maxAttempts = 4, delayMs = 300) {
@@ -480,9 +507,9 @@ async function savePDF(doc, tnNaam) {
   try {
     const response = await dbService.uploadPDF(formData);
     if (response.success) {
-      toast.success("PDF succesvol opgeslagen op de server!", {
+      toast.success("PDF opgeslagen", {
         position: "top-center",
-        timeout: 3000,
+        timeout: 2000,
       });
       return true;
     } else {
@@ -693,15 +720,110 @@ function removeTeamsFromToernooi() {
   toernooiTeams.value = [];
 }
 
+function hasAnyEnteredScore() {
+  const parseMatches = (key) => {
+    try {
+      return JSON.parse(localStorage.getItem(key) || "null");
+    } catch {
+      return null;
+    }
+  };
+
+  const hasNonZeroScore = (match) =>
+    Number(match?.scoreL ?? 0) !== 0 || Number(match?.scoreR ?? 0) !== 0;
+
+  const singleMatches = parseMatches("tournamentMatches") || [];
+  if (
+    Array.isArray(singleMatches) &&
+    singleMatches.some(
+      (round) => Array.isArray(round) && round.some((match) => hasNonZeroScore(match)),
+    )
+  ) {
+    return true;
+  }
+
+  const groupMatches = parseMatches("tournamentGroupMatches") || [];
+  if (
+    Array.isArray(groupMatches) &&
+    groupMatches.some(
+      (group) =>
+        Array.isArray(group) &&
+        group.some(
+          (round) => Array.isArray(round) && round.some((match) => hasNonZeroScore(match)),
+        ),
+    )
+  ) {
+    return true;
+  }
+
+  const finalMatches = parseMatches("tournamentFinalMatches") || [];
+  if (Array.isArray(finalMatches) && finalMatches.some((match) => hasNonZeroScore(match))) {
+    return true;
+  }
+
+  return false;
+}
+
+async function undoTournamentStart() {
+  if (!startUndoSnapshot.value) return;
+
+  if (hasAnyEnteredScore()) {
+    const ok = await bevestig(
+      "Toernooistart ongedaan maken",
+      "Er zijn al scores ingevuld. Bij ongedaan maken raak je dit schema en de scores kwijt. Doorgaan?",
+      "warning",
+    );
+    if (!ok) return;
+  }
+
+  const snapshot = startUndoSnapshot.value;
+
+  // Bij automatische save direct na start bestaat er al een nieuw toernooi-ID.
+  // Dat tijdelijke toernooi verwijderen we weer als de start wordt teruggedraaid.
+  if (thisToernooiID.value && serverAvailable.value) {
+    try {
+      await dbService.deleteToernooi(thisToernooiID.value);
+    } catch (error) {
+      toast.error("Undo start mislukt: kon gestart toernooi niet verwijderen.", {
+        position: "top-center",
+        timeout: 2000,
+      });
+      return;
+    }
+  }
+
+  thisToernooiID.value = null;
+  selectToernooi.value = "Toernooien";
+  tournamentStarted.value = false;
+  editMode.value = false;
+  groepsToernooi.value = false;
+  toernooiTeams.value = [...snapshot.teams];
+  repeatRounds.value = snapshot.repeatRounds;
+  thisToernooiDatum.value = snapshot.toernooiDatum;
+
+  resetLocalStorage(false);
+  localStorage.setItem("tournamentTeams", JSON.stringify(snapshot.teams));
+  window.dispatchEvent(new Event("storage"));
+  scoresEntered.value = false;
+  startUndoSnapshot.value = null;
+
+  toast.info("Toernooistart is ongedaan gemaakt. Je kunt teams nu aanpassen.", {
+    position: "top-center",
+    timeout: 3000,
+  });
+}
+
 async function resetApp() {
   // reset de app naar de begin staat
   selectToernooi.value = "Toernooien";
   thisToernooiID.value = null;
   thisToernooiDatum.value = new Date();
+  repeatRounds.value = 1;
   tournamentStarted.value = false;
   toernooiTeams.value = [];
   newTeam.value = "";
   editMode.value = false;
+  startUndoSnapshot.value = null;
   resetLocalStorage(true);
   await getSavedToernooien();
   await getSavedTeamsFromApi();
@@ -728,7 +850,7 @@ async function sluitToernooi() {
       if (scoresEntered.value && !allMatchesPlayed()) {
         const ok = await bevestig(
           "Niet alle wedstrijden gespeeld",
-          "Niet alle wedstrijden zijn gespeeld. Weet je zeker dat je het toernooi wilt opslaan?",
+          "Niet alle wedstrijden zijn gespeeld. Weet je zeker dat je het toernooi wilt opslaan? De PDF wordt pas gemaakt als alle wedstrijden minimaal een score hebben.",
           "warning",
         );
         if (!ok) {
@@ -736,7 +858,9 @@ async function sluitToernooi() {
         }
       }
       await saveTournament();
-      await maakPdf();
+      if (allMatchesPlayed()) {
+        await maakPdf();
+      }
       resetApp();
       //      //      //      console.log("Toernooi opgeslagen, nu Ranking ophalen.");
       // await filterToernooien();
@@ -749,7 +873,9 @@ async function sluitToernooi() {
         // als we in edit mode zijn, dan eerst opslaan
         await saveTournamentChanges("Toernooi opgeslagen.");
         await getRanking();
-        await maakPdf(editMode);
+        if (allMatchesPlayed()) {
+          await maakPdf(editMode);
+        }
       }
       resetApp();
     }
@@ -794,6 +920,7 @@ async function selectTournament(tn) {
 
   pdfUrl.value = getPdfUrl(thisToernooiDatum.value);
   toernooiSaved.value = true;
+  startUndoSnapshot.value = null;
   // toernooi is geladen, dus opgeslagen
   //  console.log("Datum van het toernooi:", thisToernooiDatum.value);
 }
@@ -849,7 +976,7 @@ async function standardTeamsToApi(msg) {
     if (msg) {
       toast.success(msg, {
         position: "top-center",
-        timeout: 3000,
+        timeout: 2000,
       });
     }
   } catch (error) {
@@ -857,7 +984,7 @@ async function standardTeamsToApi(msg) {
       "Fout bij het opslaan van standaard teams: " + error.message,
       {
         position: "top-center",
-        timeout: 3000,
+        timeout: 2000,
       },
     );
     console.error("Fout bij het opslaan van standaard teams:", error);
@@ -883,7 +1010,7 @@ async function saveTournamentChanges(msg = "Toernooi opgeslagen") {
     if (msg) {
       toast.success(msg, {
         position: "top-center",
-        timeout: 3000,
+        timeout: 2000,
       });
     }
     logTournamentEvent('tournament_saved', {
@@ -897,7 +1024,7 @@ async function saveTournamentChanges(msg = "Toernooi opgeslagen") {
   }
 }
 
-async function saveTournament(msg = "Toernooi opslaan") {
+async function saveTournament(msg = "") {
   if (!serverAvailable.value) {
     //    //    console.log("Server niet beschikbaar, kan toernooi niet opslaan.");
     toast.warning("Server niet beschikbaar, kan toernooi niet opslaan.", {
@@ -913,21 +1040,22 @@ async function saveTournament(msg = "Toernooi opslaan") {
     await saveTournamentChanges(msg);
     return;
   }
-  thisToernooiDatum.value = new Date().toISOString().split("T")[0];
+  thisToernooiDatum.value = thisToernooiDatum.value || new Date();
+  const savedDate = stripTime(thisToernooiDatum.value);
   const tnTeams = localStorage.getItem("tournamentTeams");
   const matches = localStorage.getItem("tournamentMatches");
   const groups = localStorage.getItem("tournamentGroups");
   const groupMatches = localStorage.getItem("tournamentGroupMatches");
   const finalMatches = localStorage.getItem("tournamentFinalMatches");
   // stel pdf naam samen (zonder path)
-  const pdfNaam = ("Kraken " + niceDate(thisToernooiDatum.value, true) + ".pdf")
+  const pdfNaam = ("Kraken " + niceDate(savedDate, true) + ".pdf")
     .replace(/\s+/g, "_")
     .toLowerCase();
 
   //  console.log("saveToApi tournamentTeams:", tnTeams, "groups:", groups, "groupMatches:", groupMatches, "finalMatches:", finalMatches)
 
   const toernooi = {
-    datum: thisToernooiDatum.value,
+    datum: savedDate,
     teams: tnTeams ? JSON.parse(tnTeams) : [],
     matches: matches ? JSON.parse(matches) : [],
     groups: groups ? JSON.parse(groups) : [],
@@ -954,14 +1082,14 @@ async function saveTournament(msg = "Toernooi opslaan") {
     if (msg) {
       toast.success(msg, {
         position: "top-center",
-        timeout: 3000,
+        timeout: 2000,
       });
     }
   } catch (error) {
     console.error("Fout bij het opslaan van toernooi:", error);
     toast.error("Fout bij het opslaan van toernooi: " + error.message, {
       position: "top-center",
-      timeout: 3000,
+      timeout: 2000,
     });
     return;
   }
@@ -997,7 +1125,7 @@ async function removeTournament(tn) {
   resetApp();
   toast.success(`Toernooi op ${niceDate(tn.datum)} is verwijderd.`, {
     position: "top-center",
-    timeout: 3000,
+    timeout: 2000,
   });
 }
 
@@ -1117,29 +1245,50 @@ watch(filteredTeams, (newTeams) => {
 
 async function startTournament() {
   if (filteredTeams.value.length >= 4) {
-    // // controleer of er al een toernooi is voor deze datum
-    const nu = new Date(Date.now()).toISOString().split("T")[0];
-    const response = await dbService.getToernooiIdByDate(nu);
-    const tnID = response.data;
-    if (tnID) {
-      const ok = await bevestig(
+    const selectedDate = stripTime(thisToernooiDatum.value || new Date());
+    const response = await dbService.getToernooiIdByDate(selectedDate);
+    const existingTournamentId = response?.data?.id ?? null;
+    if (existingTournamentId) {
+      const action = await bevestig(
         "Toernooi bestaat al",
-        "Een toernooi op deze datum bestaat al, wil je deze overschrijven?",
+        "Er bestaat al een toernooi op deze datum. Wat wil je doen?",
         "warning",
+        {
+          actions: [
+            {
+              label: "Overschrijven en verwijderen",
+              value: "overwrite",
+              className: "bg-red-600 text-white hover:bg-red-700",
+            },
+            {
+              label: "Openen voor aanpassingen",
+              value: "open",
+              className: "bg-blue-600 text-white hover:bg-blue-700",
+            },
+            {
+              label: "Annuleren",
+              value: "cancel",
+              className: "bg-gray-200 text-gray-700 hover:bg-gray-300",
+            },
+          ],
+        },
       );
-      if (ok) {
+      if (action === "overwrite") {
         // oude gegevens verwijderen
         resetLocalStorage(false); // reset de data in localStorage (just to be sure), maar niet de geselecteerde teams
         // verwijder het oude toernooi
-        await dbService.deleteToernooi(tnID);
+        await dbService.deleteToernooi(existingTournamentId);
         thisToernooiID.value = null; // reset toernooi ID
         selectToernooi.value = "Toernooien";
+      } else if (action === "open") {
+        await selectTournament(existingTournamentId);
+        editMode.value = true;
+        toast.info("Bestaand toernooi geopend voor aanpassingen.", {
+          position: "top-center",
+          timeout: 3000,
+        });
+        return;
       } else {
-        // geen nieuw toernooi starten
-        // laad dit toernooi opnieuw
-        // toernooi.value = nu
-        selectTournament(tnID);
-        //        //        //        //        //        console.log("Toernooi niet gestart, terug naar het toernooi:", tnID);
         return;
       }
     }
@@ -1156,6 +1305,18 @@ async function startTournament() {
       );
     }
     if (groepsToernooi.value) repeatRounds.value = 1; // bij groepsfase altijd 1 ronde, anders wordt het te veel
+
+    if (!groepsToernooi.value && filteredTeams.value.length === 4 && repeatRounds.value === 1) {
+      const lieverTweeRondes = await bevestig(
+        "Vier teams",
+        "Er zijn precies 4 teams. Wil je liever 2 rondes spelen?",
+        "question",
+      );
+      if (lieverTweeRondes) {
+        repeatRounds.value = 2;
+      }
+    }
+
     let rndTxt = "ronde";
     if (repeatRounds.value > 1) rndTxt = "rondes";
     let msg = `Het schema wordt gemaakt voor ${repeatRounds.value} ${rndTxt} \nmet ${filteredTeams.value.length} teams`;
@@ -1167,7 +1328,11 @@ async function startTournament() {
     if (!ok) {
       return; // afbreken
     }
-    thisToernooiDatum.value = null;
+    startUndoSnapshot.value = {
+      teams: [...toernooiTeams.value],
+      repeatRounds: repeatRounds.value,
+      toernooiDatum: selectedDate,
+    };
     tournamentStarted.value = true;
     editMode.value = true;
     // sla de toernooiTeams op in localStorage
@@ -1182,9 +1347,9 @@ async function startTournament() {
       groepsToernooi: groepsToernooi.value,
       repeatRounds: repeatRounds.value,
     });
-    toast.info("Toernooi is begonnen, je kunt hier de scores invoeren.", {
+    toast.info("Toernooi is begonnen.", {
       position: "top-center",
-      timeout: 8000,
+      timeout: 2000,
     });
   } else {
     alert("Voer minimaal 4 teams in voor een toernooi.");

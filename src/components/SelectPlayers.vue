@@ -103,18 +103,50 @@ const props = defineProps({
   },
   toernooiDatum: {
     type: [String, Date],
-    default: () => new Date().toISOString().split("T")[0],
+    default: () => {
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      return `${yyyy}-${mm}-${dd}`;
+    },
   },
 });
 
 const emit = defineEmits(["addTeam", "update:toernooiDatum"]);
 
+function toInputDate(value) {
+  if (!value) {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  // Als de waarde al een datumstring is, direct gebruiken.
+  if (typeof value === "string") {
+    const match = value.match(/^\d{4}-\d{2}-\d{2}/);
+    if (match) return match[0];
+  }
+
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) {
+    const fallback = new Date();
+    const yyyy = fallback.getFullYear();
+    const mm = String(fallback.getMonth() + 1).padStart(2, "0");
+    const dd = String(fallback.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 const localDatum = computed({
-  get: () => {
-    const d = props.toernooiDatum;
-    if (!d) return new Date().toISOString().split("T")[0];
-    return new Date(d).toISOString().split("T")[0];
-  },
+  get: () => toInputDate(props.toernooiDatum),
   set: (val) => emit("update:toernooiDatum", val),
 });
 const newPlayerName = ref("");

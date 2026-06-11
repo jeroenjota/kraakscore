@@ -1,5 +1,21 @@
 <template>
   <div id="tournament">
+    <div class="mb-2 flex justify-end" v-if="editMode">
+      <button
+        class="mr-2 rounded bg-sky-600 px-3 py-1 text-sm text-white disabled:cursor-not-allowed disabled:bg-sky-200"
+        :disabled="!canRedoScore"
+        @click="redoLastScoreChange"
+        v-tooltip="'Herstel de laatst ongedaan gemaakte scorewijziging'">
+        Redo score
+      </button>
+      <button
+        class="rounded bg-orange-500 px-3 py-1 text-sm text-white disabled:cursor-not-allowed disabled:bg-orange-200"
+        :disabled="!canUndoScore"
+        @click="undoLastScoreChange"
+        v-tooltip="'Maak de laatste scorewijziging ongedaan'">
+        Undo score
+      </button>
+    </div>
     <div v-if="groups.length === 2">
       <div class="schema">
         <div v-for="(ronde, index) in groupMatches[0]" :key="index">
@@ -107,7 +123,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import MatchTable from "./MatchTable.vue";
 import GroupStandings from "./GroupStandings.vue";
 
@@ -150,6 +166,9 @@ const matches = ref([]);
 const repeatRounds = ref(props.repeatRounds);
 const groups = ref([]);
 const groupMatches = ref([]);
+const scoreUndoStack = ref([]);
+const scoreRedoStack = ref([]);
+const isApplyingUndo = ref(false);
 const finalMatches = ref([
   { tafel: 1, teamL: null, teamR: null, scoreL: null, scoreR: null, pl: 1 }, // finale
   { tafel: 2, teamL: null, teamR: null, scoreL: null, scoreR: null, pl: 3 }, // 3e plaats
@@ -243,8 +262,27 @@ function generateMatches(tms, grp) {
 
 function updateGroupResult(groupIndex, matchIndex, tableIndex, scoreL, scoreR) {
   // console.log("index:", groupIndex, matchIndex, tableIndex, scoreL, scoreR)
-  groupMatches.value[groupIndex][matchIndex][tableIndex].scoreL = scoreL;
-  groupMatches.value[groupIndex][matchIndex][tableIndex].scoreR = scoreR;
+  const current = groupMatches.value[groupIndex][matchIndex][tableIndex];
+  const oldScoreL = Number(current.scoreL ?? 0);
+  const oldScoreR = Number(current.scoreR ?? 0);
+  const newScoreL = Number(scoreL);
+  const newScoreR = Number(scoreR);
+
+  if (oldScoreL === newScoreL && oldScoreR === newScoreR) return;
+
+  pushScoreUndo({
+    type: "group",
+    groupIndex,
+    matchIndex,
+    tableIndex,
+    oldScoreL,
+    oldScoreR,
+    newScoreL,
+    newScoreR,
+  });
+
+  current.scoreL = newScoreL;
+  current.scoreR = newScoreR;
   // console.log("groupMatches.value:",groupMatches.value[0][0][0])
   localStorage.setItem(
     "tournamentGroupMatches",
@@ -259,8 +297,26 @@ function updateGroupResult(groupIndex, matchIndex, tableIndex, scoreL, scoreR) {
 
 function updateSingleResult(ronde, table, scoreL, scoreR) {
   // console.log("updateSingleResult", ronde, table, scoreL, scoreR)
-  matches.value[ronde][table].scoreL = scoreL;
-  matches.value[ronde][table].scoreR = scoreR;
+  const current = matches.value[ronde][table];
+  const oldScoreL = Number(current.scoreL ?? 0);
+  const oldScoreR = Number(current.scoreR ?? 0);
+  const newScoreL = Number(scoreL);
+  const newScoreR = Number(scoreR);
+
+  if (oldScoreL === newScoreL && oldScoreR === newScoreR) return;
+
+  pushScoreUndo({
+    type: "single",
+    ronde,
+    table,
+    oldScoreL,
+    oldScoreR,
+    newScoreL,
+    newScoreR,
+  });
+
+  current.scoreL = newScoreL;
+  current.scoreR = newScoreR;
   localStorage.setItem("tournamentMatches", JSON.stringify(matches.value));
 
   // console.log("Score updated")
@@ -269,10 +325,97 @@ function updateSingleResult(ronde, table, scoreL, scoreR) {
 }
 
 function updateFinalResult(index, scoreL, scoreR) {
-  finalMatches.value[index].scoreL = scoreL;
-  finalMatches.value[index].scoreR = scoreR;
+  const current = finalMatches.value[index];
+  const oldScoreL = Number(current.scoreL ?? 0);
+  const oldScoreR = Number(current.scoreR ?? 0);
+  const newScoreL = Number(scoreL);
+  const newScoreR = Number(scoreR);
+
+  if (oldScoreL === newScoreL && oldScoreR === newScoreR) return;
+
+  pushScoreUndo({
+    type: "final",
+    index,
+    oldScoreL,
+    oldScoreR,
+    newScoreL,
+    newScoreR,
+  });
+
+  current.scoreL = newScoreL;
+  current.scoreR = newScoreR;
   // console.log("finalMatches.value:", finalMatches.value);
   saveToLocalStorage();
+}
+
+const canUndoScore = computed(() => scoreUndoStack.value.length > 0);
+const canRedoScore = computed(() => scoreRedoStack.value.length > 0);
+
+function pushScoreUndo(entry) {
+  if (isApplyingUndo.value) return;
+  scoreUndoStack.value.push(entry);
+  scoreRedoStack.value = [];
+  if (scoreUndoStack.value.length > 250) {
+    scoreUndoStack.value.shift();
+  }
+}
+
+function applyScoreChange(change, useOldScores) {
+  const scoreL = useOldScores ? change.oldScoreL : change.newScoreL;
+  const scoreR = useOldScores ? change.oldScoreR : change.newScoreR;
+
+  if (change.type === "single") {
+    matches.value[change.ronde][change.table].scoreL = scoreL;
+    matches.value[change.ronde][change.table].scoreR = scoreR;
+    localStorage.setItem("tournamentMatches", JSON.stringify(matches.value));
+    window.dispatchEvent(new Event("storage"));
+    return;
+  }
+
+  if (change.type === "group") {
+    groupMatches.value[change.groupIndex][change.matchIndex][change.tableIndex].scoreL = scoreL;
+    groupMatches.value[change.groupIndex][change.matchIndex][change.tableIndex].scoreR = scoreR;
+    localStorage.setItem(
+      "tournamentGroupMatches",
+      JSON.stringify(groupMatches.value),
+    );
+    window.dispatchEvent(new Event("storage"));
+    saveToLocalStorage();
+    updateFinalists();
+    return;
+  }
+
+  if (change.type === "final") {
+    finalMatches.value[change.index].scoreL = scoreL;
+    finalMatches.value[change.index].scoreR = scoreR;
+    saveToLocalStorage();
+  }
+}
+
+function undoLastScoreChange() {
+  const lastChange = scoreUndoStack.value.pop();
+  if (!lastChange) return;
+
+  isApplyingUndo.value = true;
+  applyScoreChange(lastChange, true);
+  scoreRedoStack.value.push(lastChange);
+  if (scoreRedoStack.value.length > 250) {
+    scoreRedoStack.value.shift();
+  }
+  isApplyingUndo.value = false;
+}
+
+function redoLastScoreChange() {
+  const lastUndoneChange = scoreRedoStack.value.pop();
+  if (!lastUndoneChange) return;
+
+  isApplyingUndo.value = true;
+  applyScoreChange(lastUndoneChange, false);
+  scoreUndoStack.value.push(lastUndoneChange);
+  if (scoreUndoStack.value.length > 250) {
+    scoreUndoStack.value.shift();
+  }
+  isApplyingUndo.value = false;
 }
 
 function calculateStandings(teamsList, matchesList) {
@@ -434,6 +577,8 @@ function loadFromLocalStorage() {
 
 
 onMounted(() => {
+  scoreUndoStack.value = [];
+  scoreRedoStack.value = [];
   if (!props.toernooiPlayed) {
 // console.log("Nieuw toernooi, genereer schema")
     localStorage.clear();

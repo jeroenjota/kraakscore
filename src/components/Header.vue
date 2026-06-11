@@ -91,6 +91,13 @@
         </button>
       </div>
       <div class="knoppen flex justify-center" v-if="tournamentStarted">
+        <button
+          v-if="canUndoTournamentStart"
+          @click="$emit('undoTournamentStart')"
+          class="btn bg-orange-500 text-white"
+          v-tooltip="'Ga terug naar teamkeuze'">
+          Terug
+        </button>
         <button @click="$emit('sluitToernooi')" class="btn bg-yellow-300 text-red-800">
           <span
             v-if="thisToernooiID || !scoresEntered"
@@ -143,6 +150,7 @@ import {
 const props = defineProps({
   thisToernooiID: [Number, String, null],
   tournamentStarted: Boolean,
+  canUndoTournamentStart: Boolean,
   serverAvailable: Boolean,
   showRanking: Boolean,
   currentSemester: String,
@@ -164,6 +172,7 @@ const emit = defineEmits([
   "toggleEditMode",
   "saveTournamentChanges",
   "removeTournament",
+  "undoTournamentStart",
   "sluitToernooi",
   "maakPdf",
   "update:currentSemester",
