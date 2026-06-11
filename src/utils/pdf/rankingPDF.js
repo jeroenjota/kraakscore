@@ -75,12 +75,12 @@ export function rankingPDF(doc, ranking, toernooien, datum) {
   doc.setFontSize(10);
   doc.line(marge, 35, pageWidth - marge, 35);
   autoTable(doc, {
-    head: [["Pl", "Speler", "Gesp", ...toernooien.map(t => formatToernooiHeader(t)), "Beste 6"]],
+    head: [["Pl", "Speler", "Gesp", ...toernooien.map(t => formatToernooiHeader(t)),"Gem", "Beste 6"]],
     body: ranking.map((r, index) => [
       toonPlaats(ranking , index),
       r.speler,
       gespeeld(ranking, index),
-      ...toernooien.map(t => r.scores.find(s => s.datum === t.datum)?.punten || "-"),
+      ...toernooien.map(t => r.scores.find(s => s.datum === t.datum)?.punten || "-"), (r.totaal/gespeeld(ranking, index)).toFixed(2),
       r.totaal || "-"
     ]),
     theme: "striped",
@@ -92,10 +92,10 @@ export function rankingPDF(doc, ranking, toernooien, datum) {
       halign: "center",
       valign: "bottom"
     },
-    styles: { font: "times", fontSize: 10, halign: "center", cellWidth: "auto" },
+    styles: { font: "times", fontSize: 10, halign: "center", cellWidth: "auto" , valign: "middle"},
 
     columnStyles: {
-      1: { cellWidth: 25, halign: "left", valign: "middle" },
+      1: { cellWidth: 20, halign: "left", valign: "middle" },
     },
     didParseCell: function (data) {
       // For the header row, column index 1 = "Speler"

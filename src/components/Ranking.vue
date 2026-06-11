@@ -20,6 +20,7 @@
             <span class="block">{{ niceDate(tn.datum) }}</span>
             <span class="block" style="font-size: 6pt; line-height: 1;">{{ formatToernooiTeamLabel(tn) }}</span>
           </th>
+          <th class="border p-0 text-center font-normal">Gem</th>
           <th class="border p-0 text-center font-normal">Beste 6</th>
 
         </tr>
@@ -38,6 +39,19 @@
             >
               {{ res.punten }}
             </span>
+            <span v-else>-</span>
+          </td>
+          <td class="border p-1 text-center text-xs text-blue-600">
+            <template v-if="gespeeld(index) !== 0">
+              <span v-if="!getGemiddeldeDelen(r, index).heeftBreuk">{{ getGemiddeldeDelen(r, index).geheel }}</span>
+              <span v-else class="gem-value">
+                <span v-if="getGemiddeldeDelen(r, index).geheel > 0" class="gem-whole">{{ getGemiddeldeDelen(r, index).geheel }}</span>
+                <span class="gem-frac" aria-label="Breuk">
+                  <span class="gem-num">{{ getGemiddeldeDelen(r, index).teller }}</span>
+                  <span class="gem-den">{{ getGemiddeldeDelen(r, index).noemer }}</span>
+                </span>
+              </span>
+            </template>
             <span v-else>-</span>
           </td>
           <td class="border p-1 text-center font-bold text-blue-800"><span v-if="r.totaal !== 0">{{ r.totaal }}</span>
@@ -110,6 +124,41 @@ function gespeeld(index) {
   return gespeeld || 0;
 }
 
+function getGemiddeldeDelen(spelerRanking, index) {
+  const aantalGespeeld = gespeeld(index);
+  if (!aantalGespeeld) return null;
+
+  const totaal = spelerRanking.totaal || 0;
+  const geheel = Math.floor(totaal / aantalGespeeld);
+  const rest = totaal % aantalGespeeld;
+  if (rest === 0) {
+    return {
+      geheel,
+      teller: 0,
+      noemer: 1,
+      heeftBreuk: false,
+    };
+  }
+
+  const gcd = (a, b) => {
+    while (b !== 0) {
+      [a, b] = [b, a % b];
+    }
+    return a;
+  };
+
+  const deler = gcd(rest, aantalGespeeld);
+  const teller = rest / deler;
+  const noemer = aantalGespeeld / deler;
+
+  return {
+    geheel,
+    teller,
+    noemer,
+    heeftBreuk: true,
+  };
+}
+
 function getTeamCount(toernooi) {
   if (!toernooi?.teams) return 0;
   if (Array.isArray(toernooi.teams)) return toernooi.teams.length;
@@ -148,4 +197,38 @@ function scoreStyleClass(spelerRanking, score) {
     : '';
 }
 
-</script>
+ </script>
+
+<style scoped>
+.gem-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.gem-whole {
+  font-size: 0.95em;
+  line-height: 1;
+}
+
+.gem-frac {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  min-width: 12px;
+}
+
+.gem-num,
+.gem-den {
+  display: block;
+  font-size: 0.7em;
+  line-height: 1;
+}
+
+.gem-den {
+  border-top: 1px solid currentColor;
+  margin-top: 1px;
+  padding-top: 1px;
+}
+</style>

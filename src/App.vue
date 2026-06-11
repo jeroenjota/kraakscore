@@ -369,12 +369,11 @@ async function maakPdf(showPdf = true) {
       return; // PDF bestaat al, dus niets meer doen
     }
   }
-  filterToernooien();
-  filterRankingByPeriod();
+  await refreshRankingDataForPdf();
 
   const datum = thisToernooiDatum.value || new Date();
   const doc = new jsPDF();
-  uitslagPDF(doc, datum, groepsToernooi.value);
+  await uitslagPDF(doc, datum, groepsToernooi.value);
   doc.addPage();
   rankingPDF(
     doc,
@@ -393,6 +392,26 @@ async function maakPdf(showPdf = true) {
   pdfUrl.value = getPdfUrl(thisToernooiDatum.value);
   if (showPdf) {
     dbService.openPDF(tnNaam);
+  }
+}
+
+async function refreshRankingDataForPdf(maxAttempts = 4, delayMs = 300) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    await getSavedToernooien();
+    await getRanking();
+    await filterToernooien();
+    await filterRankingByPeriod();
+
+    const hasCurrentTournament = toernooien.value.some((tn) => {
+      if (thisToernooiID.value && tn.id === thisToernooiID.value) return true;
+      return stripTime(tn.datum) === stripTime(thisToernooiDatum.value);
+    });
+
+    if (hasCurrentTournament || attempt === maxAttempts) {
+      return;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
   }
 }
 
@@ -717,9 +736,6 @@ async function sluitToernooi() {
         }
       }
       await saveTournament();
-      // opnieuw toernooien laden in variabele
-      await getSavedToernooien();
-      await getRanking();
       await maakPdf();
       resetApp();
       //      //      //      console.log("Toernooi opgeslagen, nu Ranking ophalen.");
