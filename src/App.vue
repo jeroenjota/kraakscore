@@ -682,6 +682,10 @@ function removeTeam(i) {
 }
 
 function toggleShowRanking() {
+  if (!showRanking.value) {
+    showSavedTeamsList.value = false; // verberg de teams lijst als we de ranking tonen   
+    // console.log("Huidige ranking verbergen");
+  } 
   showRanking.value = !showRanking.value;
 }
 
