@@ -1,5 +1,17 @@
 <template>
   <div id="tournament">
+    <ScoreFormsPanel
+      :submitMode="remoteScoreVisibilityMode"
+      :tournamentId="tournamentId"
+      :tournamentDate="tournamentDate"
+      :groups="groups"
+      :matches="matches"
+      :groupMatches="groupMatches"
+      :finalMatches="finalMatches"
+      @update:submitMode="(value) => (remoteScoreVisibilityMode = value)"
+      class="mb-3"
+    />
+
     <div class="mb-2 flex justify-end" v-if="editMode">
       <button
         class="mr-2 rounded bg-sky-600 px-3 py-1 text-sm text-white disabled:cursor-not-allowed disabled:bg-sky-200"
@@ -123,9 +135,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import MatchTable from "./MatchTable.vue";
 import GroupStandings from "./GroupStandings.vue";
+import ScoreFormsPanel from "./ScoreFormsPanel.vue";
+import dbService from "../services/dbServices.js";
 
 const matchTypes = ["finale", "3e plaats", "5e plaats", "7e plaats"];
 
@@ -169,6 +183,9 @@ const groupMatches = ref([]);
 const scoreUndoStack = ref([]);
 const scoreRedoStack = ref([]);
 const isApplyingUndo = ref(false);
+const remoteScoreVisibilityMode = ref("immediate");
+const processedRemoteSubmissions = new Set();
+let remoteScoreEventSource = null;
 const finalMatches = ref([
   { tafel: 1, teamL: null, teamR: null, scoreL: null, scoreR: null, pl: 1 }, // finale
   { tafel: 2, teamL: null, teamR: null, scoreL: null, scoreR: null, pl: 3 }, // 3e plaats
@@ -245,7 +262,6 @@ function generateMatches(tms, grp) {
   const fullSchedule = [];
 
   // console.log("repeatRounds:", repeatRounds)
-
   for (let i = 0; i < repeatRounds.value; i++) {
     const roundCopy = JSON.parse(JSON.stringify(baseRounds));
     // console.log("roundCopy", roundCopy)
@@ -518,6 +534,169 @@ function saveToLocalStorage() {
   emit("saveToernooi");
 }
 
+function refreshTournamentViewState() {
+  if (groups.value.length === 2) {
+    groupMatches.value = groupMatches.value.map((groupRounds) =>
+      groupRounds.map((roundMatches) => roundMatches.map((match) => ({ ...match }))),
+    );
+    finalMatches.value = finalMatches.value.map((match) => ({ ...match }));
+    return;
+  }
+
+  matches.value = matches.value.map((roundMatches) =>
+    roundMatches.map((match) => ({ ...match })),
+  );
+  finalMatches.value = finalMatches.value.map((match) => ({ ...match }));
+}
+
+function getRemoteSubmissionKey(entry) {
+  return [
+    entry.timestamp || entry.submittedAt || "",
+    entry.matchType || "",
+    entry.group || "",
+    entry.round || "",
+    entry.table || "",
+    entry.matchIndex || "",
+    entry.finalIndex || "",
+    entry.scoreL || "",
+    entry.scoreR || "",
+  ].join("|");
+}
+
+function applyRemoteSubmission(entry) {
+  const newScoreL = Number(entry.scoreL);
+  const newScoreR = Number(entry.scoreR);
+
+  if (!Number.isFinite(newScoreL) || !Number.isFinite(newScoreR)) {
+    return false;
+  }
+
+  if (entry.matchType === "final") {
+    const index = Number(entry.finalIndex ?? 0);
+    const current = finalMatches.value[index];
+    if (!current) return false;
+
+    const oldScoreL = Number(current.scoreL ?? 0);
+    const oldScoreR = Number(current.scoreR ?? 0);
+    if (oldScoreL === newScoreL && oldScoreR === newScoreR) {
+      return false;
+    }
+
+    current.scoreL = newScoreL;
+    current.scoreR = newScoreR;
+    return true;
+  }
+
+  if (entry.matchType === "group") {
+    const groupIndex = String(entry.group || "A").toUpperCase() === "B" ? 1 : 0;
+    const roundIndex = Math.max(Number(entry.round || 1) - 1, 0);
+    const tableIndex = Math.max(Number(entry.matchIndex ?? 0), 0);
+    const current = groupMatches.value?.[groupIndex]?.[roundIndex]?.[tableIndex];
+    if (!current) return false;
+
+    const oldScoreL = Number(current.scoreL ?? 0);
+    const oldScoreR = Number(current.scoreR ?? 0);
+    if (oldScoreL === newScoreL && oldScoreR === newScoreR) {
+      return false;
+    }
+
+    current.scoreL = newScoreL;
+    current.scoreR = newScoreR;
+    updateFinalists();
+    return true;
+  }
+
+  const roundIndex = Math.max(Number(entry.round || 1) - 1, 0);
+  const tableIndex = Math.max(Number(entry.matchIndex ?? 0), 0);
+  const current = matches.value?.[roundIndex]?.[tableIndex];
+  if (!current) return false;
+
+  const oldScoreL = Number(current.scoreL ?? 0);
+  const oldScoreR = Number(current.scoreR ?? 0);
+  if (oldScoreL === newScoreL && oldScoreR === newScoreR) {
+    return false;
+  }
+
+  current.scoreL = newScoreL;
+  current.scoreR = newScoreR;
+  return true;
+}
+
+async function syncRemoteScoreForms() {
+  if (!props.tournamentId) {
+    return;
+  }
+
+  const response = await dbService.fetchScoreFormSubmissions(props.tournamentId);
+  if (!response.success) {
+    return;
+  }
+
+  const submissions = Array.isArray(response.data) ? response.data : [];
+  let changed = false;
+
+  submissions.forEach((entry) => {
+    const key = getRemoteSubmissionKey(entry);
+    if (processedRemoteSubmissions.has(key)) {
+      return;
+    }
+
+    processedRemoteSubmissions.add(key);
+    changed = applyRemoteSubmission(entry) || changed;
+  });
+
+  if (changed) {
+    refreshTournamentViewState();
+    window.dispatchEvent(new Event("storage"));
+    saveToLocalStorage();
+  }
+}
+
+function connectRemoteScoreStream() {
+  if (!props.tournamentId || typeof window === "undefined") {
+    return;
+  }
+
+  const apiBaseUrl = import.meta.env.VITE_BASE_URL_API
+    ? String(import.meta.env.VITE_BASE_URL_API).replace(/\/$/, "")
+    : `${window.location.protocol}//${window.location.hostname}:54321/api/kraak`;
+  const streamUrl = new URL(`${apiBaseUrl}/score-forms/stream`);
+  streamUrl.searchParams.set("tournamentId", String(props.tournamentId));
+
+  if (remoteScoreEventSource) {
+    remoteScoreEventSource.close();
+  }
+
+  remoteScoreEventSource = new EventSource(streamUrl.toString());
+
+  remoteScoreEventSource.addEventListener("score-form-submission", (event) => {
+    try {
+      const entry = JSON.parse(event.data);
+      const key = getRemoteSubmissionKey(entry);
+      if (processedRemoteSubmissions.has(key)) {
+        return;
+      }
+
+      processedRemoteSubmissions.add(key);
+      if (applyRemoteSubmission(entry)) {
+        refreshTournamentViewState();
+        window.dispatchEvent(new Event("storage"));
+        saveToLocalStorage();
+      }
+    } catch (error) {
+      console.warn('Kon realtime score-update niet verwerken:', error?.message || error);
+    }
+  });
+
+  remoteScoreEventSource.addEventListener("ready", () => {
+    // stream actief; geen extra actie nodig
+  });
+
+  remoteScoreEventSource.onerror = (error) => {
+    console.warn('Realtime score stream fout:', error?.message || error);
+  };
+}
+
 function totalMatchesPlayed() {
   let ttlPlayed = 0;
   toernooiTeams.value.forEach((tm, index) => {
@@ -577,6 +756,9 @@ function loadFromLocalStorage() {
 
 
 onMounted(() => {
+  remoteScoreVisibilityMode.value =
+    localStorage.getItem("remoteScoreVisibilityMode") || "immediate";
+
   scoreUndoStack.value = [];
   scoreRedoStack.value = [];
   if (!props.toernooiPlayed) {
@@ -606,5 +788,22 @@ onMounted(() => {
     // console.log("matches:" ,  matches.value)
     updateFinalists();
   }
+
+  syncRemoteScoreForms().catch((error) => {
+    console.warn('Initiële score form sync mislukt:', error?.message || error);
+  });
+
+  connectRemoteScoreStream();
+});
+
+onUnmounted(() => {
+  if (remoteScoreEventSource) {
+    remoteScoreEventSource.close();
+    remoteScoreEventSource = null;
+  }
+});
+
+watch(remoteScoreVisibilityMode, (mode) => {
+  localStorage.setItem("remoteScoreVisibilityMode", mode === "final" ? "final" : "immediate");
 });
 </script>

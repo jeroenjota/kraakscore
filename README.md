@@ -77,6 +77,49 @@ I cannot be held accountable for any problems that arise from using the app.
 - seperate table app for direct input scores
 - improve database structure for saved tournaments
 
+## Mobiele scoreformulieren (per ronde/per tafel)
+
+Er is nu een eerste frontend-versie aanwezig voor scoreformulieren op mobiele telefoons:
+
+- In het toernooischerm verschijnt een paneel **Scoreformulieren per tafel**.
+- Per ronde en per tafel wordt automatisch een unieke link gemaakt.
+- Per link kan een QR-code worden getoond zodat spelers snel kunnen scannen.
+- Je kunt kiezen tussen twee modi:
+	- **Direct zichtbaar** op de centrale computer.
+	- **Pas zichtbaar als match is afgerond**.
+- Handmatige invoer op papier en via de centrale app blijft gewoon mogelijk.
+
+De mobiele pagina staat op:
+
+- `/score-entry.html`
+
+Deze pagina post score-invoer naar:
+
+- `POST /api/kraak/score-forms/submit`
+
+Minimale payload (voorbeeld):
+
+```json
+{
+	"tournamentId": 123,
+	"tournamentDate": "2026-06-12T18:00:00.000Z",
+	"mode": "immediate",
+	"matchType": "group",
+	"group": "A",
+	"round": "2",
+	"table": "3",
+	"matchIndex": "1",
+	"teamL": "Team Links",
+	"teamR": "Team Rechts",
+	"scoreL": 870,
+	"scoreR": 740,
+	"isFinal": true,
+	"submittedAt": "2026-06-12T19:12:30.000Z"
+}
+```
+
+Om scores op de centrale computer automatisch te verwerken is daarnaast een read-endpoint (of websocket) nodig voor ophalen van ingestuurde scores.
+
 Still learning!
 *© 2025 Jota Services*
 

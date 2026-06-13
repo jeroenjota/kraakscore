@@ -153,6 +153,13 @@ const dbService = {
   logScoreEntry: async (entry) =>
     await post('/score-entries/log', entry, {}, 'Fout bij het loggen van score entry'),
 
+  fetchScoreFormSubmissions: async (tournamentId) =>
+    await get(
+      '/score-forms/submissions',
+      tournamentId ? { tournamentId } : {},
+      'Fout bij het ophalen van score form submissions'
+    ),
+
   /**
    * Upload een PDF
    * @param {FormData} formData

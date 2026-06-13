@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kraakscore invoer</title>
+    <style>
+      :root {
+        --bg: #f5f7fb;
+        --card: #ffffff;
+        --ink: #12223a;
+        --muted: #5f6b7a;
+        --accent: #0d6efd;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: radial-gradient(circle at top right, #dce7ff, var(--bg) 50%);
+        color: var(--ink);
+      }
+      .wrap {
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px;
+      }
+      .card {
+        width: 100%;
+        max-width: 520px;
+        background: var(--card);
+        border-radius: 14px;
+        border: 1px solid #dde3ee;
+        box-shadow: 0 12px 24px rgba(17, 37, 68, 0.08);
+        padding: 20px;
+      }
+      h1 {
+        font-size: 1.3rem;
+        margin: 0 0 8px 0;
+        text-align: center;
+      }
+      .meta {
+        font-size: 0.9rem;
+        color: var(--muted);
+        margin-bottom: 12px;
+        text-align: center;
+      }
+      .teams {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .team-left,
+      .team-right {
+        font-weight: 700;
+        min-width: 0;
+        overflow-wrap: anywhere;
+        text-align: center;
+      }
+      .team-vs {
+        display: none;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+      .totals {
+        margin: 0 0 12px;
+        padding: 8px 10px;
+        border: 1px solid #d8e3f5;
+        border-radius: 10px;
+        background: #f6faff;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .totals-col {
+        text-align: center;
+      }
+      .totals-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+      }
+      .totals-kruis-inline {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--muted);
+      }
+      .score-roem-row {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+      }
+      .sub-label {
+        display: block;
+        margin: 0 0 6px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--muted);
+      }
+      .roem-inline {
+        display: flex;
+        flex-direction: column;
+      }
+      .score-inline {
+        display: flex;
+        flex-direction: column;
+      }
+      .score-inline input[type="text"].score-input {
+        width: 6ch;
+        min-height: 28px;
+        padding: 1px 3px;
+        font-size: 1rem;
+        text-align: center;
+      }
+      .roem-inline input[type="text"].roem-input {
+        width: 4ch;
+        min-height: 28px;
+        padding: 1px 3px;
+        font-size: 1rem;
+        text-align: center;
+      }
+      .roem-inline input[type="text"].kruis-input {
+        width: 3ch;
+        min-height: 28px;
+        padding: 1px 3px;
+        font-size: 1rem;
+        text-align: center;
+      }
+      .partijlist {
+        margin: 10px 0;
+        border: 1px solid #e0e7f2;
+        border-radius: 10px;
+        background: #fcfdff;
+        max-height: 170px;
+        overflow-y: auto;
+      }
+      .partijitem {
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid #edf2fb;
+        padding: 8px 10px;
+        font-size: 0.9rem;
+      }
+      .partijitem:last-child {
+        border-bottom: 0;
+      }
+      .buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin: 16px 0;
+      }
+      .btn-secondary {
+        background: #eef3fb;
+        color: #234;
+      }
+      .buttons button {
+        padding: 8px 10px;
+        min-height: 34px;
+        font-size: 0.9rem;
+        border-radius: 7px;
+      }
+      label {
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+      input[type="number"] {
+        width: 100%;
+        margin-top: 8px;
+        padding: 12px;
+        border: 1px solid #cdd8ea;
+        border-radius: 8px;
+        font-size: 1rem;
+        min-height: 44px;
+      }
+      .row {
+        margin-top: 10px;
+      }
+      .mode {
+        margin: 10px 0;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      button {
+        width: 100%;
+        border: 0;
+        border-radius: 9px;
+        background: var(--accent);
+        color: white;
+        padding: 14px 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        min-height: 48px;
+        cursor: pointer;
+      }
+      button:disabled {
+        opacity: 0.6;
+      }
+      .msg {
+        margin-top: 10px;
+        font-size: 0.9rem;
+      }
+      .ok {
+        color: #167a2f;
+      }
+      .err {
+        color: #b3261e;
+      }
+
+      @media (min-width: 480px) {
+        .score-input {
+          width: 8ch;
+        }
+        .roem-input {
+          width: 6ch;
+        }
+        .kruis-input {
+          width: 5ch;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <form id="scoreForm" class="card" novalidate>
+        <h1 id="kopregel"></h1>
+        <h2 id="meta" class="meta"></h2>
+
+        <div class="teams">
+          <span id="teamL" class="team-left"></span>
+          <span class="team-vs">vs</span>
+          <span id="teamR" class="team-right"></span>
+        </div>
+
+        <div class="grid">
+          <label>
+            <div class="score-roem-row">
+              <div class="roem-inline">
+                <span class="sub-label">Rm</span>
+                <input id="roemL" class="roem-input" type="text" inputmode="numeric" />
+              </div>
+              <div class="score-inline">
+                <span class="sub-label">Score</span>
+                <input id="scoreL" class="score-input" type="text" inputmode="numeric" />
+              </div>
+              <div class="roem-inline">
+                <span class="sub-label">X</span>
+                <input id="kruisL" class="kruis-input" type="text" inputmode="numeric" />
+              </div>
+            </div>
+          </label>
+          <label>
+            <div class="score-roem-row">
+              <div class="roem-inline">
+                <span class="sub-label">Rm</span>
+                <input id="roemR" class="roem-input" type="text" inputmode="numeric" />
+              </div>
+              <div class="score-inline">
+                <span class="sub-label">Score</span>
+                <input id="scoreR" class="score-input" type="text" inputmode="numeric" />
+              </div>
+              <div class="roem-inline">
+                <span class="sub-label">X</span>
+                <input id="kruisR" class="kruis-input" type="text" inputmode="numeric" />
+              </div>
+            </div>
+          </label>
+        </div>
+
+        <div class="buttons">
+          <button id="addPartijBtn" type="button" class="btn-secondary">OK</button>
+          <button id="undoPartijBtn" type="button" class="btn-secondary">Undo</button>
+        </div>
+
+        <div class="partijlist" id="partijenList"></div>
+
+        <div class="totals">
+          <div class="totals-col">
+            <div class="totals-value">
+              <span id="totalL">0</span> <span id="totalKruisWrapL" class="totals-kruis-inline">(<span id="totalKruisL">0</span>X)</span>
+            </div>
+          </div>
+          <div class="totals-col">
+            <div class="totals-value">
+              <span id="totalR">0</span> <span id="totalKruisWrapR" class="totals-kruis-inline">(<span id="totalKruisR">0</span>X)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- <div class="row">
+          <label>
+            <input id="isFinal" type="checkbox" />
+            Wedstrijd afgerond
+          </label>
+        </div> -->
+
+        <!-- <p id="modeText" class="mode"></p> -->
+
+        <button id="submitBtn" type="submit">Eindtotaal maken en versturen</button>
+        <p id="message" class="msg"></p>
+      </form>
+    </div>
+
+    <script>
+      (function () {
+        const params = new URLSearchParams(window.location.search);
+
+        const meta = document.getElementById("meta");
+        const kopregel = document.getElementById("kopregel");
+        const teamLEl = document.getElementById("teamL");
+        const teamREl = document.getElementById("teamR");
+        const modeText = document.getElementById("modeText");
+        const isFinalEl = document.getElementById("isFinal");
+        const messageEl = document.getElementById("message");
+        const submitBtn = document.getElementById("submitBtn");
+        const addPartijBtn = document.getElementById("addPartijBtn");
+        const undoPartijBtn = document.getElementById("undoPartijBtn");
+        const partijenListEl = document.getElementById("partijenList");
+        const totalLEl = document.getElementById("totalL");
+        const totalREl = document.getElementById("totalR");
+        const totalKruisWrapLEl = document.getElementById("totalKruisWrapL");
+        const totalKruisWrapREl = document.getElementById("totalKruisWrapR");
+        const totalKruisLEl = document.getElementById("totalKruisL");
+        const totalKruisREl = document.getElementById("totalKruisR");
+        const scoreLInput = document.getElementById("scoreL");
+        const scoreRInput = document.getElementById("scoreR");
+        const roemLInput = document.getElementById("roemL");
+        const roemRInput = document.getElementById("roemR");
+        const kruisLInput = document.getElementById("kruisL");
+        const kruisRInput = document.getElementById("kruisR");
+
+        const partijen = [];
+        let sendInFlight = false;
+        let sendAgain = false;
+
+        const mode = params.get("mode") === "final" ? "final" : "immediate";
+
+        const tournamentId = params.get("tid");
+        const date = params.get("date");
+        const matchType = params.get("mt") || "single";
+        const group = params.get("group");
+        const round = params.get("round");
+        const table = params.get("table");
+        const matchIndex = params.get("mi");
+        const finalIndex = params.get("fi");
+        const teamL = params.get("teamL") || "Team links";
+        const teamR = params.get("teamR") || "Team rechts";
+        const datum = new Date(date).toLocaleDateString("nl-NL", { dateStyle: "short" });
+        teamLEl.textContent = teamL;
+        teamREl.textContent = teamR;
+        kopregel.textContent = `Scoreformulier ${datum || "?"}`;
+        meta.textContent = `ronde ${round || "?"} | tafel ${table || "?"}`;
+
+        if (mode === "final") {
+          modeText.textContent = "Ingesteld op: pas zichtbaar op centrale computer als wedstrijd is afgerond.";
+          isFinalEl.checked = false;
+        } else {
+          modeText.textContent = "Ingesteld op: score direct zichtbaar op centrale computer.";
+          isFinalEl.checked = false;
+        }
+
+        function apiBaseUrl() {
+          return `${window.location.protocol}//${window.location.hostname}:54321/api/kraak`;
+        }
+
+        // Filter inputs to accept only digits
+        function setupNumericInputFilter(input) {
+          input.addEventListener("input", (e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, "");
+          });
+          input.addEventListener("keypress", (e) => {
+            if (!/[0-9]/.test(e.key)) {
+              e.preventDefault();
+            }
+          });
+        }
+
+        setupNumericInputFilter(scoreLInput);
+        setupNumericInputFilter(scoreRInput);
+        setupNumericInputFilter(roemLInput);
+        setupNumericInputFilter(roemRInput);
+        setupNumericInputFilter(kruisLInput);
+        setupNumericInputFilter(kruisRInput);
+
+        function setMessage(text, type) {
+          messageEl.textContent = text;
+          messageEl.className = `msg ${type}`;
+        }
+
+        function getTotals() {
+          return partijen.reduce(
+            (acc, partij) => {
+              acc.left += partij.scoreL;
+              acc.right += partij.scoreR;
+              return acc;
+            },
+            { left: 0, right: 0 }
+          );
+        }
+
+        function getRoemTotals() {
+          return partijen.reduce(
+            (acc, partij) => {
+              acc.left += partij.roemL || 0;
+              acc.right += partij.roemR || 0;
+              return acc;
+            },
+            { left: 0, right: 0 }
+          );
+        }
+
+        function getKruisTotals() {
+          return partijen.reduce(
+            (acc, partij) => {
+              acc.left += partij.kruisL || 0;
+              acc.right += partij.kruisR || 0;
+              return acc;
+            },
+            { left: 0, right: 0 }
+          );
+        }
+
+        function getMatchTotals(countKruis) {
+          const baseTotals = getTotals();
+
+          const kruisTotals = countKruis ? getKruisTotals() : { left: 0, right: 0 };
+
+          const winnerBonusKruis = { left: 0, right: 0 };
+          if (countKruis) {
+            if (baseTotals.left > baseTotals.right) {
+              winnerBonusKruis.left = 4;
+            } else if (baseTotals.right > baseTotals.left) {
+              winnerBonusKruis.right = 4;
+            }
+          }
+
+          const finalTotals = {
+            // Kruisen van een team tellen als 100 punten voor de tegenstander.
+            left: baseTotals.left + (kruisTotals.right + winnerBonusKruis.right) * 100,
+            right: baseTotals.right + (kruisTotals.left + winnerBonusKruis.left) * 100,
+          };
+
+          return {
+            baseTotals,
+            kruisTotals,
+            winnerBonusKruis,
+            finalTotals,
+          };
+        }
+
+        function renderPartijen() {
+          const countKruis = isFinalEl.checked;
+          const { finalTotals } = getMatchTotals(countKruis);
+          const kruisTotalsSoFar = getKruisTotals();
+          totalLEl.textContent = String(finalTotals.left);
+          totalREl.textContent = String(finalTotals.right);
+          totalKruisLEl.textContent = String(kruisTotalsSoFar.left);
+          totalKruisREl.textContent = String(kruisTotalsSoFar.right);
+          totalKruisWrapLEl.style.display = kruisTotalsSoFar.left > 0 ? "inline" : "none";
+          totalKruisWrapREl.style.display = kruisTotalsSoFar.right > 0 ? "inline" : "none";
+
+          if (partijen.length === 0) {
+            partijenListEl.innerHTML = '<div class="partijitem"><span>Nog geen partijen toegevoegd</span><span>-</span></div>';
+            return;
+          }
+
+          partijenListEl.innerHTML = partijen
+            .map((partij, index) => {
+              const roemLText = partij.roemL > 0 ? ` (${partij.roemL} r)` : "";
+              const roemRText = partij.roemR > 0 ? ` (${partij.roemR} r)` : "";
+              const kruisLText = partij.kruisL > 0 ? ` (${partij.kruisL}X)` : "";
+              const kruisRText = partij.kruisR > 0 ? ` (${partij.kruisR}X)` : "";
+              return `<div class="partijitem"><span>Partij ${index + 1}</span><span>${partij.scoreL}${kruisLText}</span> - <span>${partij.scoreR}${kruisRText}</span></div>`;
+            })
+            .join("");
+        }
+
+        async function sendCurrentTotal(forceMessage = false) {
+          if (partijen.length === 0) {
+            return false;
+          }
+
+          if (sendInFlight) {
+            sendAgain = true;
+            return false;
+          }
+
+          sendInFlight = true;
+          const isFinal = isFinalEl.checked;
+          const { baseTotals, kruisTotals, winnerBonusKruis, finalTotals } = getMatchTotals(isFinal);
+          const roemTotals = getRoemTotals();
+
+          if (forceMessage) {
+            setMessage("Versturen...", "");
+          }
+
+          try {
+            const payload = {
+              tournamentId,
+              tournamentDate: date,
+              mode,
+              matchType,
+              group,
+              round,
+              table,
+              matchIndex,
+              finalIndex,
+              teamL,
+              teamR,
+              // scoreL/scoreR zijn de eindscore inclusief kruis-afrekening.
+              scoreL: finalTotals.left,
+              scoreR: finalTotals.right,
+              baseScoreL: baseTotals.left,
+              baseScoreR: baseTotals.right,
+              roemL: roemTotals.left,
+              roemR: roemTotals.right,
+              kruisL: kruisTotals.left,
+              kruisR: kruisTotals.right,
+              winnerBonusKruisL: winnerBonusKruis.left,
+              winnerBonusKruisR: winnerBonusKruis.right,
+              partyCount: partijen.length,
+              parties: partijen,
+              isFinal,
+              submittedAt: new Date().toISOString(),
+            };
+
+            const endpoints = [
+              `${apiBaseUrl()}/score-forms/submit`,
+              `${apiBaseUrl()}/score-entries/log`,
+            ];
+
+            let lastError = "Onbekende fout";
+            let delivered = false;
+
+            for (const endpoint of endpoints) {
+              try {
+                const response = await fetch(endpoint, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(payload),
+                });
+
+                if (response.ok) {
+                  delivered = true;
+                  break;
+                }
+
+                const responseText = await response.text();
+                lastError = `API fout (${response.status}) ${responseText || ""}`.trim();
+              } catch (endpointError) {
+                lastError = endpointError?.message || "Netwerkfout";
+              }
+            }
+
+            if (!delivered) {
+              throw new Error(lastError);
+            }
+
+            if (forceMessage) {
+              setMessage(`Stand verstuurd: ${finalTotals.left} - ${finalTotals.right}`, "ok");
+            }
+
+            return true;
+          } catch (error) {
+            setMessage(`Versturen mislukt: ${error.message}`, "err");
+            return false;
+          } finally {
+            sendInFlight = false;
+            if (sendAgain) {
+              sendAgain = false;
+              queueMicrotask(() => {
+                sendCurrentTotal(false).catch(() => {});
+              });
+            }
+          }
+        }
+
+        function addPartij() {
+          const scoreL = Number(scoreLInput.value);
+          const scoreR = Number(scoreRInput.value);
+          const roemL = Number(roemLInput.value || 0);
+          const roemR = Number(roemRInput.value || 0);
+          const kruisL = Number(kruisLInput.value || 0);
+          const kruisR = Number(kruisRInput.value || 0);
+
+          if (!Number.isFinite(scoreL) || !Number.isFinite(scoreR) || scoreL < 0 || scoreR < 0) {
+            setMessage("Vul geldige partijscores in.", "err");
+            return;
+          }
+
+          const validRoemL = Number.isInteger(roemL) && roemL >= 0;
+          const validRoemR = Number.isInteger(roemR) && roemR >= 0;
+          if (!validRoemL || !validRoemR) {
+            setMessage("Roem moet een geheel getal tussen 0 en 16 zijn.", "err");
+            return;
+          }
+
+          const validKruisL = Number.isInteger(kruisL) && (kruisL === 0 || (kruisL >= 1 && kruisL <= 16));
+          const validKruisR = Number.isInteger(kruisR) && (kruisR === 0 || (kruisR >= 1 && kruisR <= 16));
+          if (!validKruisL || !validKruisR) {
+            setMessage("Aantal kruisen moet 1 t/m 16 zijn (of leeg).", "err");
+            return;
+          }
+
+          partijen.push({ scoreL, scoreR, roemL, roemR, kruisL, kruisR });
+          scoreLInput.value = "";
+          scoreRInput.value = "";
+          roemLInput.value = "";
+          roemRInput.value = "";
+          kruisLInput.value = "";
+          kruisRInput.value = "";
+          scoreLInput.focus();
+          setMessage("Partij toegevoegd.", "ok");
+          renderPartijen();
+          sendCurrentTotal(true);
+        }
+
+        function undoPartij() {
+          if (partijen.length === 0) {
+            setMessage("Er is geen partij om ongedaan te maken.", "err");
+            return;
+          }
+
+          partijen.pop();
+          setMessage("Laatste partij ongedaan gemaakt.", "ok");
+          renderPartijen();
+          sendCurrentTotal(true);
+        }
+
+        addPartijBtn.addEventListener("click", addPartij);
+        undoPartijBtn.addEventListener("click", undoPartij);
+        isFinalEl.addEventListener("change", renderPartijen);
+
+        renderPartijen();
+
+        document.getElementById("scoreForm").addEventListener("submit", async (event) => {
+          event.preventDefault();
+
+          if (partijen.length === 0) {
+            setMessage("Voeg minimaal 1 partij toe voordat je verstuurt.", "err");
+            return;
+          }
+
+          submitBtn.disabled = true;
+          isFinalEl.checked = true;
+          renderPartijen();
+          setMessage("Eindtotaal maken en versturen...", "");
+          try {
+            const sent = await sendCurrentTotal(true);
+            if (sent) {
+              // Probeer het formuliervenster automatisch te sluiten.
+              window.close();
+              if (!window.closed) {
+                setMessage("Eindtotaal verstuurd. Je kunt dit formulier nu sluiten.", "ok");
+              }
+            }
+          } finally {
+            submitBtn.disabled = false;
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
