@@ -1,15 +1,23 @@
 <template>
   <div id="tournament">
+    <TournamentSettings
+      v-model:scoreTarget="scoreTarget"
+      v-model:winnerKruis="winnerKruis"
+      class="ml-1 mr-1"
+    />
+
     <ScoreFormsPanel
       :submitMode="remoteScoreVisibilityMode"
       :tournamentId="tournamentId"
       :tournamentDate="tournamentDate"
+      :scoreTarget="scoreTarget"
+      :winnerKruis="winnerKruis"
       :groups="groups"
       :matches="matches"
       :groupMatches="groupMatches"
       :finalMatches="finalMatches"
       @update:submitMode="(value) => (remoteScoreVisibilityMode = value)"
-      class="mb-3"
+      class="m-1"
     />
 
     <div class="mb-2 flex justify-end" v-if="editMode">
@@ -139,6 +147,7 @@ import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import MatchTable from "./MatchTable.vue";
 import GroupStandings from "./GroupStandings.vue";
 import ScoreFormsPanel from "./ScoreFormsPanel.vue";
+import TournamentSettings from "./TournamentSettings.vue";
 import dbService from "../services/dbServices.js";
 
 const matchTypes = ["finale", "3e plaats", "5e plaats", "7e plaats"];
@@ -186,6 +195,8 @@ const isApplyingUndo = ref(false);
 const remoteScoreVisibilityMode = ref("immediate");
 const processedRemoteSubmissions = new Set();
 let remoteScoreEventSource = null;
+const scoreTarget = ref(1500);
+const winnerKruis = ref(4);
 const finalMatches = ref([
   { tafel: 1, teamL: null, teamR: null, scoreL: null, scoreR: null, pl: 1 }, // finale
   { tafel: 2, teamL: null, teamR: null, scoreL: null, scoreR: null, pl: 3 }, // 3e plaats

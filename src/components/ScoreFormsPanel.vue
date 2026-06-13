@@ -110,6 +110,14 @@ const props = defineProps({
     type: [Date, String],
     default: null,
   },
+  scoreTarget: {
+    type: Number,
+    default: 1500,
+  },
+  winnerKruis: {
+    type: Number,
+    default: 4,
+  },
   groups: {
     type: Array,
     default: () => [],
@@ -147,6 +155,8 @@ function buildUrl(payload) {
     params.set("date", isoDate);
   }
   params.set("mode", props.submitMode || "immediate");
+  params.set("scoreTarget", String(props.scoreTarget ?? ""));
+  params.set("winnerKruis", String(props.winnerKruis ?? ""));
 
   Object.entries(payload).forEach(([key, value]) => {
     if (value === null || value === undefined) return;

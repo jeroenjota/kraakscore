@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="nl">
   <head>
     <meta charset="UTF-8" />
@@ -18,7 +18,11 @@
       body {
         margin: 0;
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background: radial-gradient(circle at top right, #dce7ff, var(--bg) 50%);
+        background: radial-gradient(
+          circle at top right,
+          #dce7ff,
+          var(--bg) 50%
+        );
         color: var(--ink);
       }
       .wrap {
@@ -52,7 +56,7 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 8px;
-        margin-bottom: 12px;
+        margin-bottom: 2px;
       }
       .team-left,
       .team-right {
@@ -60,15 +64,210 @@
         min-width: 0;
         overflow-wrap: anywhere;
         text-align: center;
+        cursor: pointer;
+      }
+      .team-left.active,
+      .team-right.active {
+        text-decoration: underline;
       }
       .team-vs {
         display: none;
       }
+      .team-panels {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 2px;
+      }
+      .team-panel {
+        min-height: 32px;
+      }
+      .troef-box {
+        border: 1px solid #dbe5f6;
+        border-radius: 8px;
+        background: #ffffff;
+        padding: 2px 2px;
+        display: none;
+      }
+      .troef-title {
+        display: block;
+        font-size: 0.72rem;
+        color: var(--muted);
+        margin-bottom: 4px;
+        text-align: center;
+      }
+      .troef-options {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .troef-option {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 0.82rem;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .troef-option input {
+        margin: 0;
+      }
+      .troef-suit {
+        display: inline-block;
+        min-width: 0.9em;
+        text-align: center;
+        font-size: 1.25rem;
+        line-height: 1;
+        font-weight: 700;
+      }
+      .troef-suit.black {
+        color: #111111;
+      }
+      .troef-suit.red {
+        color: #c62828;
+      }
+      .invoer-blok {
+        border: 1px solid #e3eaf7;
+        border-radius: 10px;
+        padding: 1px;
+        background: #fbfdff;
+        margin-bottom: 4px;
+      }
+
       .grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 16px;
         margin-bottom: 16px;
+      }
+      .entry-header {
+        margin: 4px 0 8px;
+        text-align: center;
+        font-size: 0.9rem;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .entry-grid {
+        display: grid;
+        grid-template-columns: minmax(84px, 0.9fr) 1fr 1fr;
+        gap: 10px 8px;
+        align-items: start;
+        margin-bottom: 14px;
+        padding: 1px;
+      }
+      .row-label {
+        font-size: 0.86rem;
+        color: var(--muted);
+        font-weight: 600;
+        padding-top: 3px;
+        text-align: center;
+      }
+      .entry-cell {
+        border: 1px solid #e3eaf7;
+        border-radius: 10px;
+        padding: 8px;
+        background: #fbfdff;
+      }
+      .roem-counters {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .roem-counter {
+        border: 1px solid #dbe5f6;
+        border-radius: 8px;
+        padding: 5px;
+        background: white;
+      }
+      .roem-counter-label {
+        display: block;
+        text-align: center;
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+      .stepper {
+        display: grid;
+        grid-template-columns: 20px 1fr 20px;
+        gap: 4px;
+        align-items: center;
+      }
+      .kruis-stepper {
+        grid-template-columns: 1fr 1fr;
+      }
+      .stepper-btn {
+        min-height: 26px;
+        height: 26px;
+        padding: 0;
+        border-radius: 4px;
+        border: 1px solid #c9d8f3;
+        background: #eef4ff;
+        color: #16345f;
+        font-weight: 700;
+        line-height: 1;
+      }
+      .stepper-count {
+        text-align: center;
+        font-weight: 700;
+        font-size: 0.94rem;
+      }
+      .score-row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .field-label {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-bottom: 3px;
+      }
+      .score-flags {
+        border: 1px solid #dbe5f6;
+        border-radius: 8px;
+        background: #ffffff;
+        padding: 5px 6px;
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        min-height: 26px;
+        align-items: center;
+      }
+      .team-score-flags {
+        display: none;
+      }
+      .score-flag {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 0.78rem;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .score-flag input {
+        margin: 0;
+      }
+      .compact-input {
+        width: 100%;
+        min-height: 26px;
+        padding: 2px 3px;
+        border: 1px solid #cdd8ea;
+        border-radius: 5px;
+        font-size: 0.95rem;
+      }
+      #pointsL,
+      #pointsR,
+      #scoreL,
+      #scoreR {
+        text-align: right;
+      }
+      .compact-input[readonly] {
+        background: #f2f6fc;
+        color: #2d466b;
+        font-weight: 600;
       }
       .totals {
         margin: 0 0 12px;
@@ -134,26 +333,75 @@
         text-align: center;
       }
       .partijlist {
-        margin: 10px 0;
+        margin: 0 0 4px 0;
         border: 1px solid #e0e7f2;
         border-radius: 10px;
         background: #fcfdff;
-        max-height: 170px;
+        max-height: 132px;
         overflow-y: auto;
       }
+      .partijlist.with-header {
+        border-top: 0;
+        border-radius: 0 0 10px 10px;
+      }
+
+      .partijlist-header {
+        display: grid;
+        grid-template-columns: 56px 104px 24px 104px;
+        /*                      56   160   184  288 +3*8 = 312 */
+        column-gap: 8px;
+        align-items: center;
+        margin-top: 2px;
+        padding: 4px 10px;
+        font-size: 0.78rem;
+        color: var(--muted);
+        font-weight: 700;
+        border: 1px solid #e0e7f2;
+        border-bottom: 1px solid #edf2fb;
+        border-radius: 10px 10px 0 0;
+      }
+
+      .partijlist-header.hidden {
+        display: none;
+      }
       .partijitem {
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        /*                     nr  tm/tr K    ScL  RmL  Xl    -  ScR   RmR  Xr */
+        grid-template-columns: 8px 16px 16px 32px 32px 24px 24px 32px 32px 24px;
+        /*                      8   24   40   72   104  128  152  184  216  240 +9*8 = 312 */
+        column-gap: 8px;
+        align-items: center;
         border-bottom: 1px solid #edf2fb;
         padding: 8px 10px;
         font-size: 0.9rem;
+        white-space: nowrap;
       }
       .partijitem:last-child {
         border-bottom: 0;
       }
+      .partijcol-right {
+        text-align: right;
+      }
+      .partijcol-center {
+        text-align: center;
+      }
+      .partij-troef-suit {
+        display: inline-block;
+        min-width: 1.2em;
+        text-align: center;
+        font-weight: 700;
+        font-size: large;
+        line-height: 1;
+      }
+      .partij-troef-suit.black {
+        color: #111111;
+      }
+      .partij-troef-suit.red {
+        color: #c62828;
+      }
       .buttons {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr;
         gap: 12px;
         margin: 16px 0;
       }
@@ -188,6 +436,11 @@
         font-size: 0.85rem;
         color: var(--muted);
       }
+
+      .vet {
+        font-weight: 700;
+      }
+
       button {
         width: 100%;
         border: 0;
@@ -200,6 +453,7 @@
         min-height: 48px;
         cursor: pointer;
       }
+
       button:disabled {
         opacity: 0.6;
       }
@@ -225,6 +479,19 @@
           width: 5ch;
         }
       }
+      @media (max-width: 560px) {
+        .score-flags[data-score-flags] {
+          display: none;
+        }
+        .entry-grid {
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+        }
+        .row-label {
+          grid-column: 1 / -1;
+          padding-top: 0;
+        }
+      }
     </style>
   </head>
   <body>
@@ -233,77 +500,381 @@
         <h1 id="kopregel"></h1>
         <h2 id="meta" class="meta"></h2>
 
+        <div id="partijHeader" class="entry-header">Partij 1</div>
         <div class="teams">
           <span id="teamL" class="team-left"></span>
           <span class="team-vs">vs</span>
           <span id="teamR" class="team-right"></span>
         </div>
 
-        <div class="grid">
-          <label>
-            <div class="score-roem-row">
-              <div class="roem-inline">
-                <span class="sub-label">Rm</span>
-                <input id="roemL" class="roem-input" type="text" inputmode="numeric" />
-              </div>
-              <div class="score-inline">
-                <span class="sub-label">Score</span>
-                <input id="scoreL" class="score-input" type="text" inputmode="numeric" />
-              </div>
-              <div class="roem-inline">
-                <span class="sub-label">X</span>
-                <input id="kruisL" class="kruis-input" type="text" inputmode="numeric" />
-              </div>
-            </div>
-          </label>
-          <label>
-            <div class="score-roem-row">
-              <div class="roem-inline">
-                <span class="sub-label">Rm</span>
-                <input id="roemR" class="roem-input" type="text" inputmode="numeric" />
-              </div>
-              <div class="score-inline">
-                <span class="sub-label">Score</span>
-                <input id="scoreR" class="score-input" type="text" inputmode="numeric" />
-              </div>
-              <div class="roem-inline">
-                <span class="sub-label">X</span>
-                <input id="kruisR" class="kruis-input" type="text" inputmode="numeric" />
-              </div>
-            </div>
-          </label>
+        <div class="team-panels">
+          <div class="team-panel" data-team-panel="L"></div>
+          <div class="team-panel" data-team-panel="R"></div>
         </div>
 
-        <div class="buttons">
-          <button id="addPartijBtn" type="button" class="btn-secondary">OK</button>
-          <button id="undoPartijBtn" type="button" class="btn-secondary">Undo</button>
+        <div id="troefBox" class="troef-box" aria-label="Troef">
+          <div class="troef-options">
+            <label class="troef-option"
+              ><input
+                class="troef-check"
+                data-suit="clubs"
+                type="checkbox"
+                id="troefKlaver" /><span class="troef-suit black"
+                >♣</span
+              ></label
+            >
+            <label class="troef-option"
+              ><input
+                class="troef-check"
+                data-suit="diamonds"
+                type="checkbox"
+                id="troefRuiten" /><span class="troef-suit red">♦</span></label
+            >
+            <label class="troef-option"
+              ><input
+                class="troef-check"
+                data-suit="hearts"
+                type="checkbox"
+                id="troefHarten" /><span class="troef-suit red">♥</span></label
+            >
+            <label class="troef-option"
+              ><input
+                class="troef-check"
+                data-suit="spades"
+                type="checkbox"
+                id="troefSchoppen" /><span class="troef-suit black"
+                >♠</span
+              ></label
+            >
+          </div>
         </div>
 
+        <div
+          id="scoreFlags"
+          class="score-flags team-score-flags"
+          data-score-flags
+          aria-label="Score keuzes"
+          title="K = Kraak, R = Re, S = Super">
+          <label class="score-flag"
+            ><input type="checkbox" id="scoreFlagK" />Kraak</label
+          >
+          <label class="score-flag"
+            ><input type="checkbox" id="scoreFlagR" />Re</label
+          >
+          <label class="score-flag"
+            ><input type="checkbox" id="scoreFlagS" />Super</label
+          >
+        </div>
+
+        <div class="invoer-blok">
+          <div class="entry-grid">
+            <div class="row-label">Roem</div>
+            <div class="entry-cell roem-counters" data-team="L">
+              <div class="roem-counter">
+                <span class="roem-counter-label">20</span>
+                <div class="stepper">
+                  <button
+                    type="button"
+                    class="stepper-btn"
+                    data-target="r20L"
+                    data-step="-1">
+                    -
+                  </button>
+                  <span id="r20L" class="stepper-count">0</span>
+                  <button
+                    type="button"
+                    class="stepper-btn"
+                    data-target="r20L"
+                    data-step="1">
+                    +
+                  </button>
+                </div>
+              </div>
+              <div class="roem-counter">
+                <span class="roem-counter-label">50</span>
+                <div class="stepper">
+                  <button
+                    type="button"
+                    class="stepper-btn"
+                    data-target="r50L"
+                    data-step="-1">
+                    -
+                  </button>
+                  <span id="r50L" class="stepper-count">0</span>
+                  <button
+                    type="button"
+                    class="stepper-btn"
+                    data-target="r50L"
+                    data-step="1">
+                    +
+                  </button>
+                </div>
+              </div>
+              <div class="roem-counter">
+                <span class="roem-counter-label">100</span>
+                <div class="stepper">
+                  <button
+                    type="button"
+                    class="stepper-btn"
+                    data-target="r100L"
+                    data-step="-1">
+                    -
+                  </button>
+                  <span id="r100L" class="stepper-count">0</span>
+                  <button
+                    type="button"
+                    class="stepper-btn"
+                    data-target="r100L"
+                    data-step="1">
+                    +
+                  </button>
+                </div>
+              </div>
+              <div class="roem-counter">
+                <span class="roem-counter-label">200</span>
+                <div class="stepper">
+                  <button
+                    type="button"
+                    class="stepper-btn"
+                    data-target="r200L"
+                    data-step="-1">
+                    -
+                  </button>
+                  <span id="r200L" class="stepper-count">0</span>
+                  <button
+                    type="button"
+                    class="stepper-btn"
+                    data-target="r200L"
+                    data-step="1">
+                    +
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="entry-cell roem-counters" data-team="R">
+              <div class="roem-counter">
+                <span class="roem-counter-label">20</span>
+                <div class="stepper">
+                  <button
+                    type="button"
+                    class="stepper-btn"
+                    data-target="r20R"
+                    data-step="-1">
+                    -
+                  </button>
+                  <span id="r20R" class="stepper-count">0</span>
+                  <button
+                    type="button"
+                    class="stepper-btn"
+                    data-target="r20R"
+                    data-step="1">
+                    +
+                  </button>
+                </div>
+              </div>
+              <div class="roem-counter">
+                <span class="roem-counter-label">50</span>
+                <div class="stepper">
+                  <button
+                    type="button"
+                    class="stepper-btn"
+                    data-target="r50R"
+                    data-step="-1">
+                    -
+                  </button>
+                  <span id="r50R" class="stepper-count">0</span>
+                  <button
+                    type="button"
+                    class="stepper-btn"
+                    data-target="r50R"
+                    data-step="1">
+                    +
+                  </button>
+                </div>
+              </div>
+              <div class="roem-counter">
+                <span class="roem-counter-label">100</span>
+                <div class="stepper">
+                  <button
+                    type="button"
+                    class="stepper-btn"
+                    data-target="r100R"
+                    data-step="-1">
+                    -
+                  </button>
+                  <span id="r100R" class="stepper-count">0</span>
+                  <button
+                    type="button"
+                    class="stepper-btn"
+                    data-target="r100R"
+                    data-step="1">
+                    +
+                  </button>
+                </div>
+              </div>
+              <div class="roem-counter">
+                <span class="roem-counter-label">200</span>
+                <div class="stepper">
+                  <button
+                    type="button"
+                    class="stepper-btn"
+                    data-target="r200R"
+                    data-step="-1">
+                    -
+                  </button>
+                  <span id="r200R" class="stepper-count">0</span>
+                  <button
+                    type="button"
+                    class="stepper-btn"
+                    data-target="r200R"
+                    data-step="1">
+                    +
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="row-label">Punten</div>
+            <div class="entry-cell">
+              <div class="score-row">
+                <div>
+                  <span class="field-label">Geteld</span>
+                  <input
+                    id="pointsL"
+                    class="compact-input"
+                    type="text"
+                    inputmode="numeric"
+                    value="0"
+                    max="162"
+                    title="Vul de getelde punten in" />
+                </div>
+                <div>
+                  <span class="field-label">Roem</span>
+                  <div
+                    id="roemTotalL"
+                    style="
+                      min-height: 26px;
+                      padding: 2px 3px;
+                      border-radius: 5px;
+                      background: #f2f6fc;
+                      color: #2d466b;
+                      font-weight: 600;
+                      font-size: 0.95rem;
+                      text-align: right;
+                      display: flex;
+                      align-items: center;
+                      justify-content: flex-end;
+                    ">
+                    0
+                  </div>
+                </div>
+                <div>
+                  <span class="field-label">Totaal</span>
+                  <input
+                    id="scoreL"
+                    class="compact-input"
+                    type="text"
+                    readonly
+                    value="0" />
+                </div>
+              </div>
+            </div>
+            <div class="entry-cell">
+              <div class="score-row">
+                <div>
+                  <span class="field-label">Geteld</span>
+                  <input
+                    id="pointsR"
+                    class="compact-input"
+                    type="text"
+                    inputmode="numeric"
+                    value="0"
+                    max="162"
+                    title="Vul de getelde punten in" />
+                </div>
+                <div>
+                  <span class="field-label">Roem</span>
+                  <div
+                    id="roemTotalR"
+                    style="
+                      min-height: 26px;
+                      padding: 2px 3px;
+                      border-radius: 5px;
+                      background: #f2f6fc;
+                      color: #2d466b;
+                      font-weight: 600;
+                      font-size: 0.95rem;
+                      text-align: right;
+                      display: flex;
+                      align-items: center;
+                      justify-content: flex-end;
+                    ">
+                    0
+                  </div>
+                </div>
+                <div>
+                  <span class="field-label">Totaal</span>
+                  <input
+                    id="scoreR"
+                    class="compact-input"
+                    type="text"
+                    readonly
+                    value="0" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="buttons">
+            <button id="undoPartijBtn" type="button" class="btn-secondary">
+              Undo
+            </button>
+            <button
+              id="calcTotaalBtn"
+              type="button"
+              class="btn-secondary"
+              style="font-size: 0.75rem; padding: 2px 8px">
+              Bereken totaal
+            </button>
+            <button id="addPartijBtn" type="button" class="btn-secondary">
+              Verstuur
+            </button>
+          </div>
+        </div>
+
+        <div
+          id="partijenListHeader"
+          class="partijlist-header hidden"
+          aria-hidden="true">
+          <span>Spel</span>
+          <span class="partijcol-left">Team L</span>
+          <span class="partijcol-center">-</span>
+          <span class="partijcol-left">Team R</span>
+        </div>
         <div class="partijlist" id="partijenList"></div>
 
         <div class="totals">
           <div class="totals-col">
             <div class="totals-value">
-              <span id="totalL">0</span> <span id="totalKruisWrapL" class="totals-kruis-inline">(<span id="totalKruisL">0</span>X)</span>
+              <span id="totalL">0</span>
+              <span id="totalKruisWrapL" class="totals-kruis-inline"
+                >(<span id="totalKruisL">0</span>X)</span
+              >
             </div>
           </div>
           <div class="totals-col">
             <div class="totals-value">
-              <span id="totalR">0</span> <span id="totalKruisWrapR" class="totals-kruis-inline">(<span id="totalKruisR">0</span>X)</span>
+              <span id="totalR">0</span>
+              <span id="totalKruisWrapR" class="totals-kruis-inline"
+                >(<span id="totalKruisR">0</span>X)</span
+              >
             </div>
           </div>
         </div>
 
-        <!-- <div class="row">
-          <label>
-            <input id="isFinal" type="checkbox" />
-            Wedstrijd afgerond
-          </label>
-        </div> -->
+        <p id="modeText" class="mode" style="display: none"></p>
 
-        <!-- <p id="modeText" class="mode"></p> -->
-
-        <button id="submitBtn" type="submit">Eindtotaal maken en versturen</button>
+        <button id="submitBtn" type="submit">
+          Eindtotaal maken en versturen
+        </button>
         <p id="message" class="msg"></p>
       </form>
     </div>
@@ -317,28 +888,57 @@
         const teamLEl = document.getElementById("teamL");
         const teamREl = document.getElementById("teamR");
         const modeText = document.getElementById("modeText");
-        const isFinalEl = document.getElementById("isFinal");
         const messageEl = document.getElementById("message");
         const submitBtn = document.getElementById("submitBtn");
+        const calcTotaalBtn = document.getElementById("calcTotaalBtn");
         const addPartijBtn = document.getElementById("addPartijBtn");
         const undoPartijBtn = document.getElementById("undoPartijBtn");
         const partijenListEl = document.getElementById("partijenList");
+        const partijenListHeaderEl =
+          document.getElementById("partijenListHeader");
         const totalLEl = document.getElementById("totalL");
         const totalREl = document.getElementById("totalR");
         const totalKruisWrapLEl = document.getElementById("totalKruisWrapL");
         const totalKruisWrapREl = document.getElementById("totalKruisWrapR");
         const totalKruisLEl = document.getElementById("totalKruisL");
         const totalKruisREl = document.getElementById("totalKruisR");
+        const partijHeaderEl = document.getElementById("partijHeader");
+        const partijRowLabelEl = document.getElementById("partijRowLabel");
+        const teamPanelEls = {
+          L: document.querySelector('[data-team-panel="L"]'),
+          R: document.querySelector('[data-team-panel="R"]'),
+        };
+        const troefBoxEl = document.getElementById("troefBox");
+        const scoreFlagsEl = document.getElementById("scoreFlags");
+        const pointsLInput = document.getElementById("pointsL");
+        const pointsRInput = document.getElementById("pointsR");
+        const roemTotalLInput = document.getElementById("roemTotalL");
+        const roemTotalRInput = document.getElementById("roemTotalR");
         const scoreLInput = document.getElementById("scoreL");
         const scoreRInput = document.getElementById("scoreR");
-        const roemLInput = document.getElementById("roemL");
-        const roemRInput = document.getElementById("roemR");
-        const kruisLInput = document.getElementById("kruisL");
-        const kruisRInput = document.getElementById("kruisR");
+        const kruisCounts = { L: 0, R: 0 };
+        const roemCountEls = {
+          L: {
+            20: document.getElementById("r20L"),
+            50: document.getElementById("r50L"),
+            100: document.getElementById("r100L"),
+            200: document.getElementById("r200L"),
+          },
+          R: {
+            20: document.getElementById("r20R"),
+            50: document.getElementById("r50R"),
+            100: document.getElementById("r100R"),
+            200: document.getElementById("r200R"),
+          },
+        };
 
         const partijen = [];
         let sendInFlight = false;
         let sendAgain = false;
+        let lastSubmittedWasFinal = false;
+        const TOTAL_POINTS_PER_PARTIJ = 162;
+        let scoreFlagState = null; // null | 'kraak' | 're' | 'super'
+        let hasCalculatedTotal = false;
 
         const mode = params.get("mode") === "final" ? "final" : "immediate";
 
@@ -352,18 +952,22 @@
         const finalIndex = params.get("fi");
         const teamL = params.get("teamL") || "Team links";
         const teamR = params.get("teamR") || "Team rechts";
-        const datum = new Date(date).toLocaleDateString("nl-NL", { dateStyle: "short" });
+        const scoreTarget = Number(params.get("scoreTarget") || 2000);
+        const winKruis = Number(params.get("winnerKruis") || 4);
+        const datum = new Date(date).toLocaleDateString("nl-NL", {
+          dateStyle: "short",
+        });
         teamLEl.textContent = teamL;
         teamREl.textContent = teamR;
         kopregel.textContent = `Scoreformulier ${datum || "?"}`;
         meta.textContent = `ronde ${round || "?"} | tafel ${table || "?"}`;
 
         if (mode === "final") {
-          modeText.textContent = "Ingesteld op: pas zichtbaar op centrale computer als wedstrijd is afgerond.";
-          isFinalEl.checked = false;
+          modeText.textContent =
+            "Ingesteld op: pas zichtbaar op centrale computer als wedstrijd is afgerond.";
         } else {
-          modeText.textContent = "Ingesteld op: score direct zichtbaar op centrale computer.";
-          isFinalEl.checked = false;
+          modeText.textContent =
+            "Ingesteld op: score direct zichtbaar op centrale computer.";
         }
 
         function apiBaseUrl() {
@@ -382,12 +986,451 @@
           });
         }
 
-        setupNumericInputFilter(scoreLInput);
-        setupNumericInputFilter(scoreRInput);
-        setupNumericInputFilter(roemLInput);
-        setupNumericInputFilter(roemRInput);
-        setupNumericInputFilter(kruisLInput);
-        setupNumericInputFilter(kruisRInput);
+        function setupSelectAllOnFocus(input) {
+          input.addEventListener("focus", () => {
+            input.select();
+          });
+        }
+
+        function getRoemCount(team, value) {
+          const el = roemCountEls[team][value];
+          return Number(el?.textContent || 0);
+        }
+
+        function setKruisCount(team, nextValue) {
+          kruisCounts[team] = Math.max(0, Math.min(32, Number(nextValue) || 0));
+        }
+
+        function setRoemCount(team, value, nextValue) {
+          const el = roemCountEls[team][value];
+          if (!el) return;
+          const safeValue = Math.max(0, Math.min(99, nextValue));
+          el.textContent = String(safeValue);
+          updateRoemTotalDisplay();
+          clearCurrentPartijTotal();
+        }
+
+        function updateRoemTotalDisplay() {
+          const roemL = getRoemTotalForTeam("L");
+          const roemR = getRoemTotalForTeam("R");
+          roemTotalLInput.textContent = String(roemL);
+          roemTotalRInput.textContent = String(roemR);
+        }
+
+        function getRoemTotalForTeam(team) {
+          return (
+            getRoemCount(team, 20) * 20 +
+            getRoemCount(team, 50) * 50 +
+            getRoemCount(team, 100) * 100 +
+            getRoemCount(team, 200) * 200
+          );
+        }
+
+        function updateRoem200Buttons() {
+          if (!hasTroef()) return; // troef-gating gaat voor
+          const total200 = getRoemCount("L", 200) + getRoemCount("R", 200);
+          document
+            .querySelectorAll(
+              '.stepper-btn[data-target="r200L"], .stepper-btn[data-target="r200R"]',
+            )
+            .forEach((btn) => {
+              const isPlus = btn.getAttribute("data-step") === "1";
+              if (!isPlus) {
+                btn.disabled = false;
+                return;
+              }
+              const team = btn.getAttribute("data-target")?.endsWith("L")
+                ? "L"
+                : "R";
+              const ownCount = getRoemCount(team, 200);
+              btn.disabled = total200 >= 1 && ownCount === 0;
+            });
+        }
+
+        function clampPoints(value) {
+          if (!Number.isFinite(value)) return 0;
+          return Math.max(
+            0,
+            Math.min(TOTAL_POINTS_PER_PARTIJ, Math.trunc(value)),
+          );
+        }
+
+        function hasValidEnteredScore() {
+          const pointsL = Number(pointsLInput.value || 0);
+          const pointsR = Number(pointsRInput.value || 0);
+          if (!Number.isFinite(pointsL) || !Number.isFinite(pointsR)) {
+            return false;
+          }
+          return pointsL + pointsR === TOTAL_POINTS_PER_PARTIJ;
+        }
+
+        function hasTroef() {
+          return !!(troefState.ownerTeam && troefState.selectedSuit[troefState.ownerTeam]);
+        }
+
+        function getLastTroefTeam() {
+          if (partijen.length === 0) return null;
+          return partijen[partijen.length - 1]?.troefTeam || null;
+        }
+
+        function hasReachedScoreTarget() {
+          const { baseTotals } = getMatchTotals();
+          return (
+            baseTotals.left > scoreTarget || baseTotals.right > scoreTarget
+          );
+        }
+
+        function updateActionButtons() {
+          const matchFinished = hasReachedScoreTarget();
+          const troefGekozen = hasTroef();
+          const canEditCurrentPartij = troefGekozen && !matchFinished;
+          const canChooseTroef = !matchFinished;
+
+          pointsLInput.disabled = !canEditCurrentPartij;
+          pointsRInput.disabled = !canEditCurrentPartij;
+          document.querySelectorAll(".stepper-btn").forEach((btn) => {
+            btn.disabled = !canEditCurrentPartij;
+          });
+          document.querySelectorAll(".troef-check").forEach((el) => {
+            el.disabled = !canChooseTroef;
+          });
+          document.querySelectorAll("#scoreFlagK, #scoreFlagR, #scoreFlagS").forEach((el) => {
+            el.disabled = !canEditCurrentPartij;
+          });
+          calcTotaalBtn.disabled =
+            !canEditCurrentPartij || !hasValidEnteredScore();
+          addPartijBtn.disabled = !canEditCurrentPartij || !hasCalculatedTotal;
+          undoPartijBtn.disabled = partijen.length === 0;
+          submitBtn.disabled =
+            partijen.length === 0 || !hasCalculatedTotal || !matchFinished;
+        }
+
+        function setFixedTotalPoints(changedTeam) {
+          if (changedTeam !== "L" && changedTeam !== "R") return;
+          const sourceInput = changedTeam === "L" ? pointsLInput : pointsRInput;
+          const targetInput = changedTeam === "L" ? pointsRInput : pointsLInput;
+          const sourceRawValue = sourceInput.value.trim();
+
+          if (sourceRawValue === "") {
+            sourceInput.value = "0";
+            targetInput.value = "0";
+            clearCurrentPartijTotal();
+            return;
+          }
+
+          const sourcePoints = clampPoints(Number(sourceInput.value || 0));
+          const targetPoints = TOTAL_POINTS_PER_PARTIJ - sourcePoints;
+          sourceInput.value = String(sourcePoints);
+          targetInput.value = String(targetPoints);
+          clearCurrentPartijTotal();
+        }
+
+        function getPartijMultiplierBySuit(troefSuit) {
+          return troefSuit === "spades" ? 2 : 1;
+        }
+
+        function getCurrentPartijMultiplier() {
+          if (!troefState.ownerTeam) return 1;
+          const currentSuit = troefState.selectedSuit[troefState.ownerTeam];
+          return getPartijMultiplierBySuit(currentSuit);
+        }
+
+        function getScoreFlagMultiplier(flag) {
+          if (flag === "kraak") return 2;
+          if (flag === "re") return 4;
+          if (flag === "super") return 8;
+          return 1;
+        }
+
+        function getSpelendePartij(troefTeam, scoreFlag) {
+          if (troefTeam !== "L" && troefTeam !== "R") return troefTeam;
+          if (scoreFlag === "kraak" || scoreFlag === "super") {
+            return troefTeam === "L" ? "R" : "L";
+          }
+          return troefTeam;
+        }
+
+        function computePartijScores({
+          pointsL,
+          pointsR,
+          roemL,
+          roemR,
+          troefTeam,
+          troefSuit,
+          scoreFlag,
+        }) {
+          const suitMultiplier = getPartijMultiplierBySuit(troefSuit);
+          const flagMultiplier = getScoreFlagMultiplier(scoreFlag);
+          const partijMultiplier = suitMultiplier * flagMultiplier;
+          let baseScoreL = pointsL + roemL;
+          let baseScoreR = pointsR + roemR;
+          const totaalVoorNatL = baseScoreL;
+          const totaalVoorNatR = baseScoreR;
+          let extraKruisL = 0;
+          let extraKruisR = 0;
+
+          // Pit: één team telt 162, andere 0 → het team met 0 punten krijgt 1 kruis (× multiplier).
+          if (pointsL === TOTAL_POINTS_PER_PARTIJ && pointsR === 0) {
+            extraKruisR += partijMultiplier;
+          } else if (pointsR === TOTAL_POINTS_PER_PARTIJ && pointsL === 0) {
+            extraKruisL += partijMultiplier;
+          }
+
+          // Nat-regel:
+          // - Kraak/Re/Super: Winner takes all. Verliezer gaat nat (0 punten), winnaar krijgt alles.
+          // - Geen flag: Troefmaker gaat nat als hij verliest.
+          // - Bij gelijke stand verliest de spelende partij (troefmaker/kraker).
+          if (
+            scoreFlag === "kraak" ||
+            scoreFlag === "re" ||
+            scoreFlag === "super"
+          ) {
+            const spelendePartij = getSpelendePartij(troefTeam, scoreFlag);
+            // Winner takes all
+            if (totaalVoorNatL < totaalVoorNatR) {
+              baseScoreL = 0;
+              baseScoreR = TOTAL_POINTS_PER_PARTIJ + roemL + roemR;
+              extraKruisL += partijMultiplier;
+            } else if (totaalVoorNatR < totaalVoorNatL) {
+              baseScoreR = 0;
+              baseScoreL = TOTAL_POINTS_PER_PARTIJ + roemL + roemR;
+              extraKruisR += partijMultiplier;
+            } else if (spelendePartij === "L") {
+              baseScoreL = 0;
+              baseScoreR = TOTAL_POINTS_PER_PARTIJ + roemL + roemR;
+              extraKruisL += partijMultiplier;
+            } else if (spelendePartij === "R") {
+              baseScoreR = 0;
+              baseScoreL = TOTAL_POINTS_PER_PARTIJ + roemL + roemR;
+              extraKruisR += partijMultiplier;
+            }
+          } else if (troefTeam === "L" && totaalVoorNatL <= totaalVoorNatR) {
+            // Geen flag: troefTeam L gaat nat als hij verliest
+            baseScoreL = 0;
+            baseScoreR = TOTAL_POINTS_PER_PARTIJ + roemL + roemR;
+            extraKruisL += partijMultiplier;
+          } else if (troefTeam === "R" && totaalVoorNatR <= totaalVoorNatL) {
+            // Geen flag: troefTeam R gaat nat als hij verliest
+            baseScoreR = 0;
+            baseScoreL = TOTAL_POINTS_PER_PARTIJ + roemL + roemR;
+            extraKruisR += partijMultiplier;
+          }
+
+          return {
+            scoreL: baseScoreL * partijMultiplier,
+            scoreR: baseScoreR * partijMultiplier,
+            scoreMultiplier: partijMultiplier,
+            extraKruisL,
+            extraKruisR,
+          };
+        }
+
+        function syncComputedScores() {
+          const pointsL = Number(pointsLInput.value || 0);
+          const pointsR = Number(pointsRInput.value || 0);
+          const roemL = getRoemTotalForTeam("L");
+          const roemR = getRoemTotalForTeam("R");
+          const computed = computePartijScores({
+            pointsL,
+            pointsR,
+            roemL,
+            roemR,
+            troefTeam: troefState.ownerTeam,
+            troefSuit: troefState.ownerTeam
+              ? troefState.selectedSuit[troefState.ownerTeam]
+              : null,
+            scoreFlag: scoreFlagState,
+          });
+          roemTotalLInput.textContent = String(roemL);
+          roemTotalRInput.textContent = String(roemR);
+          scoreLInput.value = String(computed.scoreL);
+          scoreRInput.value = String(computed.scoreR);
+          updateRoem200Buttons();
+        }
+
+        function clearCurrentPartijTotal() {
+          hasCalculatedTotal = false;
+          scoreLInput.value = "0";
+          scoreRInput.value = "0";
+          updateRoem200Buttons();
+          updateActionButtons();
+        }
+
+        function calculateCurrentPartijTotal(showMessage = false) {
+          if (!hasValidEnteredScore()) {
+            if (showMessage) {
+              setMessage(
+                `Getelde punten moeten samen precies ${TOTAL_POINTS_PER_PARTIJ} zijn.`,
+                "err",
+              );
+            }
+            updateActionButtons();
+            return;
+          }
+          syncComputedScores();
+          hasCalculatedTotal = true;
+          updateActionButtons();
+          if (showMessage) {
+            setMessage("Totaal berekend.", "ok");
+          }
+        }
+
+        function updatePartijLabels() {
+          const nextIndex = partijen.length + 1;
+          const text = `Partij ${nextIndex}`;
+          if (partijHeaderEl) {
+            partijHeaderEl.textContent = text;
+          }
+        }
+
+        const troefState = {
+          activeTeam: null,
+          ownerTeam: null,
+          selectedSuit: { L: null, R: null },
+        };
+
+        function renderTroefSelection(team) {
+          if (!troefBoxEl || troefState.activeTeam !== team) return;
+          const selectedSuit = troefState.selectedSuit[team];
+          document.querySelectorAll(".troef-check").forEach((checkbox) => {
+            checkbox.checked =
+              checkbox.getAttribute("data-suit") === selectedSuit;
+          });
+        }
+
+        function updateTroefAndScorePanels() {
+          ["L", "R"].forEach((team) => {
+            const teamLabelEl = team === "L" ? teamLEl : teamREl;
+            if (teamLabelEl) {
+              teamLabelEl.classList.toggle(
+                "active",
+                troefState.activeTeam === team,
+              );
+            }
+          });
+
+          if (troefBoxEl) {
+            if (troefState.activeTeam && teamPanelEls[troefState.activeTeam]) {
+              teamPanelEls[troefState.activeTeam].prepend(troefBoxEl);
+              troefBoxEl.style.display = "block";
+              renderTroefSelection(troefState.activeTeam);
+            } else {
+              troefBoxEl.style.display = "none";
+            }
+          }
+
+          if (scoreFlagsEl) {
+            if (
+              troefState.ownerTeam &&
+              teamPanelEls[troefState.ownerTeam === "L" ? "R" : "L"]
+            ) {
+              const targetTeam = troefState.ownerTeam === "L" ? "R" : "L";
+              teamPanelEls[targetTeam].appendChild(scoreFlagsEl);
+              scoreFlagsEl.style.display = "flex";
+            } else {
+              scoreFlagsEl.style.display = "none";
+            }
+          }
+        }
+
+        function setTroefActiveTeam(team) {
+          if (team !== "L" && team !== "R") return;
+          if (partijen.length > 0) return;
+          troefState.activeTeam = team;
+          updateTroefAndScorePanels();
+        }
+
+        setupNumericInputFilter(pointsLInput);
+        setupNumericInputFilter(pointsRInput);
+        setupSelectAllOnFocus(pointsLInput);
+        setupSelectAllOnFocus(pointsRInput);
+        teamLEl.addEventListener("click", () => setTroefActiveTeam("L"));
+        teamREl.addEventListener("click", () => setTroefActiveTeam("R"));
+        document.querySelectorAll(".troef-check").forEach((checkbox) => {
+          checkbox.addEventListener("change", () => {
+            if (!troefState.activeTeam) return;
+            const team = troefState.activeTeam;
+            const suit = checkbox.getAttribute("data-suit");
+            if (!suit) return;
+
+            if (checkbox.checked) {
+              document.querySelectorAll(".troef-check").forEach((other) => {
+                if (other !== checkbox) {
+                  other.checked = false;
+                }
+              });
+              troefState.selectedSuit[team] = suit;
+              troefState.ownerTeam = team;
+            } else if (troefState.selectedSuit[team] === suit) {
+              troefState.selectedSuit[team] = null;
+              if (troefState.ownerTeam === team) {
+                troefState.ownerTeam = null;
+              }
+            }
+            updateTroefAndScorePanels();
+            clearCurrentPartijTotal();
+            updateActionButtons();
+          });
+        });
+        document
+          .querySelectorAll("#scoreFlagK, #scoreFlagR, #scoreFlagS")
+          .forEach((checkbox) => {
+            checkbox.addEventListener("change", () => {
+              if (checkbox.checked) {
+                const flagMap = {
+                  scoreFlagK: "kraak",
+                  scoreFlagR: "re",
+                  scoreFlagS: "super",
+                };
+                scoreFlagState = flagMap[checkbox.id] || null;
+                document
+                  .querySelectorAll("#scoreFlagK, #scoreFlagR, #scoreFlagS")
+                  .forEach((other) => {
+                    if (other !== checkbox) other.checked = false;
+                  });
+              } else {
+                scoreFlagState = null;
+              }
+              clearCurrentPartijTotal();
+            });
+          });
+        pointsLInput.addEventListener("input", () => setFixedTotalPoints("L"));
+        pointsRInput.addEventListener("input", () => setFixedTotalPoints("R"));
+        document.querySelectorAll(".stepper-btn").forEach((button) => {
+          button.addEventListener("click", () => {
+            const targetId = button.getAttribute("data-target");
+            const step = Number(button.getAttribute("data-step") || 0);
+            const target = document.getElementById(targetId);
+            if (!target || !Number.isFinite(step)) return;
+
+            const roemMatch = /^r(20|50|100|200)(L|R)$/.exec(targetId);
+            if (!roemMatch) return;
+            const roemValue = Number(roemMatch[1]);
+            const roemTeam = roemMatch[2];
+
+            if (targetId === "r200L" || targetId === "r200R") {
+              const otherTargetId = targetId.endsWith("L") ? "r200R" : "r200L";
+              const currentValue = Number(target.textContent || 0);
+              const otherValue = Number(
+                document.getElementById(otherTargetId)?.textContent || 0,
+              );
+              const nextValue = currentValue + step;
+              if (
+                step > 0 &&
+                (currentValue >= 1 || otherValue >= 1 || nextValue > 1)
+              ) {
+                setMessage(
+                  "200 roem mag per partij maximaal 1x voorkomen bij een van beide teams.",
+                  "err",
+                );
+                return;
+              }
+            }
+
+            const currentValue = Number(target.textContent || 0);
+            setRoemCount(roemTeam, roemValue, currentValue + step);
+          });
+        });
 
         function setMessage(text, type) {
           messageEl.textContent = text;
@@ -401,7 +1444,7 @@
               acc.right += partij.scoreR;
               return acc;
             },
-            { left: 0, right: 0 }
+            { left: 0, right: 0 },
           );
         }
 
@@ -412,7 +1455,7 @@
               acc.right += partij.roemR || 0;
               return acc;
             },
-            { left: 0, right: 0 }
+            { left: 0, right: 0 },
           );
         }
 
@@ -423,66 +1466,147 @@
               acc.right += partij.kruisR || 0;
               return acc;
             },
-            { left: 0, right: 0 }
+            { left: 0, right: 0 },
           );
         }
 
-        function getMatchTotals(countKruis) {
+        function getMatchTotals(isFinal = false) {
           const baseTotals = getTotals();
 
-          const kruisTotals = countKruis ? getKruisTotals() : { left: 0, right: 0 };
+          const kruisTotals = getKruisTotals();
 
-          const winnerBonusKruis = { left: 0, right: 0 };
-          if (countKruis) {
-            if (baseTotals.left > baseTotals.right) {
-              winnerBonusKruis.left = 4;
-            } else if (baseTotals.right > baseTotals.left) {
-              winnerBonusKruis.right = 4;
+          const currentTotals = {
+            left: baseTotals.left,
+            right: baseTotals.right,
+          };
+
+          let winnerTeam = null;
+          const loserBonusKruis = { left: 0, right: 0 };
+
+          if (isFinal && partijen.length > 0) {
+            const bothAboveTarget =
+              currentTotals.left > scoreTarget && currentTotals.right > scoreTarget;
+
+            if (bothAboveTarget) {
+              winnerTeam = getLastTroefTeam();
+            } else if (currentTotals.left > currentTotals.right) {
+              winnerTeam = "L";
+            } else if (currentTotals.right > currentTotals.left) {
+              winnerTeam = "R";
+            } else {
+              winnerTeam = getLastTroefTeam();
+            }
+
+            if (winnerTeam === "L") {
+              loserBonusKruis.right = winKruis;
+            } else if (winnerTeam === "R") {
+              loserBonusKruis.left = winKruis;
             }
           }
 
+          const finalKruisTotals = {
+            left: kruisTotals.left + loserBonusKruis.left,
+            right: kruisTotals.right + loserBonusKruis.right,
+          };
+
           const finalTotals = {
             // Kruisen van een team tellen als 100 punten voor de tegenstander.
-            left: baseTotals.left + (kruisTotals.right + winnerBonusKruis.right) * 100,
-            right: baseTotals.right + (kruisTotals.left + winnerBonusKruis.left) * 100,
+            left:
+              baseTotals.left +
+              finalKruisTotals.right * 100,
+            right:
+              baseTotals.right +
+              finalKruisTotals.left * 100,
           };
 
           return {
             baseTotals,
             kruisTotals,
-            winnerBonusKruis,
+            currentTotals,
+            winnerTeam,
+            loserBonusKruis,
+            finalKruisTotals,
             finalTotals,
           };
         }
 
         function renderPartijen() {
-          const countKruis = isFinalEl.checked;
-          const { finalTotals } = getMatchTotals(countKruis);
+          const troefDisplayBySuit = {
+            clubs: { symbol: "♣", colorClass: "black" },
+            diamonds: { symbol: "♦", colorClass: "red" },
+            hearts: { symbol: "♥", colorClass: "red" },
+            spades: { symbol: "♠", colorClass: "black" },
+          };
+          const matchFinished = hasReachedScoreTarget();
+          const { currentTotals, baseTotals, finalKruisTotals } =
+            getMatchTotals(true);
           const kruisTotalsSoFar = getKruisTotals();
-          totalLEl.textContent = String(finalTotals.left);
-          totalREl.textContent = String(finalTotals.right);
+
+          if (matchFinished) {
+            totalLEl.textContent = `${baseTotals.left} + ${finalKruisTotals.right} x 100`;
+            totalREl.textContent = `${baseTotals.right} + ${finalKruisTotals.left} x 100`;
+          } else {
+            totalLEl.textContent = String(currentTotals.left);
+            totalREl.textContent = String(currentTotals.right);
+          }
+
           totalKruisLEl.textContent = String(kruisTotalsSoFar.left);
           totalKruisREl.textContent = String(kruisTotalsSoFar.right);
-          totalKruisWrapLEl.style.display = kruisTotalsSoFar.left > 0 ? "inline" : "none";
-          totalKruisWrapREl.style.display = kruisTotalsSoFar.right > 0 ? "inline" : "none";
+          totalKruisWrapLEl.style.display =
+            kruisTotalsSoFar.left > 0 ? "inline" : "none";
+          totalKruisWrapREl.style.display =
+            kruisTotalsSoFar.right > 0 ? "inline" : "none";
 
           if (partijen.length === 0) {
-            partijenListEl.innerHTML = '<div class="partijitem"><span>Nog geen partijen toegevoegd</span><span>-</span></div>';
+            if (partijenListHeaderEl) {
+              partijenListHeaderEl.classList.add("hidden");
+            }
+            partijenListEl.classList.remove("with-header");
+            partijenListEl.innerHTML =
+              '<div class="partijitem"><span>Nog geen partijen gespeeld</span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>';
             return;
           }
 
+          if (partijenListHeaderEl) {
+            partijenListHeaderEl.classList.remove("hidden");
+          }
+          partijenListEl.classList.add("with-header");
+
           partijenListEl.innerHTML = partijen
             .map((partij, index) => {
-              const roemLText = partij.roemL > 0 ? ` (${partij.roemL} r)` : "";
-              const roemRText = partij.roemR > 0 ? ` (${partij.roemR} r)` : "";
-              const kruisLText = partij.kruisL > 0 ? ` (${partij.kruisL}X)` : "";
-              const kruisRText = partij.kruisR > 0 ? ` (${partij.kruisR}X)` : "";
-              return `<div class="partijitem"><span>Partij ${index + 1}</span><span>${partij.scoreL}${kruisLText}</span> - <span>${partij.scoreR}${kruisRText}</span></div>`;
+              const spelendTeam =
+                getSpelendePartij(partij.troefTeam, partij.scoreFlag) ||
+                partij.troefTeam ||
+                "";
+              const troefDisplay = troefDisplayBySuit[partij.troefSuit] || {
+                symbol: partij.troefSuit || "?",
+                colorClass: "black",
+              };
+              const troefText = `<span class="partij-troef-suit ${troefDisplay.colorClass}">${troefDisplay.symbol}</span>`;
+              let scoreFlagText = " ";
+              if (partij.scoreFlag) {
+                const flagExclamations = { kraak: "!", re: "!!", super: "!!!" };
+                scoreFlagText = flagExclamations[partij.scoreFlag] || " ";
+              }
+              const roemLText = partij.roemL > 0 ? `(${partij.roemL}r)` : "-";
+              const roemRText = partij.roemR > 0 ? `(${partij.roemR}r)` : "-";
+              const kruisLText =
+                partij.kruisL > 0 ? `${partij.kruisL || 0}X` : "";
+              const kruisRText =
+                partij.kruisR > 0 ? `${partij.kruisR || 0}X` : "";
+              const spel = `${spelendTeam}${troefText}`.trim();
+              return `<div class="partijitem"><span>${
+                index + 1
+              }:</span><span class="partijcol-center">${spel}</span><span class="partijcol-center">${scoreFlagText}</span><span class="partijcol-right vet">${
+                partij.scoreL
+              }</span><span class="partijcol-right">${roemLText}</span><span class="partijcol-center">${kruisLText}</span><span class="partijcol-center">-</span><span class="partijcol-right vet">${
+                partij.scoreR
+              }</span><span class="partijcol-right">${roemRText}</span><span class="partijcol-center">${kruisRText}</span></div>`;
             })
             .join("");
         }
 
-        async function sendCurrentTotal(forceMessage = false) {
+        async function sendCurrentTotal(forceMessage = false, isFinal = false) {
           if (partijen.length === 0) {
             return false;
           }
@@ -493,9 +1617,22 @@
           }
 
           sendInFlight = true;
-          const isFinal = isFinalEl.checked;
-          const { baseTotals, kruisTotals, winnerBonusKruis, finalTotals } = getMatchTotals(isFinal);
+          const {
+            baseTotals,
+            kruisTotals,
+            currentTotals,
+            winnerTeam,
+            loserBonusKruis,
+            finalKruisTotals,
+            finalTotals,
+          } = getMatchTotals(isFinal);
           const roemTotals = getRoemTotals();
+          const scoreTotals = isFinal ? finalTotals : currentTotals;
+          const appliedKruisTotals = isFinal ? finalKruisTotals : kruisTotals;
+          const bonusPoints = {
+            left: appliedKruisTotals.right * 100,
+            right: appliedKruisTotals.left * 100,
+          };
 
           if (forceMessage) {
             setMessage("Versturen...", "");
@@ -515,16 +1652,19 @@
               teamL,
               teamR,
               // scoreL/scoreR zijn de eindscore inclusief kruis-afrekening.
-              scoreL: finalTotals.left,
-              scoreR: finalTotals.right,
+              scoreL: scoreTotals.left,
+              scoreR: scoreTotals.right,
               baseScoreL: baseTotals.left,
               baseScoreR: baseTotals.right,
               roemL: roemTotals.left,
               roemR: roemTotals.right,
-              kruisL: kruisTotals.left,
-              kruisR: kruisTotals.right,
-              winnerBonusKruisL: winnerBonusKruis.left,
-              winnerBonusKruisR: winnerBonusKruis.right,
+              kruisL: appliedKruisTotals.left,
+              kruisR: appliedKruisTotals.right,
+              loserBonusKruisL: loserBonusKruis.left,
+              loserBonusKruisR: loserBonusKruis.right,
+              bonusPointsL: bonusPoints.left,
+              bonusPointsR: bonusPoints.right,
+              winnerTeam,
               partyCount: partijen.length,
               parties: partijen,
               isFinal,
@@ -555,7 +1695,9 @@
                 }
 
                 const responseText = await response.text();
-                lastError = `API fout (${response.status}) ${responseText || ""}`.trim();
+                lastError = `API fout (${response.status}) ${
+                  responseText || ""
+                }`.trim();
               } catch (endpointError) {
                 lastError = endpointError?.message || "Netwerkfout";
               }
@@ -565,8 +1707,13 @@
               throw new Error(lastError);
             }
 
+            lastSubmittedWasFinal = isFinal;
+
             if (forceMessage) {
-              setMessage(`Stand verstuurd: ${finalTotals.left} - ${finalTotals.right}`, "ok");
+              setMessage(
+                `Stand verstuurd: ${scoreTotals.left} - ${scoreTotals.right}`,
+                "ok",
+              );
             }
 
             return true;
@@ -585,40 +1732,134 @@
         }
 
         function addPartij() {
-          const scoreL = Number(scoreLInput.value);
-          const scoreR = Number(scoreRInput.value);
-          const roemL = Number(roemLInput.value || 0);
-          const roemR = Number(roemRInput.value || 0);
-          const kruisL = Number(kruisLInput.value || 0);
-          const kruisR = Number(kruisRInput.value || 0);
+          const pointsL = Number(pointsLInput.value);
+          const pointsR = Number(pointsRInput.value);
+          const currentTroefTeam = troefState.ownerTeam;
+          const currentTroefSuit = currentTroefTeam
+            ? troefState.selectedSuit[currentTroefTeam]
+            : null;
+          const roem20L = getRoemCount("L", 20);
+          const roem50L = getRoemCount("L", 50);
+          const roem100L = getRoemCount("L", 100);
+          const roem200L = getRoemCount("L", 200);
+          const roem20R = getRoemCount("R", 20);
+          const roem50R = getRoemCount("R", 50);
+          const roem100R = getRoemCount("R", 100);
+          const roem200R = getRoemCount("R", 200);
 
-          if (!Number.isFinite(scoreL) || !Number.isFinite(scoreR) || scoreL < 0 || scoreR < 0) {
-            setMessage("Vul geldige partijscores in.", "err");
+          if (roem200L + roem200R > 1) {
+            setMessage(
+              "200 roem mag per partij maximaal 1x voorkomen bij een van beide teams.",
+              "err",
+            );
             return;
           }
 
-          const validRoemL = Number.isInteger(roemL) && roemL >= 0;
-          const validRoemR = Number.isInteger(roemR) && roemR >= 0;
-          if (!validRoemL || !validRoemR) {
-            setMessage("Roem moet een geheel getal tussen 0 en 16 zijn.", "err");
+          const roemL =
+            roem20L * 20 + roem50L * 50 + roem100L * 100 + roem200L * 200;
+          const roemR =
+            roem20R * 20 + roem50R * 50 + roem100R * 100 + roem200R * 200;
+          const currentScoreFlag = scoreFlagState;
+          const computedScores = computePartijScores({
+            pointsL,
+            pointsR,
+            roemL,
+            roemR,
+            troefTeam: currentTroefTeam,
+            troefSuit: currentTroefSuit,
+            scoreFlag: currentScoreFlag,
+          });
+          const scoreL = computedScores.scoreL;
+          const scoreR = computedScores.scoreR;
+          const kruisL = kruisCounts.L + computedScores.extraKruisL;
+          const kruisR = kruisCounts.R + computedScores.extraKruisR;
+
+          if (
+            !Number.isFinite(pointsL) ||
+            !Number.isFinite(pointsR) ||
+            pointsL < 0 ||
+            pointsR < 0
+          ) {
+            setMessage("Vul geldige punten in.", "err");
             return;
           }
 
-          const validKruisL = Number.isInteger(kruisL) && (kruisL === 0 || (kruisL >= 1 && kruisL <= 16));
-          const validKruisR = Number.isInteger(kruisR) && (kruisR === 0 || (kruisR >= 1 && kruisR <= 16));
+          if (pointsL + pointsR !== TOTAL_POINTS_PER_PARTIJ) {
+            setMessage(
+              `Getelde punten moeten samen precies ${TOTAL_POINTS_PER_PARTIJ} zijn.`,
+              "err",
+            );
+            return;
+          }
+
+          if (!currentTroefTeam || !currentTroefSuit) {
+            setMessage("Kies eerst een troefkleur.", "err");
+            return;
+          }
+
+          const validKruisL =
+            Number.isInteger(kruisL) && kruisL >= 0 && kruisL <= 32;
+          const validKruisR =
+            Number.isInteger(kruisR) && kruisR >= 0 && kruisR <= 32;
           if (!validKruisL || !validKruisR) {
-            setMessage("Aantal kruisen moet 1 t/m 16 zijn (of leeg).", "err");
+            setMessage("Aantal kruisen moet tussen 0 en 32 zijn.", "err");
             return;
           }
 
-          partijen.push({ scoreL, scoreR, roemL, roemR, kruisL, kruisR });
-          scoreLInput.value = "";
-          scoreRInput.value = "";
-          roemLInput.value = "";
-          roemRInput.value = "";
-          kruisLInput.value = "";
-          kruisRInput.value = "";
-          scoreLInput.focus();
+          partijen.push({
+            pointsL,
+            pointsR,
+            troefTeam: currentTroefTeam,
+            troefSuit: currentTroefSuit,
+            scoreFlag: currentScoreFlag,
+            scoreMultiplier: computedScores.scoreMultiplier,
+            scoreL,
+            scoreR,
+            roemL,
+            roemR,
+            roem20L,
+            roem50L,
+            roem100L,
+            roem200L,
+            roem20R,
+            roem50R,
+            roem100R,
+            roem200R,
+            kruisL,
+            kruisR,
+          });
+          pointsLInput.value = "0";
+          pointsRInput.value = "0";
+          scoreLInput.value = "0";
+          scoreRInput.value = "0";
+          setRoemCount("L", 20, 0);
+          setRoemCount("L", 50, 0);
+          setRoemCount("L", 100, 0);
+          setRoemCount("L", 200, 0);
+          setRoemCount("R", 20, 0);
+          setRoemCount("R", 50, 0);
+          setRoemCount("R", 100, 0);
+          setRoemCount("R", 200, 0);
+          setKruisCount("L", 0);
+          setKruisCount("R", 0);
+          scoreFlagState = null;
+          document
+            .querySelectorAll("#scoreFlagK, #scoreFlagR, #scoreFlagS")
+            .forEach((cb) => {
+              cb.checked = false;
+            });
+          pointsLInput.focus();
+
+          const nextTroefTeam = currentTroefTeam === "L" ? "R" : "L";
+          troefState.activeTeam = nextTroefTeam;
+          troefState.ownerTeam = null;
+          troefState.selectedSuit[nextTroefTeam] = null;
+          updateTroefAndScorePanels();
+
+          clearCurrentPartijTotal();
+          updatePartijLabels();
+          hasCalculatedTotal = true;
+          updateActionButtons();
           setMessage("Partij toegevoegd.", "ok");
           renderPartijen();
           sendCurrentTotal(true);
@@ -630,43 +1871,82 @@
             return;
           }
 
+          const revertFinalSubmission = lastSubmittedWasFinal;
+          lastSubmittedWasFinal = false;
+
           partijen.pop();
+          if (partijen.length === 0) {
+            troefState.activeTeam = null;
+            troefState.ownerTeam = null;
+          } else {
+            const lastTroefTeam = partijen[partijen.length - 1].troefTeam;
+            const nextTroefTeam = lastTroefTeam === "L" ? "R" : "L";
+            troefState.activeTeam = nextTroefTeam;
+            troefState.ownerTeam = null;
+            troefState.selectedSuit[nextTroefTeam] = null;
+          }
+          updateTroefAndScorePanels();
+          updatePartijLabels();
+          hasCalculatedTotal = partijen.length > 0;
+          updateActionButtons();
           setMessage("Laatste partij ongedaan gemaakt.", "ok");
           renderPartijen();
-          sendCurrentTotal(true);
+          sendCurrentTotal(true, false);
+
+          if (revertFinalSubmission) {
+            setMessage("Eindstand ongedaan gemaakt. Tussenstand opnieuw berekend.", "ok");
+          }
         }
 
+        calcTotaalBtn.addEventListener("click", () =>
+          calculateCurrentPartijTotal(true),
+        );
         addPartijBtn.addEventListener("click", addPartij);
         undoPartijBtn.addEventListener("click", undoPartij);
-        isFinalEl.addEventListener("change", renderPartijen);
 
+        updatePartijLabels();
+        setKruisCount("L", 0);
+        setKruisCount("R", 0);
+        pointsLInput.value = "0";
+        pointsRInput.value = "0";
+        updateTroefAndScorePanels();
+        updateRoemTotalDisplay();
+        clearCurrentPartijTotal();
         renderPartijen();
+        updateActionButtons();
 
-        document.getElementById("scoreForm").addEventListener("submit", async (event) => {
-          event.preventDefault();
+        document
+          .getElementById("scoreForm")
+          .addEventListener("submit", async (event) => {
+            event.preventDefault();
 
-          if (partijen.length === 0) {
-            setMessage("Voeg minimaal 1 partij toe voordat je verstuurt.", "err");
-            return;
-          }
-
-          submitBtn.disabled = true;
-          isFinalEl.checked = true;
-          renderPartijen();
-          setMessage("Eindtotaal maken en versturen...", "");
-          try {
-            const sent = await sendCurrentTotal(true);
-            if (sent) {
-              // Probeer het formuliervenster automatisch te sluiten.
-              window.close();
-              if (!window.closed) {
-                setMessage("Eindtotaal verstuurd. Je kunt dit formulier nu sluiten.", "ok");
-              }
+            if (partijen.length === 0) {
+              setMessage(
+                "Voeg minimaal 1 partij toe voordat je verstuurt.",
+                "err",
+              );
+              return;
             }
-          } finally {
-            submitBtn.disabled = false;
-          }
-        });
+
+            submitBtn.disabled = true;
+            renderPartijen();
+            setMessage("Eindtotaal maken en versturen...", "");
+            try {
+              const sent = await sendCurrentTotal(true, true);
+              if (sent) {
+                // Probeer het formuliervenster automatisch te sluiten.
+                window.close();
+                if (!window.closed) {
+                  setMessage(
+                    "Eindtotaal verstuurd. Je kunt dit formulier nu sluiten.",
+                    "ok",
+                  );
+                }
+              }
+            } finally {
+              updateActionButtons();
+            }
+          });
       })();
     </script>
   </body>
