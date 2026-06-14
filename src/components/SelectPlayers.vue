@@ -4,7 +4,7 @@
   <div class="h-auto w-full">
     <div class="mb-1 flex items-center rounded border border-blue-700 p-1">
       <div class="flex-1">
-        <p class="text-center text-lg text-blue-700">Toernooidatum</p>
+        <p class="text-center text-sm text-blue-700 sm:text-lg">Toernooidatum</p>
       </div>
       <DateSelect v-model="localDatum" />
     </div>
@@ -15,7 +15,7 @@
         html: true,
       }">
       <div>
-        <p class="text-center text-lg text-blue-700">Nieuw team</p>
+        <p class="text-center text-sm text-blue-700 sm:text-lg">Nieuw team</p>
       </div>
       <div class="justify-left flex gap-2 p-1">
         <!-- linker kolom -->
@@ -24,7 +24,7 @@
             v-model="selectedLeft"
             name="speler1"
             id="speler1"
-            class="w-full rounded border bg-gray-100 p-1 text-black">
+            class="w-full rounded border bg-gray-100 p-1 text-xs text-black sm:text-start">
             <option
               v-for="(speler, index) in optionsLeft"
               :key="index"
@@ -39,7 +39,7 @@
             v-model="selectedRight"
             name="speler2"
             id="speler2"
-            class="w-full rounded border bg-gray-100 p-1 text-black">
+            class="w-full rounded border bg-gray-100 p-1 text-xs text-black sm:text-start">
             <option
               v-for="(speler, index) in optionsRight"
               :key="index"
@@ -58,18 +58,17 @@
     </div>
 
     <div
-      class="justify-left mb-1 flex gap-2 rounded border p-1"
+      class="justify-left mb-1 flex gap-1 rounded border p-1"
       v-tooltip="{
         content:
           'Voeg een nieuwe speler toe aan de lijst. De naam moet uniek zijn!',
         html: true,
       }">
-      <div class="flex-2">
-        <label class="w-full text-sm text-black" for="newPlayer"
-          >Nieuwe speler</label
+      <div class="flex">
+        <label class="w-full text-xs text-black sm:text-sm" for="newPlayer"
+          >Nieuwe speler:</label
         >
       </div>
-      <div>:</div>
       <div class="flex-2">
         <input
           id="newPlayer"

@@ -3,7 +3,7 @@
     type="date"
     :value="modelValue"
     @input="$emit('update:modelValue', $event.target.value)"
-    class="m-1 rounded border bg-white p-1 text-sm"
+    class="m-1 rounded border bg-white p-1 text-xs sm:text-sm"
     v-tooltip="'Kies de toernooidatum'" />
 </template>
 

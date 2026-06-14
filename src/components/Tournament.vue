@@ -1,7 +1,7 @@
 <template>
   <div id="tournament">
     <TournamentSettings
-      v-if="!standOnly"
+      v-if="showOnlineScoreControls"
       v-model:scoreTarget="scoreTarget"
       v-model:winnerKruis="winnerKruis"
       v-model:onlineScoreEnabled="onlineScoreEnabled"
@@ -9,7 +9,7 @@
     />
 
     <ScoreFormsPanel
-      v-if="!standOnly && onlineScoreEnabled"
+      v-if="showOnlineScoreControls && onlineScoreEnabled"
       :submitMode="remoteScoreVisibilityMode"
       :tournamentId="tournamentId"
       :tournamentDate="tournamentDate"
@@ -22,23 +22,6 @@
       @update:submitMode="(value) => (remoteScoreVisibilityMode = value)"
       class="m-1"
     />
-
-    <div class="mb-2 flex justify-end py-2" v-if="!standOnly && editMode">
-      <button
-        class="mr-2 rounded bg-sky-600 px-3 py-1 text-sm text-white disabled:cursor-not-allowed disabled:bg-sky-200"
-        :disabled="!canRedoScore"
-        @click="redoLastScoreChange"
-        v-tooltip="'Herstel de laatst ongedaan gemaakte scorewijziging'">
-        Redo score
-      </button>
-      <button
-        class="rounded bg-orange-500 px-3 py-1 text-sm text-white disabled:cursor-not-allowed disabled:bg-orange-200"
-        :disabled="!canUndoScore"
-        @click="undoLastScoreChange"
-        v-tooltip="'Maak de laatste scorewijziging ongedaan'">
-        Undo score
-      </button>
-    </div>
     <div v-if="groups.length === 2">
       <div class="schema">
         <div v-for="(ronde, index) in groupMatches[0]" :key="index">
@@ -123,7 +106,25 @@
     </div>
     <!--  geen groepen -->
     <div v-else class="schema">
-      <h2 class="text-xl font-bold">Schema</h2>
+      <div class="mb-0 flex items-center justify-between">
+        <h2 class="text-xl font-bold">Schema</h2>
+          <div class="mb-0 flex justify-end px-2 py-1" v-if="!standOnly && editMode">
+            <button
+              class="mr-2 rounded bg-sky-600 px-3 py-1 text-sm text-white disabled:cursor-not-allowed disabled:bg-sky-200"
+              :disabled="!canRedoScore"
+              @click="redoLastScoreChange"
+              v-tooltip="'Herstel de laatst ongedaan gemaakte scorewijziging'">
+              Redo score
+            </button>
+            <button
+              class="rounded bg-orange-500 px-3 py-1 text-sm text-white disabled:cursor-not-allowed disabled:bg-orange-200"
+              :disabled="!canUndoScore"
+              @click="undoLastScoreChange"
+              v-tooltip="'Maak de laatste scorewijziging ongedaan'">
+              Undo score
+            </button>
+          </div>
+      </div>
       <div v-for="(ronde, index) in matches" :key="index">
         <h3>Ronde: {{ index + 1 }}</h3>
         <MatchTable
@@ -212,6 +213,22 @@ const finalMatches = ref([
   { tafel: 3, teamL: null, teamR: null, scoreL: null, scoreR: null, pl: 5 }, // 5e plaats
   { tafel: 4, teamL: null, teamR: null, scoreL: null, scoreR: null, pl: 7 }, // 7e plaats
 ]);
+
+const isPastTournament = computed(() => {
+  if (!props.tournamentDate) return false;
+
+  const date = new Date(props.tournamentDate);
+  if (Number.isNaN(date.getTime())) return false;
+
+  const tournamentDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const today = new Date();
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  return tournamentDay < todayStart;
+});
+
+const showOnlineScoreControls = computed(
+  () => !props.standOnly && !isPastTournament.value,
+);
 
 // console.log("Edit mode in Tournament:", props.editMode);
 
@@ -811,11 +828,13 @@ onMounted(() => {
     updateFinalists();
   }
 
-  syncRemoteScoreForms().catch((error) => {
-    console.warn('Initiële score form sync mislukt:', error?.message || error);
-  });
+  if (showOnlineScoreControls.value) {
+    syncRemoteScoreForms().catch((error) => {
+      console.warn('Initiële score form sync mislukt:', error?.message || error);
+    });
 
-  connectRemoteScoreStream();
+    connectRemoteScoreStream();
+  }
 });
 
 onUnmounted(() => {

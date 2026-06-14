@@ -1,26 +1,25 @@
 <template>
-  <div class="rounded border border-blue-200 bg-white/90 p-3">
-    <div class="mb-2 flex flex-wrap items-center gap-3">
+  <div class="rounded-lg border border-blue-200 bg-white/90 p-3">
+    <div class="mb-2 flex flex-wrap items-center justify-between gap-3">
       <h3 class="text-base font-semibold text-blue-900">Online score</h3>
-      <button
-        type="button"
-        role="switch"
-        :aria-checked="submitMode === 'immediate'"
-        class="inline-flex items-center gap-2 rounded-full border border-blue-300 px-2 py-1 text-sm transition"
-        :class="submitMode === 'immediate' ? 'bg-sky-100 text-sky-900' : 'bg-gray-100 text-gray-700'"
-        @click="toggleSubmitMode"
-      >
-        <span
-          class="relative inline-flex h-5 w-9 items-center rounded-full transition"
-          :class="submitMode === 'immediate' ? 'bg-sky-600' : 'bg-gray-400'"
+      <div class="inline-flex gap-2 rounded-lg border border-sky-300 bg-transparent p-1 shadow-sm">
+        <button
+          type="button"
+          class="relative min-w-[50px] rounded-lg border border-sky-600 px-1 py-0.5 text-xs font-medium transition"
+          :class="submitMode === 'immediate' ? 'bg-sky-600 text-white' : 'text-sky-900 hover:bg-sky-50'"
+          @click="emit('update:submitMode', 'immediate')"
         >
-          <span
-            class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition"
-            :class="submitMode === 'immediate' ? 'translate-x-4' : 'translate-x-0.5'"
-          />
-        </span>
-        <span>{{ submitMode === "immediate" ? "Live" : "Na afloop partij" }}</span>
-      </button>
+          Live
+        </button>
+        <button
+          type="button"
+          class="relative min-w-[50px] rounded-full border border-sky-600 px-1 py-0.5 text-xs font-medium transition"
+          :class="submitMode === 'final' ? 'bg-sky-600 text-white' : 'text-sky-900 hover:bg-sky-50'"
+          @click="emit('update:submitMode', 'final')"
+        >
+          Eind
+        </button>
+      </div>
       <button
         type="button"
         role="switch"
@@ -39,7 +38,7 @@
             :class="selectedRoundVisible ? 'translate-x-4' : 'translate-x-0.5'"
           />
         </span>
-        <span>Toon score links {{ selectedRoundVisible ? "" : "" }}</span>
+        <span>Links {{ selectedRoundVisible ? "" : "" }}</span>
       </button>
       <label v-if="selectedRoundVisible" class="inline-flex items-center gap-2 text-sm">
         <span>voor</span>
@@ -391,11 +390,6 @@ watch(roundOptions, (options) => {
     selectedRound.value = options[0]?.value || "";
   }
 }, { immediate: true });
-
-function toggleSubmitMode() {
-  const nextMode = props.submitMode === "immediate" ? "final" : "immediate";
-  emit("update:submitMode", nextMode);
-}
 
 function onRoundChange(event) {
   selectedRound.value = event.target.value;

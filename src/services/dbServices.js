@@ -2,33 +2,12 @@
 
 import axios from 'axios';
 import { useToast } from 'vue-toastification'; // import toast composable
+import { getApiConfig } from './apiConfig.js';
 
-function resolveApiBaseUrl() {
-  if (import.meta.env.VITE_BASE_URL_API) {
-    return String(import.meta.env.VITE_BASE_URL_API).replace(/\/$/, '');
-  }
-
-  if (typeof window === 'undefined') {
-    return '';
-  }
-
-  return `${window.location.protocol}//${window.location.hostname}:54321/api/kraak`;
-}
-
-function resolveUploadsBaseUrl() {
-  if (import.meta.env.VITE_UPLOADS_URL) {
-    return String(import.meta.env.VITE_UPLOADS_URL).replace(/\/$/, '');
-  }
-
-  if (typeof window === 'undefined') {
-    return '';
-  }
-
-  return `${window.location.protocol}//${window.location.hostname}:54321/api/kraak`;
-}
+const { apiBaseUrl, uploadsBaseUrl } = getApiConfig();
 
 export const apiClient = axios.create({
-  baseURL: resolveApiBaseUrl(),
+  baseURL: apiBaseUrl,
   timeout: 5000,
 });
 
@@ -153,12 +132,30 @@ const dbService = {
   logScoreEntry: async (entry) =>
     await post('/score-entries/log', entry, {}, 'Fout bij het loggen van score entry'),
 
-  fetchScoreFormSubmissions: async (tournamentId) =>
-    await get(
-      '/score-forms/submissions',
-      tournamentId ? { tournamentId } : {},
-      'Fout bij het ophalen van score form submissions'
-    ),
+  fetchScoreFormSubmissions: async (tournamentId) => {
+    if (tournamentId === null || tournamentId === undefined || tournamentId === '') {
+      return { success: true, data: [] };
+    }
+
+    try {
+      // Stuur meerdere paramnamen mee voor compatibiliteit met oudere backend-routes.
+      const params = {
+        tournamentId,
+        toernooiId: tournamentId,
+        tid: tournamentId,
+      };
+      const response = await apiClient.get('/score-forms/submissions', { params });
+      return { success: true, data: response.data };
+    } catch (error) {
+      const status = error?.response?.status;
+      // Oudere toernooien hebben mogelijk geen (ondersteunde) submissions-endpoint/data.
+      if (status === 400 || status === 404 || status === 422) {
+        return { success: true, data: [] };
+      }
+
+      return handleError(error, 'Fout bij het ophalen van score form submissions');
+    }
+  },
 
   /**
    * Upload een PDF
@@ -199,7 +196,7 @@ const dbService = {
    */
   openPDF: (filename) => {
 
-    const BASE_PATH = resolveUploadsBaseUrl() || '/';
+    const BASE_PATH = uploadsBaseUrl || '/';
 
     window.open(`${BASE_PATH}/pdfs/${encodeURIComponent(filename)}`, '_blank');
   }

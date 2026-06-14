@@ -50,7 +50,7 @@
         <div
           class="flex items-center gap-2 rounded border p-1"
           v-tooltip="{ content: 'Alleen bij minder dan 7 teams', html: true }">
-          <label class="text-center text-lg text-blue-700" for="repeatRounds"
+          <label class="text-start text-blue-700 sm:text-lg" for="repeatRounds"
             >Aantal volle rondes:</label
           >
           <input

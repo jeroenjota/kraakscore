@@ -1,15 +1,15 @@
 <template>
   <div class="kop">
-    <div class="titelregel flex items-center justify-between">
-      <h1
-        class="text-2xl font-bold"
+    <div class="titelregel flex items-center justify-between px-2">
+      <p
+        class="boom text-2xl font-bold text-white sm:text-3xl"
         @click="$emit('toggleZoom')"
         v-tooltip="{ content: 'Klik om in/uit te zoomen', html: true }">
         <span v-if="thisToernooiID">Kraaktoernooi</span>
         <span v-else>
-          <span class="boom">Laurierboom Kraak</span>
+          <span>Laurierboom Kraak</span>
         </span>
-      </h1>
+      </p>
       <div
         v-if="!thisToernooiID && !tournamentStarted && serverAvailable"
         class="items-center">

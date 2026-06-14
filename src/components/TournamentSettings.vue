@@ -1,9 +1,9 @@
 <template>
   <!-- rounded border border-blue-200 bg-white/90 p-3 -->
-  <div class="flex flex-wrap items-center gap-4 rounded-lg border border-blue-200 bg-white/90 p-3 text-sm">
-    <span class="font-semibold text-blue-800">Instellingen</span>
-    <label class="flex items-center gap-2 text-gray-700">
-      Score tot
+  <div class="flex flex-wrap items-center gap-2 rounded-lg border border-blue-200 bg-white/90 p-3 text-sm">
+    <span class="text-xs font-semibold text-blue-800 sm:text-sm">Instellingen:</span>
+    <label class="flex items-center gap-1 text-gray-700">
+      Partij tot
       <input
         type="number"
         min="1200"
@@ -11,10 +11,10 @@
         step="100"
         :value="scoreTarget"
         @change="$emit('update:scoreTarget', Number($event.target.value))"
-        class="w-20 rounded border border-blue-200 bg-white px-2 py-0.5 text-right font-mono" />
+        class="w-18 rounded border border-blue-200 bg-white px-2 py-0.5 text-right font-mono text-xs sm:w-20 sm:text-sm" />
     </label>
     <label class="flex items-center gap-2 text-gray-700">
-      Kruisen voor winst
+      Kruisen
       <input
         type="number"
         min="0"
@@ -28,7 +28,7 @@
       type="button"
       role="switch"
       :aria-checked="onlineScoreEnabled"
-      class="inline-flex items-center gap-2 rounded-full border border-blue-300 px-2 py-1 text-sm transition"
+      class="inline-flex items-center gap-2 rounded-full border border-blue-300 px-2 py-1 text-sm text-xs transition sm:text-sm"
       :class="onlineScoreEnabled ? 'bg-sky-100 text-sky-900' : 'bg-gray-100 text-gray-700'"
       @click="$emit('update:onlineScoreEnabled', !onlineScoreEnabled)"
     >
