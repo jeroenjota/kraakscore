@@ -13,7 +13,7 @@
       <tbody>
         <tr v-for="(team,i) in standings" :key="team.name">
           <td style="width:5%; text-align: center;" class="border px-2">{{ i + 1 }}</td>
-          <td style="width:60%; text-align: left;" class="border px-2">{{ team.name }}</td>
+          <td style="width:60%; text-align: left;" class="md:text-normal border px-2 text-xs sm:text-lg">{{ team.name }}</td>
           <td style="width:5%; text-align: center;"  class="border px-2 text-center">{{ team.played }}</td>
           <td style="width:15%; text-align: right;"  class="border px-2 text-center">{{ team.matchPoints }}</td>
 
@@ -25,6 +25,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { hasAnyScore, toNumericScore } from '../utils/matchState.js'
 
 const props = defineProps({
   teams: Array,
@@ -56,13 +57,16 @@ const standings = computed(() => {
       //  console.log("Ronde:", round)
       for (const match of round) {
       //  console.log("tafel:", match)
-        
-        if (match.scoreL === 0 || match.scoreR === 0) continue
+
+        if (!hasAnyScore(match)) continue
+
+        const scoreL = toNumericScore(match?.scoreL)
+        const scoreR = toNumericScore(match?.scoreR)
 
         let isTeamA = match.teamL === name
         let isTeamB = match.teamR === name
         if (!isTeamA && !isTeamB) continue
-        const matchPoints = isTeamA ? match.scoreL : match.scoreR
+        const matchPoints = isTeamA ? scoreL : scoreR
 
         stats.matchPoints += matchPoints
         stats.played += 1

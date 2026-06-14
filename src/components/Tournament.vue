@@ -1,12 +1,15 @@
 <template>
   <div id="tournament">
     <TournamentSettings
+      v-if="!standOnly"
       v-model:scoreTarget="scoreTarget"
       v-model:winnerKruis="winnerKruis"
+      v-model:onlineScoreEnabled="onlineScoreEnabled"
       class="ml-1 mr-1"
     />
 
     <ScoreFormsPanel
+      v-if="!standOnly && onlineScoreEnabled"
       :submitMode="remoteScoreVisibilityMode"
       :tournamentId="tournamentId"
       :tournamentDate="tournamentDate"
@@ -20,7 +23,7 @@
       class="m-1"
     />
 
-    <div class="mb-2 flex justify-end" v-if="editMode">
+    <div class="mb-2 flex justify-end py-2" v-if="!standOnly && editMode">
       <button
         class="mr-2 rounded bg-sky-600 px-3 py-1 text-sm text-white disabled:cursor-not-allowed disabled:bg-sky-200"
         :disabled="!canRedoScore"
@@ -53,7 +56,7 @@
             :round="index + 1"
             group="A"
             :oldToernooi="toernooiPlayed"
-            :edit-mode="editMode"
+            :edit-mode="!standOnly && editMode"
             @update-result="
               (i, a, b) => updateGroupResult(0, index, i, a, b)
             " />
@@ -76,7 +79,7 @@
             :round="index + 1"
             group="B"
             :oldToernooi="toernooiPlayed"
-            :edit-mode="editMode"
+            :edit-mode="!standOnly && editMode"
             @update-result="
               (i, a, b) => updateGroupResult(1, index, i, a, b)
             " />
@@ -113,7 +116,7 @@
             :round="'finales'"
             group="finales"
             :oldToernooi="toernooiPlayed"
-            :edit-mode="editMode"
+            :edit-mode="!standOnly && editMode"
             @update-result="(i, a, b) => updateFinalResult(index, a, b)" />
         </div>
       </div>
@@ -131,7 +134,7 @@
           :round="index + 1"
           group="single"
           :oldToernooi="toernooiPlayed"
-          :edit-mode="editMode"
+          :edit-mode="!standOnly && editMode"
           @update-result="(i, a, b) => updateSingleResult(index, i, a, b)" />
       </div>
       <div class="stand">
@@ -149,6 +152,7 @@ import GroupStandings from "./GroupStandings.vue";
 import ScoreFormsPanel from "./ScoreFormsPanel.vue";
 import TournamentSettings from "./TournamentSettings.vue";
 import dbService from "../services/dbServices.js";
+import { hasAnyScore, toNumericScore } from "../utils/matchState.js";
 
 const matchTypes = ["finale", "3e plaats", "5e plaats", "7e plaats"];
 
@@ -180,6 +184,10 @@ const props = defineProps({
   editMode: {
     type: Boolean,
   },
+  standOnly: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits(["saveToernooi"]);
@@ -193,9 +201,10 @@ const scoreUndoStack = ref([]);
 const scoreRedoStack = ref([]);
 const isApplyingUndo = ref(false);
 const remoteScoreVisibilityMode = ref("immediate");
+const onlineScoreEnabled = ref(false);
 const processedRemoteSubmissions = new Set();
 let remoteScoreEventSource = null;
-const scoreTarget = ref(1500);
+const scoreTarget = ref(2000);
 const winnerKruis = ref(4);
 const finalMatches = ref([
   { tafel: 1, teamL: null, teamR: null, scoreL: null, scoreR: null, pl: 1 }, // finale
@@ -454,20 +463,22 @@ function calculateStandings(teamsList, matchesList) {
 
   for (const round of matchesList) {
     for (const match of round) {
-      if (match.scoreL === null && match.scoreR === null) {
+      if (!hasAnyScore(match)) {
         continue;
       }
+
+      const scoreL = toNumericScore(match?.scoreL);
+      const scoreR = toNumericScore(match?.scoreR);
+
       const teamL = table.find((t) => t.name === match.teamL);
       const teamR = table.find((t) => t.name === match.teamR);
       if (!teamL || !teamR) continue;
 
-      teamL.matchPoints += match.scoreL;
-      teamR.matchPoints += match.scoreR;
+      teamL.matchPoints += scoreL;
+      teamR.matchPoints += scoreR;
       // console.log("TeamR:", teamR)
-      if (match.scoreL > 0 || match.scoreR > 0) {
-        teamL.played += 1;
-        teamR.played += 1;
-      }
+      teamL.played += 1;
+      teamR.played += 1;
 
       // console.log("match:", match)
     }

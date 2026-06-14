@@ -4,9 +4,9 @@
     <tbody>
       <tr v-for="(match, index) in matches" :key="index">
         <td style="width:9%; text-align: center;" class="border px-2"><span v-if="!matchType">T {{ match.tafel }}</span><span v-else>Pl {{ match.pl }} </span></td>
-        <td style="width:23%; text-align: left;" class="border px-2">{{ match.teamL }}</td>
+        <td style="width:23%; text-align: left;" class="border px-2 text-sm sm:text-lg">{{ match.teamL }}</td>
         <td style="width:5%; text-align: center;" class="border px-2">vs</td>
-        <td style="width:23%; text-align: left;" class="border px-2">{{ match.teamR }}</td>
+        <td style="width:23%; text-align: left;" class="border px-2 text-sm sm:text-lg">{{ match.teamR }}</td>
         <td style="width:15%; text-align: left;" class="border px-2">
           <input style="width:100%; margin:0" type="number" v-model.number="scores[index].scoreL" min="0" step="10"
             :disabled="!editMode || hasVRIJ(index)"

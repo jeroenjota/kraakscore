@@ -39,7 +39,7 @@
             :class="selectedRoundVisible ? 'translate-x-4' : 'translate-x-0.5'"
           />
         </span>
-        <span>Score link {{ selectedRoundVisible ? "" : "" }}</span>
+        <span>Toon score links {{ selectedRoundVisible ? "" : "" }}</span>
       </button>
       <label v-if="selectedRoundVisible" class="inline-flex items-center gap-2 text-sm">
         <span>voor</span>
@@ -61,11 +61,69 @@
     </p> -->
 
     <div class="max-h-64 space-y-2 overflow-y-auto pr-1">
-      <div v-for="entry in displayedFormEntries" :key="entry.id" class="rounded border border-gray-200 p-2">
+      <template v-if="hasGroupTournament && selectedRoundVisible">
+        <div v-if="selectedGroupRoundEntries" class="rounded border border-gray-200 p-2">
+          <div>
+            <div v-for="entry in selectedGroupRoundEntries.groupA" :key="entry.id" class="mb-2 rounded border border-gray-100 p-2 last:mb-0">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="text-sm">
+                  <span class="text-blue-800">{{ entry.label }}</span>
+                  <strong class="text-gray-900"> - {{ entry.teamL }} vs {{ entry.teamR }}</strong>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button class="rounded bg-sky-600 px-2 py-1 text-xs text-white" @click="openQr(entry)">
+                    QR
+                  </button>
+                  <button class="rounded bg-gray-100 px-2 py-1 text-xs" @click="copyLink(entry.url)">
+                    Kopieer link
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-2 border-t border-gray-700 pt-0">
+            <div v-for="entry in selectedGroupRoundEntries.groupB" :key="entry.id" class="mb-2 rounded border border-gray-100 p-2 last:mb-0">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="text-sm">
+                  <span class="text-blue-800">{{ entry.label }}</span>
+                  <strong class="text-gray-900"> - {{ entry.teamL }} vs {{ entry.teamR }}</strong>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button class="rounded bg-sky-600 px-2 py-1 text-xs text-white" @click="openQr(entry)">
+                    QR
+                  </button>
+                  <button class="rounded bg-gray-100 px-2 py-1 text-xs" @click="copyLink(entry.url)">
+                    Kopieer link
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else-if="selectedFinalEntries.length > 0" class="rounded border border-gray-200 p-2">
+          <div v-for="entry in selectedFinalEntries" :key="entry.id" class="mb-2 rounded border border-gray-100 p-2 last:mb-0">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="text-sm">
+                <span class="text-blue-800">{{ entry.label }}</span>
+                <strong class="text-gray-900"> - {{ entry.teamL }} vs {{ entry.teamR }}</strong>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="rounded bg-sky-600 px-2 py-1 text-xs text-white" @click="openQr(entry)">
+                  QR
+                </button>
+                <button class="rounded bg-gray-100 px-2 py-1 text-xs" @click="copyLink(entry.url)">
+                  Kopieer link
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+      <div v-else-if="displayedFormEntries.length > 0" v-for="entry in displayedFormEntries" :key="entry.id" class="rounded border border-gray-200 p-2">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div class="text-sm">
             <strong>{{ entry.label }}</strong>
-            <span class="text-gray-600"> - {{ entry.teamL }} vs {{ entry.teamR }}</span>
+            <span class="text-gray-900"> - {{ entry.teamL }} vs {{ entry.teamR }}</span>
           </div>
           <div class="flex items-center gap-2">
             <button class="rounded bg-sky-600 px-2 py-1 text-xs text-white" @click="openQr(entry)">
@@ -76,7 +134,6 @@
             </button>
           </div>
         </div>
-        <p class="mt-1 break-all text-xs text-gray-500">{{ entry.url }}</p>
       </div>
     </div>
 
@@ -141,6 +198,7 @@ const emit = defineEmits(["update:submitMode"]);
 const qrEntry = ref(null);
 const selectedRound = ref("");
 const roundVisibility = ref({});
+const hasGroupTournament = computed(() => Array.isArray(props.groupMatches) && props.groupMatches.length > 0);
 
 const baseUrl = computed(() => {
   if (typeof window === "undefined") return "";
@@ -176,9 +234,12 @@ const formEntries = computed(() => {
         roundMatches.forEach((match, matchIndex) => {
           entries.push({
             id: `group-${groupName}-${roundIndex}-${matchIndex}`,
-            label: `Groep ${groupName} - Ronde ${roundIndex + 1} - Tafel ${match.tafel}`,
+            label: `Grp ${groupName} - Rnd ${roundIndex + 1} - Tafel ${match.tafel}`,
             roundKey: `group-${groupName}-${roundIndex + 1}`,
-            roundLabel: `Groep ${groupName} - Ronde ${roundIndex + 1}`,
+            roundLabel: `Grp ${groupName} - Rnd ${roundIndex + 1}`,
+            groupName,
+            roundNumber: roundIndex + 1,
+            tableNumber: match.tafel,
             teamL: match.teamL,
             teamR: match.teamR,
             url: buildUrl({
@@ -243,6 +304,27 @@ const formEntries = computed(() => {
 
 const roundOptions = computed(() => {
   const options = [];
+
+  if (hasGroupTournament.value) {
+    const roundCount = Math.min(
+      props.groupMatches?.[0]?.length ?? 0,
+      props.groupMatches?.[1]?.length ?? 0,
+    );
+    for (let roundNumber = 1; roundNumber <= roundCount; roundNumber += 1) {
+      options.push({
+        value: String(roundNumber),
+        label: `Ronde ${roundNumber}`,
+      });
+    }
+    if (props.finalMatches.some((match) => match?.teamL && match?.teamR)) {
+      options.push({
+        value: "finales",
+        label: "Finales",
+      });
+    }
+    return options;
+  }
+
   const seen = new Set();
 
   formEntries.value.forEach((entry) => {
@@ -257,6 +339,31 @@ const roundOptions = computed(() => {
   return options;
 });
 
+const selectedGroupRoundEntries = computed(() => {
+  if (!hasGroupTournament.value || !selectedRound.value) return null;
+
+  const roundNumber = Number(selectedRound.value);
+  if (!Number.isFinite(roundNumber) || roundNumber <= 0) return null;
+
+  const roundEntries = formEntries.value.filter(
+    (entry) => entry.roundNumber === roundNumber,
+  );
+
+  return {
+    roundNumber,
+    groupA: roundEntries.filter((entry) => entry.groupName === "A"),
+    groupB: roundEntries.filter((entry) => entry.groupName === "B"),
+  };
+});
+
+const selectedFinalEntries = computed(() => {
+  if (!hasGroupTournament.value || selectedRound.value !== "finales") {
+    return [];
+  }
+
+  return formEntries.value.filter((entry) => entry.roundKey === "finales");
+});
+
 const selectedRoundEntries = computed(() => {
   if (!selectedRound.value) return [];
   return formEntries.value.filter((entry) => entry.roundKey === selectedRound.value);
@@ -268,6 +375,7 @@ const selectedRoundVisible = computed(() => {
 });
 
 const displayedFormEntries = computed(() => {
+  if (hasGroupTournament.value) return [];
   if (!selectedRoundVisible.value) return [];
   return selectedRoundEntries.value;
 });

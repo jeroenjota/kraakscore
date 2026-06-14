@@ -20,6 +20,8 @@ const groupMatches = ref([]);
 const finalMatches = ref([
   { teamL: null, teamR: null, scoreL: null, scoreR: null }, // finale
   { teamL: null, teamR: null, scoreL: null, scoreR: null }, // 3e plaats
+  { teamL: null, teamR: null, scoreL: null, scoreR: null }, // 5e plaats
+  { teamL: null, teamR: null, scoreL: null, scoreR: null }, // 7e plaats
 ]);
 
 
@@ -55,15 +57,24 @@ function gespeeld(index) {
 }
 
 function finalBekend() {
-  const isBekend = finalMatches.value.length >= 2 && finalMatches.value[0].teamL && finalMatches.value[0].teamR && finalMatches.value[1].teamL && finalMatches.value[1].teamR
-//  // console.log("Bekend: ", isBekend, finalMatches.value[0].teamL, finalMatches.value[0].teamR)
-  return isBekend
+  const bekendeFinales = finalMatches.value.filter(
+    (match) => match?.teamL && match?.teamR,
+  )
+  return bekendeFinales.length > 0
 }
 
 function finalPlayed() {
-  const isPlayed = (finalMatches.value[0].scoreL || finalMatches.value[0].scoreR) && (finalMatches.value[1].scoreLL || finalMatches.value[1].scoreR)
-//  // console.log("Played: ", isPlayed)
-  return isPlayed
+  const gespeeldeFinales = finalMatches.value.filter(
+    (match) => match?.teamL && match?.teamR,
+  )
+  if (gespeeldeFinales.length === 0) return false
+
+  return gespeeldeFinales.every((match) =>
+    match.scoreL !== null &&
+    match.scoreL !== undefined &&
+    match.scoreR !== null &&
+    match.scoreR !== undefined,
+  )
 }
 
 export async function uitslagPDF(doc, datum, groepstoernooi = false) {

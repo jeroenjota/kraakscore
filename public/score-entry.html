@@ -30,7 +30,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 12px;
+        padding: 1px;
       }
       .card {
         width: 100%;
@@ -39,17 +39,17 @@
         border-radius: 14px;
         border: 1px solid #dde3ee;
         box-shadow: 0 12px 24px rgba(17, 37, 68, 0.08);
-        padding: 20px;
+        padding: 12px 4px;
       }
       h1 {
         font-size: 1.3rem;
-        margin: 0 0 8px 0;
+        margin: 0 0 4px 0;
         text-align: center;
       }
       .meta {
         font-size: 0.9rem;
         color: var(--muted);
-        margin-bottom: 12px;
+        margin-bottom: 6px;
         text-align: center;
       }
       .teams {
@@ -276,20 +276,66 @@
         border-radius: 10px;
         background: #f6faff;
         display: grid;
+        grid-template-columns: 68px 116px 116px;
+        column-gap: 8px;
+        align-items: center;
+      }
+      .totals.final-mode {
         grid-template-columns: 1fr 1fr;
-        gap: 8px;
+      }
+      .totals-label {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--muted);
+        text-align: left;
+        letter-spacing: 0.01em;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: 1.5rem;
+      }
+      .totals.final-mode .totals-label {
+        display: none;
       }
       .totals-col {
         text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 1.5rem;
+      }
+      .totals > :nth-child(1),
+      .totals > :nth-child(2) {
+        position: relative;
+      }
+      .totals > :nth-child(1)::after,
+      .totals > :nth-child(2)::after {
+        content: "";
+        position: absolute;
+        right: -4px;
+        top: -4px;
+        bottom: -4px;
+        width: 2px;
+        background: #dfe7f4;
       }
       .totals-value {
         font-size: 1.1rem;
         font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        position: relative;
       }
       .totals-kruis-inline {
         font-size: 0.9rem;
         font-weight: 500;
         color: var(--muted);
+        margin-left: 0;
+        text-align: right;
+        position: absolute;
+        right: 0;
       }
       .score-roem-row {
         display: flex;
@@ -337,7 +383,7 @@
         border: 1px solid #e0e7f2;
         border-radius: 10px;
         background: #fcfdff;
-        max-height: 132px;
+        max-height: none;
         overflow-y: auto;
       }
       .partijlist.with-header {
@@ -347,18 +393,25 @@
 
       .partijlist-header {
         display: grid;
-        grid-template-columns: 56px 104px 24px 104px;
-        /*                      56   160   184  288 +3*8 = 312 */
+        grid-template-columns: 68px 116px 116px;
+        /*                      68   172   288 +3*8 = 312 */
         column-gap: 8px;
         align-items: center;
         margin-top: 2px;
         padding: 4px 10px;
         font-size: 0.78rem;
+        line-height: 1.2;
         color: var(--muted);
         font-weight: 700;
         border: 1px solid #e0e7f2;
         border-bottom: 1px solid #edf2fb;
         border-radius: 10px 10px 0 0;
+      }
+
+      .partijlist-header > span {
+        display: flex;
+        align-items: center;
+        min-height: 1.1rem;
       }
 
       .partijlist-header.hidden {
@@ -367,31 +420,66 @@
       .partijitem {
         display: grid;
         /*                     nr  tm/tr K    ScL  RmL  Xl    -  ScR   RmR  Xr */
-        grid-template-columns: 8px 16px 16px 32px 32px 24px 24px 32px 32px 24px;
-        /*                      8   24   40   72   104  128  152  184  216  240 +9*8 = 312 */
+        grid-template-columns: 16px 20px 16px 38px 38px 24px 38px 38px 16px;
+        /*                      16   36  52   90   128  152  190  228  244 +8*8= 308 */
         column-gap: 8px;
         align-items: center;
         border-bottom: 1px solid #edf2fb;
-        padding: 8px 10px;
+        padding: 2px 10px;
         font-size: 0.9rem;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
         white-space: nowrap;
       }
+
+      .partijitem > span {
+        display: flex;
+        align-items: center;
+        min-height: 1rem;
+      }
+
+      .partijitem > span:nth-child(3),
+      .partijitem > span:nth-child(6) {
+        position: relative;
+      }
+
+      .partijitem > span:nth-child(3)::after,
+      .partijitem > span:nth-child(6)::after {
+        content: "";
+        position: absolute;
+        right: -4px;
+        top: -4px;
+        bottom: -4px;
+        width: 2px;
+        background: #dfe7f4;
+      }
+
       .partijitem:last-child {
         border-bottom: 0;
       }
       .partijcol-right {
         text-align: right;
+        justify-content: flex-end;
       }
       .partijcol-center {
         text-align: center;
+        justify-content: center;
+      }
+      .partijcol-left {
+        text-align: left;
+        justify-content: flex-start;
       }
       .partij-troef-suit {
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         min-width: 1.2em;
         text-align: center;
         font-weight: 700;
-        font-size: large;
+        font-size: 1.35rem;
         line-height: 1;
+        vertical-align: baseline;
+        transform: translateY(-0.08em);
       }
       .partij-troef-suit.black {
         color: #111111;
@@ -433,8 +521,9 @@
       }
       .mode {
         margin: 10px 0;
-        font-size: 0.85rem;
+        font-size: 0.75rem;
         color: var(--muted);
+        text-align: center;
       }
 
       .vet {
@@ -457,9 +546,16 @@
       button:disabled {
         opacity: 0.6;
       }
+      #submitBtn.hidden {
+        display: none;
+      }
+      #viewStandBtn.hidden {
+        display: none;
+      }
       .msg {
         margin-top: 10px;
         font-size: 0.9rem;
+        text-align: center;
       }
       .ok {
         color: #167a2f;
@@ -500,7 +596,7 @@
         <h1 id="kopregel"></h1>
         <h2 id="meta" class="meta"></h2>
 
-        <div id="partijHeader" class="entry-header">Partij 1</div>
+        <div id="partijHeader" class="entry-header" style="display: none;">Partij 1</div>
         <div class="teams">
           <span id="teamL" class="team-left"></span>
           <span class="team-vs">vs</span>
@@ -830,12 +926,11 @@
             <button
               id="calcTotaalBtn"
               type="button"
-              class="btn-secondary"
-              style="font-size: 0.75rem; padding: 2px 8px">
-              Bereken totaal
+              class="btn-secondary">
+              Bereken
             </button>
             <button id="addPartijBtn" type="button" class="btn-secondary">
-              Verstuur
+              Verwerk
             </button>
           </div>
         </div>
@@ -846,17 +941,17 @@
           aria-hidden="true">
           <span>Spel</span>
           <span class="partijcol-left">Team L</span>
-          <span class="partijcol-center">-</span>
           <span class="partijcol-left">Team R</span>
         </div>
         <div class="partijlist" id="partijenList"></div>
 
-        <div class="totals">
+        <div class="totals" id="totalsBlock">
+          <div id="totalsLabel" class="totals-label">stand</div>
           <div class="totals-col">
             <div class="totals-value">
               <span id="totalL">0</span>
               <span id="totalKruisWrapL" class="totals-kruis-inline"
-                >(<span id="totalKruisL">0</span>X)</span
+                ><span id="totalKruisL">0</span>X</span
               >
             </div>
           </div>
@@ -864,18 +959,21 @@
             <div class="totals-value">
               <span id="totalR">0</span>
               <span id="totalKruisWrapR" class="totals-kruis-inline"
-                >(<span id="totalKruisR">0</span>X)</span
+                ><span id="totalKruisR">0</span>X</span
               >
             </div>
           </div>
         </div>
 
-        <p id="modeText" class="mode" style="display: none"></p>
+        <p id="modeText" class="mode" style="display: none;"></p>
 
         <button id="submitBtn" type="submit">
           Eindtotaal maken en versturen
         </button>
-        <p id="message" class="msg"></p>
+        <button id="viewStandBtn" type="button" class="hidden">
+          Bekijk tussenstand
+        </button>
+        <p id="message" class="msg" style="display: none;"></p>
       </form>
     </div>
 
@@ -890,6 +988,7 @@
         const modeText = document.getElementById("modeText");
         const messageEl = document.getElementById("message");
         const submitBtn = document.getElementById("submitBtn");
+        const viewStandBtn = document.getElementById("viewStandBtn");
         const calcTotaalBtn = document.getElementById("calcTotaalBtn");
         const addPartijBtn = document.getElementById("addPartijBtn");
         const undoPartijBtn = document.getElementById("undoPartijBtn");
@@ -902,6 +1001,8 @@
         const totalKruisWrapREl = document.getElementById("totalKruisWrapR");
         const totalKruisLEl = document.getElementById("totalKruisL");
         const totalKruisREl = document.getElementById("totalKruisR");
+        const totalsLabelEl = document.getElementById("totalsLabel");
+        const totalsBlockEl = document.getElementById("totalsBlock");
         const partijHeaderEl = document.getElementById("partijHeader");
         const partijRowLabelEl = document.getElementById("partijRowLabel");
         const teamPanelEls = {
@@ -964,14 +1065,25 @@
 
         if (mode === "final") {
           modeText.textContent =
-            "Ingesteld op: pas zichtbaar op centrale computer als wedstrijd is afgerond.";
+            "Score na afloop van de partij naar hoofdscherm.";
         } else {
           modeText.textContent =
-            "Ingesteld op: score direct zichtbaar op centrale computer.";
+            "Score direct zichtbaar op hoofdscherm.";
         }
 
         function apiBaseUrl() {
           return `${window.location.protocol}//${window.location.hostname}:54321/api/kraak`;
+        }
+
+        function buildStandingsUrl() {
+          const url = new URL(
+            `${window.location.protocol}//${window.location.host}/`,
+          );
+          if (tournamentId) {
+            url.searchParams.set("tid", String(tournamentId));
+          }
+          url.searchParams.set("view", "stand");
+          return url.toString();
         }
 
         // Filter inputs to accept only digits
@@ -1065,7 +1177,10 @@
         }
 
         function hasTroef() {
-          return !!(troefState.ownerTeam && troefState.selectedSuit[troefState.ownerTeam]);
+          return !!(
+            troefState.ownerTeam &&
+            troefState.selectedSuit[troefState.ownerTeam]
+          );
         }
 
         function getLastTroefTeam() {
@@ -1094,9 +1209,11 @@
           document.querySelectorAll(".troef-check").forEach((el) => {
             el.disabled = !canChooseTroef;
           });
-          document.querySelectorAll("#scoreFlagK, #scoreFlagR, #scoreFlagS").forEach((el) => {
-            el.disabled = !canEditCurrentPartij;
-          });
+          document
+            .querySelectorAll("#scoreFlagK, #scoreFlagR, #scoreFlagS")
+            .forEach((el) => {
+              el.disabled = !canEditCurrentPartij;
+            });
           calcTotaalBtn.disabled =
             !canEditCurrentPartij || !hasValidEnteredScore();
           addPartijBtn.disabled = !canEditCurrentPartij || !hasCalculatedTotal;
@@ -1485,7 +1602,8 @@
 
           if (isFinal && partijen.length > 0) {
             const bothAboveTarget =
-              currentTotals.left > scoreTarget && currentTotals.right > scoreTarget;
+              currentTotals.left > scoreTarget &&
+              currentTotals.right > scoreTarget;
 
             if (bothAboveTarget) {
               winnerTeam = getLastTroefTeam();
@@ -1511,12 +1629,8 @@
 
           const finalTotals = {
             // Kruisen van een team tellen als 100 punten voor de tegenstander.
-            left:
-              baseTotals.left +
-              finalKruisTotals.right * 100,
-            right:
-              baseTotals.right +
-              finalKruisTotals.left * 100,
+            left: baseTotals.left + finalKruisTotals.right * 100,
+            right: baseTotals.right + finalKruisTotals.left * 100,
           };
 
           return {
@@ -1538,13 +1652,33 @@
             spades: { symbol: "♠", colorClass: "black" },
           };
           const matchFinished = hasReachedScoreTarget();
-          const { currentTotals, baseTotals, finalKruisTotals } =
+          const { currentTotals, baseTotals, kruisTotals, loserBonusKruis } =
             getMatchTotals(true);
           const kruisTotalsSoFar = getKruisTotals();
+          if (totalsLabelEl) {
+            totalsLabelEl.style.display = matchFinished ? "none" : "flex";
+          }
+          if (totalsBlockEl) {
+            totalsBlockEl.classList.toggle("final-mode", matchFinished);
+          }
 
           if (matchFinished) {
-            totalLEl.textContent = `${baseTotals.left} + ${finalKruisTotals.right} x 100`;
-            totalREl.textContent = `${baseTotals.right} + ${finalKruisTotals.left} x 100`;
+            const leftNormalKruis = Number(kruisTotals.right || 0);
+            const rightNormalKruis = Number(kruisTotals.left || 0);
+            const leftWinKruis = Number(loserBonusKruis.right || 0);
+            const rightWinKruis = Number(loserBonusKruis.left || 0);
+
+            const leftKruisTerm =
+              leftWinKruis > 0
+                ? `(${leftNormalKruis}+${leftWinKruis})X`
+                : `${leftNormalKruis}X`;
+            const rightKruisTerm =
+              rightWinKruis > 0
+                ? `(${rightNormalKruis}+${rightWinKruis})X`
+                : `${rightNormalKruis}X`;
+
+            totalLEl.textContent = `${baseTotals.left} + ${leftKruisTerm}`;
+            totalREl.textContent = `${baseTotals.right} + ${rightKruisTerm}`;
           } else {
             totalLEl.textContent = String(currentTotals.left);
             totalREl.textContent = String(currentTotals.right);
@@ -1552,18 +1686,24 @@
 
           totalKruisLEl.textContent = String(kruisTotalsSoFar.left);
           totalKruisREl.textContent = String(kruisTotalsSoFar.right);
-          totalKruisWrapLEl.style.display =
-            kruisTotalsSoFar.left > 0 ? "inline" : "none";
-          totalKruisWrapREl.style.display =
-            kruisTotalsSoFar.right > 0 ? "inline" : "none";
+          if (matchFinished) {
+            totalKruisWrapLEl.style.display = "none";
+            totalKruisWrapREl.style.display = "none";
+          } else {
+            totalKruisWrapLEl.style.display =
+              kruisTotalsSoFar.left > 0 ? "inline" : "none";
+            totalKruisWrapREl.style.display =
+              kruisTotalsSoFar.right > 0 ? "inline" : "none";
+          }
 
           if (partijen.length === 0) {
             if (partijenListHeaderEl) {
               partijenListHeaderEl.classList.add("hidden");
             }
             partijenListEl.classList.remove("with-header");
-            partijenListEl.innerHTML =
-              '<div class="partijitem"><span>Nog geen partijen gespeeld</span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>';
+            partijenListEl.style.maxHeight = "none";
+            partijenListEl.scrollTop = 0;
+            // partijenListEl.classList.add("hidden");
             return;
           }
 
@@ -1588,8 +1728,8 @@
                 const flagExclamations = { kraak: "!", re: "!!", super: "!!!" };
                 scoreFlagText = flagExclamations[partij.scoreFlag] || " ";
               }
-              const roemLText = partij.roemL > 0 ? `(${partij.roemL}r)` : "-";
-              const roemRText = partij.roemR > 0 ? `(${partij.roemR}r)` : "-";
+              const roemLText = partij.roemL > 0 ? `(${partij.roemL}r)` : "";
+              const roemRText = partij.roemR > 0 ? `(${partij.roemR}r)` : "";
               const kruisLText =
                 partij.kruisL > 0 ? `${partij.kruisL || 0}X` : "";
               const kruisRText =
@@ -1599,11 +1739,23 @@
                 index + 1
               }:</span><span class="partijcol-center">${spel}</span><span class="partijcol-center">${scoreFlagText}</span><span class="partijcol-right vet">${
                 partij.scoreL
-              }</span><span class="partijcol-right">${roemLText}</span><span class="partijcol-center">${kruisLText}</span><span class="partijcol-center">-</span><span class="partijcol-right vet">${
+              }</span><span class="partijcol-right">${roemLText}</span><span class="partijcol-center">${kruisLText}</span></span><span class="partijcol-right vet">${
                 partij.scoreR
               }</span><span class="partijcol-right">${roemRText}</span><span class="partijcol-center">${kruisRText}</span></div>`;
             })
             .join("");
+
+          const partijItems = partijenListEl.querySelectorAll(".partijitem");
+          const visibleCount = Math.min(partijItems.length, 4);
+          if (visibleCount > 0) {
+            let visibleHeight = 0;
+            for (let index = 0; index < visibleCount; index += 1) {
+              visibleHeight += partijItems[index].offsetHeight;
+            }
+            partijenListEl.style.maxHeight = `${visibleHeight}px`;
+          }
+
+          partijenListEl.scrollTop = partijenListEl.scrollHeight;
         }
 
         async function sendCurrentTotal(forceMessage = false, isFinal = false) {
@@ -1734,6 +1886,8 @@
         function addPartij() {
           const pointsL = Number(pointsLInput.value);
           const pointsR = Number(pointsRInput.value);
+          const inputKruisL = kruisCounts.L;
+          const inputKruisR = kruisCounts.R;
           const currentTroefTeam = troefState.ownerTeam;
           const currentTroefSuit = currentTroefTeam
             ? troefState.selectedSuit[currentTroefTeam]
@@ -1771,8 +1925,8 @@
           });
           const scoreL = computedScores.scoreL;
           const scoreR = computedScores.scoreR;
-          const kruisL = kruisCounts.L + computedScores.extraKruisL;
-          const kruisR = kruisCounts.R + computedScores.extraKruisR;
+          const kruisL = inputKruisL + computedScores.extraKruisL;
+          const kruisR = inputKruisR + computedScores.extraKruisR;
 
           if (
             !Number.isFinite(pointsL) ||
@@ -1827,6 +1981,8 @@
             roem200R,
             kruisL,
             kruisR,
+            inputKruisL,
+            inputKruisR,
           });
           pointsLInput.value = "0";
           pointsRInput.value = "0";
@@ -1862,7 +2018,53 @@
           updateActionButtons();
           setMessage("Partij toegevoegd.", "ok");
           renderPartijen();
-          sendCurrentTotal(true);
+          if (mode !== "final") {
+            sendCurrentTotal(true);
+          }
+        }
+
+        function restorePartijInputs(partij) {
+          pointsLInput.value = String(Number(partij?.pointsL ?? 0));
+          pointsRInput.value = String(Number(partij?.pointsR ?? 0));
+
+          setRoemCount("L", 20, Number(partij?.roem20L ?? 0));
+          setRoemCount("L", 50, Number(partij?.roem50L ?? 0));
+          setRoemCount("L", 100, Number(partij?.roem100L ?? 0));
+          setRoemCount("L", 200, Number(partij?.roem200L ?? 0));
+          setRoemCount("R", 20, Number(partij?.roem20R ?? 0));
+          setRoemCount("R", 50, Number(partij?.roem50R ?? 0));
+          setRoemCount("R", 100, Number(partij?.roem100R ?? 0));
+          setRoemCount("R", 200, Number(partij?.roem200R ?? 0));
+
+          setKruisCount("L", Number(partij?.inputKruisL ?? 0));
+          setKruisCount("R", Number(partij?.inputKruisR ?? 0));
+
+          scoreFlagState = partij?.scoreFlag || null;
+          document
+            .querySelectorAll("#scoreFlagK, #scoreFlagR, #scoreFlagS")
+            .forEach((cb) => {
+              cb.checked = false;
+            });
+          if (scoreFlagState === "kraak") {
+            document.getElementById("scoreFlagK").checked = true;
+          } else if (scoreFlagState === "re") {
+            document.getElementById("scoreFlagR").checked = true;
+          } else if (scoreFlagState === "super") {
+            document.getElementById("scoreFlagS").checked = true;
+          }
+
+          troefState.activeTeam = partij?.troefTeam || null;
+          troefState.ownerTeam = partij?.troefTeam || null;
+          troefState.selectedSuit.L = null;
+          troefState.selectedSuit.R = null;
+          if (partij?.troefTeam && partij?.troefSuit) {
+            troefState.selectedSuit[partij.troefTeam] = partij.troefSuit;
+          }
+
+          updateTroefAndScorePanels();
+          updateRoemTotalDisplay();
+          calculateCurrentPartijTotal(false);
+          pointsLInput.focus();
         }
 
         function undoPartij() {
@@ -1874,27 +2076,38 @@
           const revertFinalSubmission = lastSubmittedWasFinal;
           lastSubmittedWasFinal = false;
 
-          partijen.pop();
+          const removedPartij = partijen.pop();
+          restorePartijInputs(removedPartij);
+
           if (partijen.length === 0) {
-            troefState.activeTeam = null;
-            troefState.ownerTeam = null;
+            // eerste partij opnieuw invoeren: troef voor team uit undone partij blijft geselecteerd
           } else {
             const lastTroefTeam = partijen[partijen.length - 1].troefTeam;
             const nextTroefTeam = lastTroefTeam === "L" ? "R" : "L";
-            troefState.activeTeam = nextTroefTeam;
-            troefState.ownerTeam = null;
-            troefState.selectedSuit[nextTroefTeam] = null;
+            if (!removedPartij?.troefTeam) {
+              troefState.activeTeam = nextTroefTeam;
+              troefState.ownerTeam = null;
+              troefState.selectedSuit[nextTroefTeam] = null;
+            }
           }
+
           updateTroefAndScorePanels();
           updatePartijLabels();
-          hasCalculatedTotal = partijen.length > 0;
           updateActionButtons();
-          setMessage("Laatste partij ongedaan gemaakt.", "ok");
+          setMessage(
+            "Laatste partij ongedaan gemaakt en teruggezet in invoer.",
+            "ok",
+          );
           renderPartijen();
-          sendCurrentTotal(true, false);
+          if (mode !== "final" || revertFinalSubmission) {
+            sendCurrentTotal(true, false);
+          }
 
           if (revertFinalSubmission) {
-            setMessage("Eindstand ongedaan gemaakt. Tussenstand opnieuw berekend.", "ok");
+            setMessage(
+              "Eindstand ongedaan gemaakt. Tussenstand opnieuw berekend.",
+              "ok",
+            );
           }
         }
 
@@ -1914,6 +2127,9 @@
         clearCurrentPartijTotal();
         renderPartijen();
         updateActionButtons();
+        viewStandBtn.addEventListener("click", () => {
+          window.location.href = buildStandingsUrl();
+        });
 
         document
           .getElementById("scoreForm")
@@ -1934,13 +2150,16 @@
             try {
               const sent = await sendCurrentTotal(true, true);
               if (sent) {
+                submitBtn.classList.add("hidden");
+                viewStandBtn.classList.remove("hidden");
                 // Probeer het formuliervenster automatisch te sluiten.
                 window.close();
                 if (!window.closed) {
                   setMessage(
-                    "Eindtotaal verstuurd. Je kunt dit formulier nu sluiten.",
+                    "Eindtotaal verstuurd. Tik op 'Bekijk tussenstand'.",
                     "ok",
                   );
+                  viewStandBtn.focus();
                 }
               }
             } finally {

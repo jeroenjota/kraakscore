@@ -11,19 +11,38 @@
         step="100"
         :value="scoreTarget"
         @change="$emit('update:scoreTarget', Number($event.target.value))"
-        class="w-24 rounded border border-blue-200 bg-white px-2 py-0.5 text-right font-mono" />
+        class="w-20 rounded border border-blue-200 bg-white px-2 py-0.5 text-right font-mono" />
     </label>
     <label class="flex items-center gap-2 text-gray-700">
       Kruisen voor winst
       <input
         type="number"
         min="0"
-        max="32"
+        max="9"
         step="1"
         :value="winnerKruis"
         @change="$emit('update:winnerKruis', Number($event.target.value))"
-        class="w-16 rounded border border-blue-200 bg-white px-2 py-0.5 text-right font-mono" />
+        class="w-12 rounded border border-blue-200 bg-white px-2 py-0.5 text-right font-mono" />
     </label>
+    <button
+      type="button"
+      role="switch"
+      :aria-checked="onlineScoreEnabled"
+      class="inline-flex items-center gap-2 rounded-full border border-blue-300 px-2 py-1 text-sm transition"
+      :class="onlineScoreEnabled ? 'bg-sky-100 text-sky-900' : 'bg-gray-100 text-gray-700'"
+      @click="$emit('update:onlineScoreEnabled', !onlineScoreEnabled)"
+    >
+      <span
+        class="relative inline-flex h-5 w-9 items-center rounded-full transition"
+        :class="onlineScoreEnabled ? 'bg-sky-600' : 'bg-gray-400'"
+      >
+        <span
+          class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition"
+          :class="onlineScoreEnabled ? 'translate-x-4' : 'translate-x-0.5'"
+        />
+      </span>
+      <span>Online score</span>
+    </button>
   </div>
 </template>
 
@@ -37,7 +56,11 @@ defineProps({
     type: Number,
     default: 4,
   },
+  onlineScoreEnabled: {
+    type: Boolean,
+    default: true,
+  },
 });
 
-defineEmits(["update:scoreTarget", "update:winnerKruis"]);
+defineEmits(["update:scoreTarget", "update:winnerKruis", "update:onlineScoreEnabled"]);
 </script>
