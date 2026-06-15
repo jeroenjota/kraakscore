@@ -19,9 +19,13 @@
       :matches="matches"
       :groupMatches="groupMatches"
       :finalMatches="finalMatches"
+      :manualRefreshInProgress="manualRefreshInProgress"
+      :manualRefreshStatus="manualRefreshStatus"
       @update:submitMode="(value) => (remoteScoreVisibilityMode = value)"
+      @refreshOnlineScores="handleManualRemoteRefresh"
       class="m-1"
     />
+
     <div v-if="groups.length === 2">
       <div class="schema">
         <div v-for="(ronde, index) in groupMatches[0]" :key="index">
@@ -153,6 +157,7 @@ import GroupStandings from "./GroupStandings.vue";
 import ScoreFormsPanel from "./ScoreFormsPanel.vue";
 import TournamentSettings from "./TournamentSettings.vue";
 import dbService from "../services/dbServices.js";
+import { resolveApiBaseUrl } from "../services/apiConfig.js";
 import { hasAnyScore, toNumericScore } from "../utils/matchState.js";
 
 const matchTypes = ["finale", "3e plaats", "5e plaats", "7e plaats"];
@@ -203,8 +208,15 @@ const scoreRedoStack = ref([]);
 const isApplyingUndo = ref(false);
 const remoteScoreVisibilityMode = ref("immediate");
 const onlineScoreEnabled = ref(false);
+const manualRefreshInProgress = ref(false);
+const manualRefreshStatus = ref("");
 const processedRemoteSubmissions = new Set();
 let remoteScoreEventSource = null;
+let remoteScorePollTimer = null;
+let remoteScoreSyncInFlight = false;
+let lastForegroundSyncAt = 0;
+const REMOTE_SCORE_POLL_INTERVAL_MS = 5000;
+const FOREGROUND_SYNC_THROTTLE_MS = 1500;
 const scoreTarget = ref(2000);
 const winnerKruis = ref(4);
 const finalMatches = ref([
@@ -228,6 +240,10 @@ const isPastTournament = computed(() => {
 
 const showOnlineScoreControls = computed(
   () => !props.standOnly && !isPastTournament.value,
+);
+
+const shouldRunRemoteScoreSync = computed(
+  () => Boolean(props.tournamentId),
 );
 
 // console.log("Edit mode in Tournament:", props.editMode);
@@ -605,6 +621,9 @@ function getRemoteSubmissionKey(entry) {
 function applyRemoteSubmission(entry) {
   const newScoreL = Number(entry.scoreL);
   const newScoreR = Number(entry.scoreR);
+  const entryTable = Number(entry.table);
+  const entryTeamL = String(entry.teamL || "").trim();
+  const entryTeamR = String(entry.teamR || "").trim();
 
   if (!Number.isFinite(newScoreL) || !Number.isFinite(newScoreR)) {
     return false;
@@ -623,6 +642,9 @@ function applyRemoteSubmission(entry) {
 
     current.scoreL = newScoreL;
     current.scoreR = newScoreR;
+    current.kruisL = Number.isFinite(Number(entry.kruisL)) ? Number(entry.kruisL) : null;
+    current.kruisR = Number.isFinite(Number(entry.kruisR)) ? Number(entry.kruisR) : null;
+    current.lastTroefTeam = entry.lastTroefTeam || current.lastTroefTeam || null;
     return true;
   }
 
@@ -630,7 +652,21 @@ function applyRemoteSubmission(entry) {
     const groupIndex = String(entry.group || "A").toUpperCase() === "B" ? 1 : 0;
     const roundIndex = Math.max(Number(entry.round || 1) - 1, 0);
     const tableIndex = Math.max(Number(entry.matchIndex ?? 0), 0);
-    const current = groupMatches.value?.[groupIndex]?.[roundIndex]?.[tableIndex];
+    const roundMatches = groupMatches.value?.[groupIndex]?.[roundIndex] || [];
+    let current = roundMatches[tableIndex];
+
+    if (!current) {
+      current = roundMatches.find((match) => {
+        if (!match) return false;
+        const sameTable = Number.isFinite(entryTable) && Number(match.tafel) === entryTable;
+        const sameTeams =
+          entryTeamL && entryTeamR &&
+          String(match.teamL || "").trim() === entryTeamL &&
+          String(match.teamR || "").trim() === entryTeamR;
+        return sameTable || sameTeams;
+      });
+    }
+
     if (!current) return false;
 
     const oldScoreL = Number(current.scoreL ?? 0);
@@ -641,13 +677,30 @@ function applyRemoteSubmission(entry) {
 
     current.scoreL = newScoreL;
     current.scoreR = newScoreR;
+    current.kruisL = Number.isFinite(Number(entry.kruisL)) ? Number(entry.kruisL) : null;
+    current.kruisR = Number.isFinite(Number(entry.kruisR)) ? Number(entry.kruisR) : null;
+    current.lastTroefTeam = entry.lastTroefTeam || current.lastTroefTeam || null;
     updateFinalists();
     return true;
   }
 
   const roundIndex = Math.max(Number(entry.round || 1) - 1, 0);
   const tableIndex = Math.max(Number(entry.matchIndex ?? 0), 0);
-  const current = matches.value?.[roundIndex]?.[tableIndex];
+  const roundMatches = matches.value?.[roundIndex] || [];
+  let current = roundMatches[tableIndex];
+
+  if (!current) {
+    current = roundMatches.find((match) => {
+      if (!match) return false;
+      const sameTable = Number.isFinite(entryTable) && Number(match.tafel) === entryTable;
+      const sameTeams =
+        entryTeamL && entryTeamR &&
+        String(match.teamL || "").trim() === entryTeamL &&
+        String(match.teamR || "").trim() === entryTeamR;
+      return sameTable || sameTeams;
+    });
+  }
+
   if (!current) return false;
 
   const oldScoreL = Number(current.scoreL ?? 0);
@@ -658,36 +711,56 @@ function applyRemoteSubmission(entry) {
 
   current.scoreL = newScoreL;
   current.scoreR = newScoreR;
+  current.kruisL = Number.isFinite(Number(entry.kruisL)) ? Number(entry.kruisL) : null;
+  current.kruisR = Number.isFinite(Number(entry.kruisR)) ? Number(entry.kruisR) : null;
+  current.lastTroefTeam = entry.lastTroefTeam || current.lastTroefTeam || null;
   return true;
 }
 
-async function syncRemoteScoreForms() {
+async function syncRemoteScoreForms(source = "auto") {
   if (!props.tournamentId) {
     return;
   }
 
-  const response = await dbService.fetchScoreFormSubmissions(props.tournamentId);
-  if (!response.success) {
+  if (remoteScoreSyncInFlight) {
     return;
   }
 
-  const submissions = Array.isArray(response.data) ? response.data : [];
-  let changed = false;
+  remoteScoreSyncInFlight = true;
 
-  submissions.forEach((entry) => {
-    const key = getRemoteSubmissionKey(entry);
-    if (processedRemoteSubmissions.has(key)) {
+  try {
+    const response = await dbService.fetchScoreFormSubmissions(props.tournamentId);
+    if (!response.success) {
       return;
     }
 
-    processedRemoteSubmissions.add(key);
-    changed = applyRemoteSubmission(entry) || changed;
-  });
+    const submissions = Array.isArray(response.data) ? response.data : [];
+    let changed = false;
+    let appliedCount = 0;
 
-  if (changed) {
-    refreshTournamentViewState();
-    window.dispatchEvent(new Event("storage"));
-    saveToLocalStorage();
+    submissions.forEach((entry) => {
+      const key = getRemoteSubmissionKey(entry);
+      if (processedRemoteSubmissions.has(key)) {
+        return;
+      }
+
+      const applied = applyRemoteSubmission(entry);
+      if (!applied) {
+        return;
+      }
+
+      processedRemoteSubmissions.add(key);
+      changed = true;
+      appliedCount += 1;
+    });
+
+    if (changed) {
+      refreshTournamentViewState();
+      window.dispatchEvent(new Event("storage"));
+      saveToLocalStorage();
+    }
+  } finally {
+    remoteScoreSyncInFlight = false;
   }
 }
 
@@ -696,10 +769,11 @@ function connectRemoteScoreStream() {
     return;
   }
 
-  const apiBaseUrl = import.meta.env.VITE_BASE_URL_API
-    ? String(import.meta.env.VITE_BASE_URL_API).replace(/\/$/, "")
-    : `${window.location.protocol}//${window.location.hostname}:54321/api/kraak`;
-  const streamUrl = new URL(`${apiBaseUrl}/score-forms/stream`);
+  const apiBaseUrl = resolveApiBaseUrl();
+  const streamUrl = new URL(
+    `${String(apiBaseUrl).replace(/\/$/, "")}/score-forms/stream`,
+    window.location.origin,
+  );
   streamUrl.searchParams.set("tournamentId", String(props.tournamentId));
 
   if (remoteScoreEventSource) {
@@ -716,8 +790,8 @@ function connectRemoteScoreStream() {
         return;
       }
 
-      processedRemoteSubmissions.add(key);
       if (applyRemoteSubmission(entry)) {
+        processedRemoteSubmissions.add(key);
         refreshTournamentViewState();
         window.dispatchEvent(new Event("storage"));
         saveToLocalStorage();
@@ -728,12 +802,124 @@ function connectRemoteScoreStream() {
   });
 
   remoteScoreEventSource.addEventListener("ready", () => {
-    // stream actief; geen extra actie nodig
+    // stream actief
   });
 
   remoteScoreEventSource.onerror = (error) => {
     console.warn('Realtime score stream fout:', error?.message || error);
   };
+}
+
+function disconnectRemoteScoreStream() {
+  if (remoteScoreEventSource) {
+    remoteScoreEventSource.close();
+    remoteScoreEventSource = null;
+  }
+}
+
+function startRemoteScorePolling() {
+  if (typeof window === "undefined" || remoteScorePollTimer || !props.tournamentId) {
+    return;
+  }
+
+  const runPollLoop = async () => {
+    if (!remoteScorePollTimer || !shouldRunRemoteScoreSync.value) {
+      return;
+    }
+
+    try {
+      await syncRemoteScoreForms("poll");
+    } catch (error) {
+      console.warn('Periodieke score form sync mislukt:', error?.message || error);
+    }
+
+    if (!remoteScorePollTimer || !shouldRunRemoteScoreSync.value) {
+      return;
+    }
+
+    remoteScorePollTimer = window.setTimeout(runPollLoop, REMOTE_SCORE_POLL_INTERVAL_MS);
+  };
+
+  remoteScorePollTimer = window.setTimeout(runPollLoop, REMOTE_SCORE_POLL_INTERVAL_MS);
+}
+
+function stopRemoteScorePolling() {
+  if (typeof window === "undefined" || !remoteScorePollTimer) {
+    return;
+  }
+
+  window.clearTimeout(remoteScorePollTimer);
+  remoteScorePollTimer = null;
+}
+
+function startRemoteScoreSync() {
+  if (!shouldRunRemoteScoreSync.value) {
+    return;
+  }
+
+  syncRemoteScoreForms().catch((error) => {
+    console.warn('Initiële score form sync mislukt:', error?.message || error);
+  });
+
+  connectRemoteScoreStream();
+  startRemoteScorePolling();
+}
+
+function stopRemoteScoreSync() {
+  disconnectRemoteScoreStream();
+  stopRemoteScorePolling();
+}
+
+function triggerForegroundSync() {
+  if (!shouldRunRemoteScoreSync.value) {
+    return;
+  }
+
+  const now = Date.now();
+  if (now - lastForegroundSyncAt < FOREGROUND_SYNC_THROTTLE_MS) {
+    return;
+  }
+
+  lastForegroundSyncAt = now;
+  syncRemoteScoreForms().catch((error) => {
+    console.warn('Foreground score form sync mislukt:', error?.message || error);
+  });
+}
+
+function handleWindowFocus() {
+  triggerForegroundSync();
+}
+
+function handleVisibilityChange() {
+  if (typeof document === "undefined" || document.visibilityState !== "visible") {
+    return;
+  }
+
+  triggerForegroundSync();
+}
+
+function handlePageShow() {
+  triggerForegroundSync();
+}
+
+async function handleManualRemoteRefresh() {
+  if (manualRefreshInProgress.value) {
+    return;
+  }
+
+  manualRefreshInProgress.value = true;
+  manualRefreshStatus.value = "Handmatig verversen...";
+
+  try {
+    processedRemoteSubmissions.clear();
+    await syncRemoteScoreForms("manual");
+    manualRefreshStatus.value = `Bijgewerkt om ${new Date().toLocaleTimeString("nl-NL")}`;
+  } catch (error) {
+    manualRefreshStatus.value = "Verversen mislukt";
+    console.warn('Handmatige score form sync mislukt:', error?.message || error);
+  } finally {
+    manualRefreshInProgress.value = false;
+  }
 }
 
 function totalMatchesPlayed() {
@@ -795,6 +981,10 @@ function loadFromLocalStorage() {
 
 
 onMounted(() => {
+  const storedOnlineScoreEnabled = localStorage.getItem("onlineScoreEnabled");
+  onlineScoreEnabled.value =
+    storedOnlineScoreEnabled === null ? true : storedOnlineScoreEnabled === "true";
+
   remoteScoreVisibilityMode.value =
     localStorage.getItem("remoteScoreVisibilityMode") || "immediate";
 
@@ -828,23 +1018,50 @@ onMounted(() => {
     updateFinalists();
   }
 
-  if (showOnlineScoreControls.value) {
-    syncRemoteScoreForms().catch((error) => {
-      console.warn('Initiële score form sync mislukt:', error?.message || error);
-    });
-
-    connectRemoteScoreStream();
+  if (typeof window !== "undefined") {
+    window.addEventListener("focus", handleWindowFocus);
+    window.addEventListener("pageshow", handlePageShow);
   }
+
+  if (typeof document !== "undefined") {
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+  }
+
 });
 
 onUnmounted(() => {
-  if (remoteScoreEventSource) {
-    remoteScoreEventSource.close();
-    remoteScoreEventSource = null;
+  stopRemoteScoreSync();
+
+  if (typeof window !== "undefined") {
+    window.removeEventListener("focus", handleWindowFocus);
+    window.removeEventListener("pageshow", handlePageShow);
+  }
+
+  if (typeof document !== "undefined") {
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
   }
 });
 
 watch(remoteScoreVisibilityMode, (mode) => {
   localStorage.setItem("remoteScoreVisibilityMode", mode === "final" ? "final" : "immediate");
 });
+
+watch(onlineScoreEnabled, (enabled) => {
+  localStorage.setItem("onlineScoreEnabled", enabled ? "true" : "false");
+});
+
+watch(
+  shouldRunRemoteScoreSync,
+  (enabled) => {
+    stopRemoteScoreSync();
+
+    if (!enabled) {
+      return;
+    }
+
+    processedRemoteSubmissions.clear();
+    startRemoteScoreSync();
+  },
+  { immediate: true },
+);
 </script>

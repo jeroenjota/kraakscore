@@ -136,6 +136,18 @@
       </div>
     </div>
 
+    <div v-if="tournamentId" class="mt-3 flex flex-row items-center justify-center gap-1">
+      <button
+        type="button"
+        class="rounded border border-sky-600 bg-white px-3 py-1 text-xs text-sky-900 disabled:cursor-not-allowed disabled:opacity-50"
+        :disabled="manualRefreshInProgress"
+        @click="emit('refreshOnlineScores')"
+      >
+        {{ manualRefreshInProgress ? "Verversen..." : "Ververs online scores" }}
+      </button>
+      <span v-if="manualRefreshStatus" class="text-center text-xs text-gray-600">{{ manualRefreshStatus }}</span>
+    </div>
+
     <div v-if="qrEntry" class="fixed inset-0 z-40 bg-[rgba(0,0,0,0.45)]" @click.self="closeQr">
       <div class="fixed inset-0 z-50 flex items-center justify-center" @click.self="closeQr">
         <div class="relative w-[320px] rounded border border-gray-300 bg-white p-4 shadow-lg">
@@ -190,9 +202,17 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  manualRefreshInProgress: {
+    type: Boolean,
+    default: false,
+  },
+  manualRefreshStatus: {
+    type: String,
+    default: "",
+  },
 });
 
-const emit = defineEmits(["update:submitMode"]);
+const emit = defineEmits(["update:submitMode", "refreshOnlineScores"]);
 
 const qrEntry = ref(null);
 const selectedRound = ref("");
@@ -201,7 +221,7 @@ const hasGroupTournament = computed(() => Array.isArray(props.groupMatches) && p
 
 const baseUrl = computed(() => {
   if (typeof window === "undefined") return "";
-  return `${window.location.protocol}//${window.location.host}/score-entry.html`;
+  return new URL(`${import.meta.env.BASE_URL}score-entry.html`, window.location.origin).toString();
 });
 
 function buildUrl(payload) {
@@ -249,6 +269,11 @@ const formEntries = computed(() => {
               mi: matchIndex,
               teamL: match.teamL,
               teamR: match.teamR,
+              startScoreL: match.scoreL ?? 0,
+              startScoreR: match.scoreR ?? 0,
+              startKruisL: match.kruisL ?? 0,
+              startKruisR: match.kruisR ?? 0,
+              lastTroefTeam: match.lastTroefTeam ?? "",
             }),
           });
         });
@@ -271,6 +296,11 @@ const formEntries = computed(() => {
             mi: matchIndex,
             teamL: match.teamL,
             teamR: match.teamR,
+            startScoreL: match.scoreL ?? 0,
+            startScoreR: match.scoreR ?? 0,
+            startKruisL: match.kruisL ?? 0,
+            startKruisR: match.kruisR ?? 0,
+            lastTroefTeam: match.lastTroefTeam ?? "",
           }),
         });
       });
@@ -294,6 +324,11 @@ const formEntries = computed(() => {
         place: match.pl,
         teamL: match.teamL,
         teamR: match.teamR,
+        startScoreL: match.scoreL ?? 0,
+        startScoreR: match.scoreR ?? 0,
+        startKruisL: match.kruisL ?? 0,
+        startKruisR: match.kruisR ?? 0,
+        lastTroefTeam: match.lastTroefTeam ?? "",
       }),
     });
   });

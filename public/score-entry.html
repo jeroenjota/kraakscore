@@ -1055,6 +1055,19 @@
         const teamR = params.get("teamR") || "Team rechts";
         const scoreTarget = Number(params.get("scoreTarget") || 2000);
         const winKruis = Number(params.get("winnerKruis") || 4);
+        const initialBaseTotals = {
+          left: Math.max(0, Number(params.get("startScoreL") || 0) || 0),
+          right: Math.max(0, Number(params.get("startScoreR") || 0) || 0),
+        };
+        const initialKruisTotals = {
+          left: Math.max(0, Number(params.get("startKruisL") || 0) || 0),
+          right: Math.max(0, Number(params.get("startKruisR") || 0) || 0),
+        };
+        const initialLastTroefTeam = ["L", "R"].includes(
+          params.get("lastTroefTeam"),
+        )
+          ? params.get("lastTroefTeam")
+          : null;
         const datum = new Date(date).toLocaleDateString("nl-NL", {
           dateStyle: "short",
         });
@@ -1072,13 +1085,31 @@
         }
 
         function apiBaseUrl() {
-          return `${window.location.protocol}//${window.location.hostname}:54321/api/kraak`;
+          const isLocalHost =
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1";
+
+          if (isLocalHost) {
+            return `${window.location.protocol}//${window.location.hostname}:54321/api/kraak`;
+          }
+
+          return `${window.location.origin}/laurierboom/api/api/kraak`;
+        }
+
+        function appBaseUrl() {
+          const isLocalHost =
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1";
+
+          if (isLocalHost) {
+            return `${window.location.origin}/`;
+          }
+
+          return `${window.location.origin}/kraakscore/`;
         }
 
         function buildStandingsUrl() {
-          const url = new URL(
-            `${window.location.protocol}//${window.location.host}/`,
-          );
+          const url = new URL(appBaseUrl());
           if (tournamentId) {
             url.searchParams.set("tid", String(tournamentId));
           }
@@ -1184,7 +1215,7 @@
         }
 
         function getLastTroefTeam() {
-          if (partijen.length === 0) return null;
+          if (partijen.length === 0) return initialLastTroefTeam;
           return partijen[partijen.length - 1]?.troefTeam || null;
         }
 
@@ -1401,7 +1432,11 @@
         }
 
         const troefState = {
-          activeTeam: null,
+          activeTeam: initialLastTroefTeam
+            ? initialLastTroefTeam === "L"
+              ? "R"
+              : "L"
+            : null,
           ownerTeam: null,
           selectedSuit: { L: null, R: null },
         };
@@ -1561,7 +1596,10 @@
               acc.right += partij.scoreR;
               return acc;
             },
-            { left: 0, right: 0 },
+            {
+              left: initialBaseTotals.left,
+              right: initialBaseTotals.right,
+            },
           );
         }
 
@@ -1583,7 +1621,10 @@
               acc.right += partij.kruisR || 0;
               return acc;
             },
-            { left: 0, right: 0 },
+            {
+              left: initialKruisTotals.left,
+              right: initialKruisTotals.right,
+            },
           );
         }
 
@@ -1817,6 +1858,7 @@
               bonusPointsL: bonusPoints.left,
               bonusPointsR: bonusPoints.right,
               winnerTeam,
+              lastTroefTeam: getLastTroefTeam(),
               partyCount: partijen.length,
               parties: partijen,
               isFinal,

@@ -24,7 +24,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watchEffect } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useInputFilters } from '../composables/useInputFilters';
 import dbService from '../services/dbServices';
 
@@ -68,14 +68,18 @@ const scores = ref([])
 
 // console.log('Edit mode in MatchTable:', props.editMode);
 
-watchEffect(() => {
-  scores.value = props.matches.map(match => ({
-    tafel: match.tafel - 1,
-    scoreL: match.scoreL ?? '',
-    scoreR: match.scoreR ?? ''
-  }))
-// console.log("Scores::", scores.value)
-})
+watch(
+  () => props.matches,
+  (nextMatches) => {
+    const safeMatches = Array.isArray(nextMatches) ? nextMatches : []
+    scores.value = safeMatches.map((match) => ({
+      tafel: (match?.tafel ?? 1) - 1,
+      scoreL: match?.scoreL ?? '',
+      scoreR: match?.scoreR ?? ''
+    }))
+  },
+  { immediate: true, deep: true }
+)
 
 function hasVRIJ(match){
   let VRIJ = props.matches[match].teamL === "VRIJ" ||  props.matches[match].teamR === "VRIJ"
