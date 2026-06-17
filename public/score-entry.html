@@ -24,6 +24,11 @@
           var(--bg) 50%
         );
         color: var(--ink);
+        cursor: default;
+      }
+      input,
+      textarea {
+        cursor: text;
       }
       .wrap {
         min-height: 100dvh;
@@ -42,15 +47,107 @@
         padding: 12px 4px;
       }
       h1 {
-        font-size: 1.3rem;
-        margin: 0 0 4px 0;
+        font-size: 1.2rem;
+        margin: 0 0 1px 0;
+        line-height: .5;
         text-align: center;
       }
       .meta {
-        font-size: 0.9rem;
+        font-size: 1rem;
         color: var(--muted);
-        margin-bottom: 6px;
+        width: fit-content;
+        margin: 0;
+        padding: 2px 10px;
         text-align: center;
+        border-top:  1px solid #adadad;
+        border-bottom: 1px solid #adadad;
+        line-height: 1.2;
+      }
+      .meta-row {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        width: 100%;
+        padding: 0 2px;
+        margin: 6px 0 4px;
+      }
+      .meta-row .meta {
+        grid-column: 2;
+        margin: 0;
+      }
+      .meta-row-end {
+        grid-column: 3;
+        display: flex;
+        justify-content: flex-end;
+      }
+      .meta-qr-btn {
+        border: 1px solid #b7c0ce;
+        border-radius: 4px;
+        color: #fff;
+        font-size: 0.9rem;
+        font-weight: 700;
+        line-height: 1;
+        padding: 4px 8px;
+        cursor: pointer;
+        align-self: stretch;
+        width: fit-content;
+        min-height: 12px;
+        height: auto;
+        display: flex;
+        align-items: center;
+      }
+      .meta-qr-btn:hover {
+        background: #eef3ff;
+        color: #1f4fa8;
+      }
+      .qr-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+      }
+      .qr-overlay.is-open {
+        display: flex;
+      }
+      .qr-modal {
+        width: min(88vw, 260px);
+        background: #fff;
+        border-radius: 10px;
+        border: 1px solid #d4dceb;
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.22);
+        padding: 8px;
+      }
+      .qr-modal-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px;
+      }
+      .qr-modal-title {
+        font-size: 0.82rem;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      .qr-close-btn {
+        border: 1px solid #cbd4e4;
+        background: #fff;
+        color: #556173;
+        border-radius: 6px;
+        min-height: 0;
+        width: auto;
+        padding: 2px 6px;
+        font-size: 0.75rem;
+        line-height: 1;
+        cursor: pointer;
+      }
+      .qr-image {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 6px;
       }
       .teams {
         display: grid;
@@ -133,7 +230,7 @@
         border-radius: 10px;
         padding: 1px;
         background: #fbfdff;
-        margin-bottom: 4px;
+        margin-bottom: 2px;
       }
 
       .grid {
@@ -141,13 +238,6 @@
         grid-template-columns: 1fr 1fr;
         gap: 16px;
         margin-bottom: 16px;
-      }
-      .entry-header {
-        margin: 4px 0 8px;
-        text-align: center;
-        font-size: 0.9rem;
-        color: var(--muted);
-        font-weight: 600;
       }
       .entry-grid {
         display: grid;
@@ -158,27 +248,27 @@
         padding: 1px;
       }
       .row-label {
-        font-size: 0.86rem;
+        font-size: 0.80rem;
         color: var(--muted);
         font-weight: 600;
-        padding-top: 3px;
+        padding-top: 2px;
         text-align: center;
       }
       .entry-cell {
         border: 1px solid #e3eaf7;
         border-radius: 10px;
-        padding: 8px;
+        padding: 4px;
         background: #fbfdff;
       }
       .roem-counters {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
+        gap: 4px;
       }
       .roem-counter {
         border: 1px solid #dbe5f6;
         border-radius: 8px;
-        padding: 5px;
+        padding: 1px;
         background: white;
       }
       .roem-counter-label {
@@ -186,16 +276,13 @@
         text-align: center;
         font-size: 0.8rem;
         color: var(--muted);
-        margin-bottom: 4px;
+        margin-bottom: 2px;
       }
       .stepper {
         display: grid;
         grid-template-columns: 20px 1fr 20px;
-        gap: 4px;
+        gap: 2px;
         align-items: center;
-      }
-      .kruis-stepper {
-        grid-template-columns: 1fr 1fr;
       }
       .stepper-btn {
         min-height: 26px;
@@ -223,6 +310,7 @@
         font-size: 0.75rem;
         color: var(--muted);
         margin-bottom: 3px;
+        text-align: center;
       }
       .score-flags {
         border: 1px solid #dbe5f6;
@@ -379,7 +467,7 @@
         text-align: center;
       }
       .partijlist {
-        margin: 0 0 4px 0;
+        margin: 0 0 2px 0;
         border: 1px solid #e0e7f2;
         border-radius: 10px;
         background: #fcfdff;
@@ -430,6 +518,11 @@
         line-height: 1;
         font-variant-numeric: tabular-nums;
         white-space: nowrap;
+        cursor: pointer;
+      }
+
+      .partijitem.is-editing {
+        background: #e8f2ff;
       }
 
       .partijitem > span {
@@ -490,8 +583,8 @@
       .buttons {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
-        gap: 12px;
-        margin: 16px 0;
+        gap: 4px;
+        margin: 0 0;
       }
       .btn-secondary {
         background: #eef3fb;
@@ -539,7 +632,7 @@
         padding: 14px 12px;
         font-weight: 600;
         font-size: 1rem;
-        min-height: 48px;
+        min-height: 24px;
         cursor: pointer;
       }
 
@@ -581,7 +674,7 @@
         }
         .entry-grid {
           grid-template-columns: 1fr 1fr;
-          gap: 8px;
+          gap: 4px;
         }
         .row-label {
           grid-column: 1 / -1;
@@ -593,10 +686,35 @@
   <body>
     <div class="wrap">
       <form id="scoreForm" class="card" novalidate>
+        <div class="flex flex-row gap-1">
         <h1 id="kopregel"></h1>
-        <h2 id="meta" class="meta"></h2>
+        <p id="lockicon"></p>
+        </div>
+        <div class="meta-row">
+          <h2 id="meta" class="meta"></h2>
+          <div class="meta-row-end">
+            <button
+              type="button"
+              id="metaQrBtn"
+              class="meta-qr-btn"
+              title="Open QR-link voor dit scoreformulier"
+              aria-label="Open QR-link voor dit scoreformulier"
+            >
+              Link
+            </button>
+          </div>
+        </div>
 
-        <div id="partijHeader" class="entry-header" style="display: none;">Partij 1</div>
+        <div id="qrOverlay" class="qr-overlay" aria-hidden="true">
+          <div class="qr-modal" role="dialog" aria-modal="true" aria-label="QR code scoreformulier">
+            <div class="qr-modal-top">
+              <span class="qr-modal-title">Link naar scoreformulier</span>
+              <button type="button" id="qrCloseBtn" class="qr-close-btn" aria-label="Sluit QR venster">X</button>
+            </div>
+            <img id="qrImage" class="qr-image" alt="QR code voor scoreformulier" />
+          </div>
+        </div>
+
         <div class="teams">
           <span id="teamL" class="team-left"></span>
           <span class="team-vs">vs</span>
@@ -920,16 +1038,18 @@
             </div>
           </div>
           <div class="buttons">
-            <button id="undoPartijBtn" type="button" class="btn-secondary">
+            <button id="undoPartijBtn" type="button" class="btn-secondary" title="Verwijder de laatst toegevoegde partij"> 
               Undo
             </button>
             <button
+              title="Bereken de totaalscore"
               id="calcTotaalBtn"
               type="button"
               class="btn-secondary">
               Bereken
             </button>
-            <button id="addPartijBtn" type="button" class="btn-secondary">
+            <button id="addPartijBtn" type="button" class="btn-secondary" 
+            title="Stuur score naar server">
               Verwerk
             </button>
           </div>
@@ -968,7 +1088,7 @@
         <p id="modeText" class="mode" style="display: none;"></p>
 
         <button id="submitBtn" type="submit">
-          Eindtotaal maken en versturen
+          Eindstand maken en versturen
         </button>
         <button id="viewStandBtn" type="button" class="hidden">
           Bekijk tussenstand
@@ -986,6 +1106,10 @@
         const teamLEl = document.getElementById("teamL");
         const teamREl = document.getElementById("teamR");
         const modeText = document.getElementById("modeText");
+        const metaQrBtn = document.getElementById("metaQrBtn");
+        const qrOverlayEl = document.getElementById("qrOverlay");
+        const qrImageEl = document.getElementById("qrImage");
+        const qrCloseBtnEl = document.getElementById("qrCloseBtn");
         const messageEl = document.getElementById("message");
         const submitBtn = document.getElementById("submitBtn");
         const viewStandBtn = document.getElementById("viewStandBtn");
@@ -1018,6 +1142,7 @@
         const scoreLInput = document.getElementById("scoreL");
         const scoreRInput = document.getElementById("scoreR");
         const kruisCounts = { L: 0, R: 0 };
+        const currentComputedKruis = { L: 0, R: 0 };
         const roemCountEls = {
           L: {
             20: document.getElementById("r20L"),
@@ -1037,11 +1162,208 @@
         let sendInFlight = false;
         let sendAgain = false;
         let lastSubmittedWasFinal = false;
+        let editingPartijIndex = null;
         const TOTAL_POINTS_PER_PARTIJ = 162;
         let scoreFlagState = null; // null | 'kraak' | 're' | 'super'
         let hasCalculatedTotal = false;
 
         const mode = params.get("mode") === "final" ? "final" : "immediate";
+
+        // === Tabel-lock mekanisme: slechts één speler per tafel kan bewerken ===
+        // Geneer/haal session-ID op voor deze browser
+        function getOrCreateSessionId() {
+          try {
+            if (typeof sessionStorage === "undefined") return null;
+            let id = sessionStorage.getItem("scoreEntrySessionId");
+            if (!id) {
+              id = "sess_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+              sessionStorage.setItem("scoreEntrySessionId", id);
+            }
+            return id;
+          } catch {
+            return null;
+          }
+        }
+        const sessionId = getOrCreateSessionId();
+        let isViewOnlyMode = false;
+        let lockCheckInterval = null;
+        let lockRenewalInterval = null;
+        let viewOnlyPollingInterval = null;
+        let lastPolledPartijCount = 0;
+
+        function getTabelLockKey() {
+          const parts = [
+            "scoreEntryTableLock",
+            params.get("tid") || "-",
+            params.get("date") || "-",
+            params.get("mt") || "single",
+            params.get("group") || "-",
+            params.get("round") || "-",
+            params.get("table") || "-",
+            params.get("mi") || "-",
+            params.get("fi") || "-",
+          ];
+          return parts.join("|");
+        }
+        const tabelLockKey = getTabelLockKey();
+        const LOCK_TIMEOUT_MS = 600000; // 10 minuten
+
+        function acquireTabelLock() {
+          if (typeof localStorage === "undefined" || !sessionId) return false;
+          try {
+            const existingLock = localStorage.getItem(tabelLockKey);
+            if (existingLock) {
+              const [lockSessionId, lockTimestamp] = existingLock.split("|");
+              const lockAge = Date.now() - Number(lockTimestamp);
+              if (lockAge < LOCK_TIMEOUT_MS && lockSessionId !== sessionId) {
+                // Iemand anders heeft het nog
+                return false;
+              }
+            }
+            // We kunnen de lock claimen
+            localStorage.setItem(tabelLockKey, `${sessionId}|${Date.now()}`);
+            return true;
+          } catch {
+            return false;
+          }
+        }
+
+        function renewTabelLock() {
+          if (typeof localStorage === "undefined" || !sessionId) return;
+          try {
+            const existingLock = localStorage.getItem(tabelLockKey);
+            if (existingLock) {
+              const [lockSessionId] = existingLock.split("|");
+              if (lockSessionId === sessionId) {
+                localStorage.setItem(tabelLockKey, `${sessionId}|${Date.now()}`);
+              }
+            }
+          } catch {
+            // Silent fail
+          }
+        }
+
+        function releaseTabelLock() {
+          if (typeof localStorage === "undefined" || !sessionId) return;
+          try {
+            const existingLock = localStorage.getItem(tabelLockKey);
+            if (existingLock) {
+              const [lockSessionId] = existingLock.split("|");
+              if (lockSessionId === sessionId) {
+                localStorage.removeItem(tabelLockKey);
+              }
+            }
+          } catch {
+            // Silent fail
+          }
+        }
+
+        function checkAndUpdateViewOnlyMode() {
+          if (typeof localStorage === "undefined" || !sessionId) return;
+          try {
+            const existingLock = localStorage.getItem(tabelLockKey);
+            const shouldBeViewOnly = existingLock && !existingLock.startsWith(sessionId + "|");
+            if (shouldBeViewOnly !== isViewOnlyMode) {
+              isViewOnlyMode = shouldBeViewOnly;
+              applyViewOnlyMode(isViewOnlyMode);
+            }
+          } catch {
+            // Silent fail
+          }
+        }
+
+        function startViewOnlyPolling() {
+          if (typeof localStorage === "undefined") return;
+          if (viewOnlyPollingInterval) return; // Voorkom dubbele intervals
+          
+          lastPolledPartijCount = partijen.length;
+          viewOnlyPollingInterval = setInterval(() => {
+            try {
+              const rawState = localStorage.getItem(scoreEntryStateKey);
+              if (!rawState) return;
+              const parsedState = JSON.parse(rawState);
+              const storedPartijen = Array.isArray(parsedState?.partijen) ? parsedState.partijen : [];
+              
+              // Controleer of het aantal partijen is veranderd
+              if (storedPartijen.length !== lastPolledPartijCount) {
+                lastPolledPartijCount = storedPartijen.length;
+                partijen.splice(0, partijen.length, ...storedPartijen);
+                renderPartijen();
+              }
+            } catch {
+              // Silent fail
+            }
+          }, 1000); // Poll elke seconde
+        }
+
+        function stopViewOnlyPolling() {
+          if (viewOnlyPollingInterval) {
+            clearInterval(viewOnlyPollingInterval);
+            viewOnlyPollingInterval = null;
+          }
+        }
+
+        function applyViewOnlyMode(enabled) {
+          // Disable/enable alle input controls
+          [pointsLInput, pointsRInput].forEach((el) => {
+            if (el) el.disabled = enabled;
+          });
+          document.querySelectorAll(".stepper-btn").forEach((btn) => {
+            btn.disabled = enabled;
+          });
+          document.querySelectorAll(".troef-check").forEach((el) => {
+            el.disabled = enabled;
+          });
+          document.querySelectorAll("#scoreFlagK, #scoreFlagR, #scoreFlagS").forEach((el) => {
+            el.disabled = enabled;
+          });
+          [calcTotaalBtn, addPartijBtn, undoPartijBtn, submitBtn].forEach((btn) => {
+            if (btn) btn.disabled = enabled;
+          });
+
+          // Toon/verberg lock icon
+          const scoreForm = document.getElementById("scoreForm");
+          const lockIcon = document.getElementById("lockicon");
+          if (!lockIcon) return;
+          if (!scoreForm) return;
+          let viewOnlyMsg = scoreForm.querySelector(".view-only-notice");
+          if (enabled) {
+            if (submitBtn) {
+              submitBtn.classList.add("hidden");
+            }
+            if (viewStandBtn) {
+              viewStandBtn.classList.remove("hidden");
+              viewStandBtn.disabled = false;
+            }
+            if (!viewOnlyMsg) {
+              kopregel.textContent = "🔒 " + kopregel.textContent + " 🔒";
+              // viewOnlyMsg = document.createElement("div");
+              // viewOnlyMsg.className = "view-only-notice";
+              // viewOnlyMsg.innerHTML = `
+              //   <div style="background: #fff3cd; border: 1px solid #ffeeba; border-radius: 8px; padding: 12px; margin-bottom: 12px; color: #856404; font-size: 0.9rem;">
+              //     <strong>🔒</strong> 
+              //   </div>
+              // `;
+              // scoreForm.insertBefore(viewOnlyMsg, scoreForm.firstChild);
+            }
+            // Start polling om bijwerkingen te zien
+            startViewOnlyPolling();
+          } else {
+            if (submitBtn) {
+              submitBtn.classList.remove("hidden");
+            }
+            if (viewStandBtn) {
+              viewStandBtn.classList.add("hidden");
+            }
+            applyFinalSubmittedStateFromStorage();
+            if (viewOnlyMsg) {
+              viewOnlyMsg.remove();
+            }
+            // Stop polling als we niet meer in view-only modus zijn
+            stopViewOnlyPolling();
+          }
+        }
+        // === Einde lock mekanisme initialisatie ===
 
         const tournamentId = params.get("tid");
         const date = params.get("date");
@@ -1055,11 +1377,11 @@
         const teamR = params.get("teamR") || "Team rechts";
         const scoreTarget = Number(params.get("scoreTarget") || 2000);
         const winKruis = Number(params.get("winnerKruis") || 4);
-        const initialBaseTotals = {
+        let initialBaseTotals = {
           left: Math.max(0, Number(params.get("startScoreL") || 0) || 0),
           right: Math.max(0, Number(params.get("startScoreR") || 0) || 0),
         };
-        const initialKruisTotals = {
+        let initialKruisTotals = {
           left: Math.max(0, Number(params.get("startKruisL") || 0) || 0),
           right: Math.max(0, Number(params.get("startKruisR") || 0) || 0),
         };
@@ -1069,12 +1391,12 @@
           ? params.get("lastTroefTeam")
           : null;
         const datum = new Date(date).toLocaleDateString("nl-NL", {
-          dateStyle: "short",
+          dateStyle: "medium",
         });
         teamLEl.textContent = teamL;
         teamREl.textContent = teamR;
         kopregel.textContent = `Scoreformulier ${datum || "?"}`;
-        meta.textContent = `ronde ${round || "?"} | tafel ${table || "?"}`;
+        meta.textContent = `${group ? `groep ${String(group).toUpperCase()}: ` : ""}ronde ${round || "?"}, tafel ${table || "?"}`;
 
         if (mode === "final") {
           modeText.textContent =
@@ -1082,6 +1404,81 @@
         } else {
           modeText.textContent =
             "Score direct zichtbaar op hoofdscherm.";
+        }
+
+        function getFinalSubmittedStateKey() {
+          const parts = [
+            "scoreEntryFinalSubmitted",
+            tournamentId || "-",
+            date || "-",
+            matchType || "-",
+            group || "-",
+            round || "-",
+            table || "-",
+            matchIndex || "-",
+            finalIndex || "-",
+            teamL || "-",
+            teamR || "-",
+          ];
+
+          return parts.join("|");
+        }
+
+        const finalSubmittedStateKey = getFinalSubmittedStateKey();
+
+        function getScoreEntryStateKey() {
+          const parts = [
+            "scoreEntryState",
+            tournamentId || "-",
+            date || "-",
+            matchType || "-",
+            group || "-",
+            round || "-",
+            table || "-",
+            matchIndex || "-",
+            finalIndex || "-",
+            teamL || "-",
+            teamR || "-",
+          ];
+
+          return parts.join("|");
+        }
+
+        const scoreEntryStateKey = getScoreEntryStateKey();
+
+        function setFinalSubmittedState(isSubmitted) {
+          if (mode !== "final" || typeof localStorage === "undefined") {
+            return;
+          }
+
+          try {
+            if (isSubmitted) {
+              localStorage.setItem(finalSubmittedStateKey, "1");
+            } else {
+              localStorage.removeItem(finalSubmittedStateKey);
+            }
+          } catch {
+            // localStorage is optioneel; UI blijft bruikbaar zonder persistentie.
+          }
+        }
+
+        function applyFinalSubmittedStateFromStorage() {
+          if (mode !== "final" || typeof localStorage === "undefined") {
+            return;
+          }
+
+          try {
+            const isSubmitted = localStorage.getItem(finalSubmittedStateKey) === "1";
+            if (!isSubmitted) {
+              return;
+            }
+
+            submitBtn.classList.add("hidden");
+            viewStandBtn.classList.remove("hidden");
+            setMessage("Eindtotaal is al verstuurd. Tik op 'Bekijk tussenstand'.", "ok");
+          } catch {
+            // localStorage is optioneel; geen actie nodig.
+          }
         }
 
         function apiBaseUrl() {
@@ -1117,6 +1514,29 @@
           return url.toString();
         }
 
+        function buildQrImageUrl() {
+          const sourceUrl = window.location.href;
+          const qrApiBase = "https://api.qrserver.com/v1/create-qr-code/";
+          return `${qrApiBase}?size=360x360&data=${encodeURIComponent(sourceUrl)}`;
+        }
+
+        function closeMetaQrOverlay() {
+          if (!qrOverlayEl) return;
+          qrOverlayEl.classList.remove("is-open");
+          qrOverlayEl.setAttribute("aria-hidden", "true");
+        }
+
+        function openMetaQrLink() {
+          const qrUrl = buildQrImageUrl();
+          if (!qrOverlayEl || !qrImageEl) {
+            setMessage("QR venster kon niet geopend worden.", "err");
+            return;
+          }
+          qrImageEl.src = qrUrl;
+          qrOverlayEl.classList.add("is-open");
+          qrOverlayEl.setAttribute("aria-hidden", "false");
+        }
+
         // Filter inputs to accept only digits
         function setupNumericInputFilter(input) {
           input.addEventListener("input", (e) => {
@@ -1130,9 +1550,39 @@
         }
 
         function setupSelectAllOnFocus(input) {
+          if (isFirefoxBrowser()) {
+            return;
+          }
           input.addEventListener("focus", () => {
             input.select();
           });
+        }
+
+        function isFirefoxBrowser() {
+          return /firefox/i.test(navigator.userAgent || "");
+        }
+
+        function focusElement(element) {
+          if (!element || isFirefoxBrowser()) return;
+          element.focus();
+        }
+
+        function setupFirefoxCursorGuard() {
+          if (!isFirefoxBrowser()) return;
+
+          const ensureCursorVisible = () => {
+            if (getComputedStyle(document.body).cursor === "none") {
+              document.body.style.cursor = "default";
+            }
+          };
+
+          ["mousemove", "pointermove", "focusin", "input", "mouseenter"].forEach(
+            (eventName) => {
+              document.addEventListener(eventName, ensureCursorVisible, true);
+            },
+          );
+
+          ensureCursorVisible();
         }
 
         function getRoemCount(team, value) {
@@ -1229,8 +1679,13 @@
         function updateActionButtons() {
           const matchFinished = hasReachedScoreTarget();
           const troefGekozen = hasTroef();
-          const canEditCurrentPartij = troefGekozen && !matchFinished;
-          const canChooseTroef = !matchFinished;
+          const isEditingExistingPartij =
+            Number.isInteger(editingPartijIndex) &&
+            editingPartijIndex >= 0 &&
+            editingPartijIndex < partijen.length;
+          const canEditCurrentPartij =
+            troefGekozen && (!matchFinished || isEditingExistingPartij);
+          const canChooseTroef = !matchFinished || isEditingExistingPartij;
 
           pointsLInput.disabled = !canEditCurrentPartij;
           pointsRInput.disabled = !canEditCurrentPartij;
@@ -1253,8 +1708,9 @@
             partijen.length === 0 || !hasCalculatedTotal || !matchFinished;
         }
 
-        function setFixedTotalPoints(changedTeam) {
+        function setFixedTotalPoints(changedTeam, options = {}) {
           if (changedTeam !== "L" && changedTeam !== "R") return;
+          const normalizeSource = !!options.normalizeSource;
           const sourceInput = changedTeam === "L" ? pointsLInput : pointsRInput;
           const targetInput = changedTeam === "L" ? pointsRInput : pointsLInput;
           const sourceRawValue = sourceInput.value.trim();
@@ -1262,15 +1718,17 @@
           if (sourceRawValue === "") {
             sourceInput.value = "0";
             targetInput.value = "0";
-            clearCurrentPartijTotal();
+            clearCurrentPartijTotal({ skipActionButtons: !normalizeSource });
             return;
           }
 
           const sourcePoints = clampPoints(Number(sourceInput.value || 0));
           const targetPoints = TOTAL_POINTS_PER_PARTIJ - sourcePoints;
-          sourceInput.value = String(sourcePoints);
+          if (normalizeSource) {
+            sourceInput.value = String(sourcePoints);
+          }
           targetInput.value = String(targetPoints);
-          clearCurrentPartijTotal();
+          clearCurrentPartijTotal({ skipActionButtons: !normalizeSource });
         }
 
         function getPartijMultiplierBySuit(troefSuit) {
@@ -1316,11 +1774,20 @@
           const totaalVoorNatR = baseScoreR;
           let extraKruisL = 0;
           let extraKruisR = 0;
+          let pitBonusL = 0;
+          let pitBonusR = 0;
 
-          // Pit: één team telt 162, andere 0 → het team met 0 punten krijgt 1 kruis (× multiplier).
+          // Pit: één team telt alle punten. Winnaar krijgt +100 bonus (× multiplier)
+          // en verliezer krijgt 1 kruis (× multiplier).
           if (pointsL === TOTAL_POINTS_PER_PARTIJ && pointsR === 0) {
+            baseScoreL = TOTAL_POINTS_PER_PARTIJ + roemL + roemR;
+            baseScoreR = 0;
+            pitBonusL = 100;
             extraKruisR += partijMultiplier;
           } else if (pointsR === TOTAL_POINTS_PER_PARTIJ && pointsL === 0) {
+            baseScoreR = TOTAL_POINTS_PER_PARTIJ + roemL + roemR;
+            baseScoreL = 0;
+            pitBonusR = 100;
             extraKruisL += partijMultiplier;
           }
 
@@ -1365,8 +1832,8 @@
           }
 
           return {
-            scoreL: baseScoreL * partijMultiplier,
-            scoreR: baseScoreR * partijMultiplier,
+            scoreL: (baseScoreL + pitBonusL) * partijMultiplier,
+            scoreR: (baseScoreR + pitBonusR) * partijMultiplier,
             scoreMultiplier: partijMultiplier,
             extraKruisL,
             extraKruisR,
@@ -1389,6 +1856,8 @@
               : null,
             scoreFlag: scoreFlagState,
           });
+          currentComputedKruis.L = computed.extraKruisL;
+          currentComputedKruis.R = computed.extraKruisR;
           roemTotalLInput.textContent = String(roemL);
           roemTotalRInput.textContent = String(roemR);
           scoreLInput.value = String(computed.scoreL);
@@ -1396,12 +1865,17 @@
           updateRoem200Buttons();
         }
 
-        function clearCurrentPartijTotal() {
+        function clearCurrentPartijTotal(options = {}) {
+          const skipActionButtons = !!options.skipActionButtons;
           hasCalculatedTotal = false;
+          currentComputedKruis.L = 0;
+          currentComputedKruis.R = 0;
           scoreLInput.value = "0";
           scoreRInput.value = "0";
           updateRoem200Buttons();
-          updateActionButtons();
+          if (!skipActionButtons) {
+            updateActionButtons();
+          }
         }
 
         function calculateCurrentPartijTotal(showMessage = false) {
@@ -1424,6 +1898,14 @@
         }
 
         function updatePartijLabels() {
+          if (Number.isInteger(editingPartijIndex) && editingPartijIndex >= 0) {
+            const text = `Partij ${editingPartijIndex + 1} bewerken`;
+            if (partijHeaderEl) {
+              partijHeaderEl.textContent = text;
+            }
+            return;
+          }
+
           const nextIndex = partijen.length + 1;
           const text = `Partij ${nextIndex}`;
           if (partijHeaderEl) {
@@ -1440,6 +1922,187 @@
           ownerTeam: null,
           selectedSuit: { L: null, R: null },
         };
+
+        function saveScoreEntryState() {
+          if (typeof localStorage === "undefined") {
+            return;
+          }
+
+          try {
+            if (partijen.length === 0) {
+              localStorage.removeItem(scoreEntryStateKey);
+              return;
+            }
+
+            localStorage.setItem(
+              scoreEntryStateKey,
+              JSON.stringify({ partijen }),
+            );
+          } catch {
+            // localStorage is optioneel; UI blijft bruikbaar zonder persistentie.
+          }
+        }
+
+        function applyScoreEntryStateFromStorage() {
+          if (typeof localStorage === "undefined") {
+            return;
+          }
+
+          try {
+            const rawState = localStorage.getItem(scoreEntryStateKey);
+            if (!rawState) {
+              return;
+            }
+
+            const parsedState = JSON.parse(rawState);
+            const storedPartijen = Array.isArray(parsedState?.partijen)
+              ? parsedState.partijen
+              : [];
+
+            if (storedPartijen.length === 0) {
+              return;
+            }
+
+            partijen.splice(0, partijen.length, ...storedPartijen);
+
+            const lastTroefTeam = partijen[partijen.length - 1]?.troefTeam;
+            troefState.activeTeam =
+              lastTroefTeam === "L"
+                ? "R"
+                : lastTroefTeam === "R"
+                  ? "L"
+                  : troefState.activeTeam;
+            troefState.ownerTeam = null;
+            troefState.selectedSuit.L = null;
+            troefState.selectedSuit.R = null;
+          } catch {
+            // Ongeldige state negeren; formulier blijft gewoon bruikbaar.
+          }
+        }
+
+        function isMatchEntry(entry) {
+          if (!entry) return false;
+          const entryMt = String(entry.matchType || "single");
+          const ourMt = String(matchType || "single");
+          if (entryMt !== ourMt) return false;
+
+          const sameTeams =
+            String(entry.teamL || "").trim().toLowerCase() === String(teamL || "").trim().toLowerCase() &&
+            String(entry.teamR || "").trim().toLowerCase() === String(teamR || "").trim().toLowerCase();
+
+          if (ourMt === "final") {
+            const entryFi = Number(entry.finalIndex);
+            const ourFi = Number(finalIndex);
+            if (Number.isFinite(entryFi) && Number.isFinite(ourFi)) {
+              return entryFi === ourFi || sameTeams;
+            }
+            return sameTeams;
+          }
+
+          const sameRound =
+            Number.isFinite(Number(entry.round)) &&
+            Number.isFinite(Number(round)) &&
+            Number(entry.round) === Number(round);
+          const sameMi =
+            Number.isFinite(Number(entry.matchIndex)) &&
+            Number.isFinite(Number(matchIndex)) &&
+            Number(entry.matchIndex) === Number(matchIndex);
+          const sameTable =
+            Number.isFinite(Number(entry.table)) &&
+            Number.isFinite(Number(table)) &&
+            Number(entry.table) === Number(table);
+
+          if (ourMt === "group") {
+            const sameGroup =
+              String(entry.group || "").trim().toUpperCase() === String(group || "").trim().toUpperCase();
+            return sameGroup && (sameMi || sameTable || sameTeams);
+          }
+
+          return (sameRound && sameMi) || (sameRound && sameTable) || sameTeams;
+        }
+
+        function applyRestoredEntry(entry) {
+          const storedPartijen = Array.isArray(entry?.parties) ? entry.parties : [];
+          if (storedPartijen.length === 0) return false;
+
+          const sumScoreL = storedPartijen.reduce((s, p) => s + (Number(p?.scoreL) || 0), 0);
+          const sumScoreR = storedPartijen.reduce((s, p) => s + (Number(p?.scoreR) || 0), 0);
+          const sumKruisL = storedPartijen.reduce((s, p) => s + (Number(p?.kruisL) || 0), 0);
+          const sumKruisR = storedPartijen.reduce((s, p) => s + (Number(p?.kruisR) || 0), 0);
+
+          const baseL = Number.isFinite(Number(entry?.baseScoreL)) ? Number(entry.baseScoreL)
+            : Number.isFinite(Number(entry?.scoreL)) ? Number(entry.scoreL) : null;
+          const baseR = Number.isFinite(Number(entry?.baseScoreR)) ? Number(entry.baseScoreR)
+            : Number.isFinite(Number(entry?.scoreR)) ? Number(entry.scoreR) : null;
+          const kruisL = Number.isFinite(Number(entry?.kruisL)) ? Number(entry.kruisL) : null;
+          const kruisR = Number.isFinite(Number(entry?.kruisR)) ? Number(entry.kruisR) : null;
+          const loserBonusKruisL = Number.isFinite(Number(entry?.loserBonusKruisL))
+            ? Number(entry.loserBonusKruisL)
+            : 0;
+          const loserBonusKruisR = Number.isFinite(Number(entry?.loserBonusKruisR))
+            ? Number(entry.loserBonusKruisR)
+            : 0;
+
+          if (baseL !== null && baseR !== null) {
+            initialBaseTotals = {
+              left: Math.max(0, Math.trunc(baseL - sumScoreL)),
+              right: Math.max(0, Math.trunc(baseR - sumScoreR)),
+            };
+          }
+          if (kruisL !== null && kruisR !== null) {
+            initialKruisTotals = {
+              left: Math.max(0, Math.trunc(kruisL - sumKruisL - loserBonusKruisL)),
+              right: Math.max(0, Math.trunc(kruisR - sumKruisR - loserBonusKruisR)),
+            };
+          }
+
+          partijen.splice(0, partijen.length, ...storedPartijen);
+          localStorage.setItem(scoreEntryStateKey, JSON.stringify({ partijen }));
+
+          const lastTroefTeam = storedPartijen[storedPartijen.length - 1]?.troefTeam;
+          troefState.activeTeam =
+            lastTroefTeam === "L" ? "R" : lastTroefTeam === "R" ? "L" : troefState.activeTeam;
+          troefState.ownerTeam = null;
+          troefState.selectedSuit.L = null;
+          troefState.selectedSuit.R = null;
+          lastSubmittedWasFinal = !!entry?.isFinal;
+          return true;
+        }
+
+        async function restoreExistingSubmission() {
+          if (!tournamentId) return;
+          try {
+            const url = new URL(`${apiBaseUrl()}/score-forms/submissions`);
+            url.searchParams.set("tournamentId", String(tournamentId));
+            const response = await fetch(url.toString());
+            if (!response.ok) return;
+            const entries = await response.json();
+            if (!Array.isArray(entries)) return;
+
+            const relevant = entries
+              .filter(isMatchEntry)
+              .sort((a, b) => {
+                const ta = new Date(a.submittedAt || a.timestamp || 0).getTime();
+                const tb = new Date(b.submittedAt || b.timestamp || 0).getTime();
+                return tb - ta;
+              });
+
+            const latest = relevant[0];
+            if (!latest) return;
+
+            const applied = applyRestoredEntry(latest);
+            if (applied) {
+              updatePartijLabels();
+              updateTroefAndScorePanels();
+              updateRoemTotalDisplay();
+              renderPartijen();
+              updateActionButtons();
+              setMessage(`Bestaande invoer geladen (${partijen.length} partij${partijen.length === 1 ? "" : "en"}).`, "ok");
+            }
+          } catch (error) {
+            // Stil falen; formulier werkt gewoon zonder herstelde state.
+          }
+        }
 
         function renderTroefSelection(team) {
           if (!troefBoxEl || troefState.activeTeam !== team) return;
@@ -1548,6 +2211,12 @@
           });
         pointsLInput.addEventListener("input", () => setFixedTotalPoints("L"));
         pointsRInput.addEventListener("input", () => setFixedTotalPoints("R"));
+        pointsLInput.addEventListener("blur", () =>
+          setFixedTotalPoints("L", { normalizeSource: true }),
+        );
+        pointsRInput.addEventListener("blur", () =>
+          setFixedTotalPoints("R", { normalizeSource: true }),
+        );
         document.querySelectorAll(".stepper-btn").forEach((button) => {
           button.addEventListener("click", () => {
             const targetId = button.getAttribute("data-target");
@@ -1592,8 +2261,8 @@
         function getTotals() {
           return partijen.reduce(
             (acc, partij) => {
-              acc.left += partij.scoreL;
-              acc.right += partij.scoreR;
+              acc.left += Number(partij?.scoreL) || 0;
+              acc.right += Number(partij?.scoreR) || 0;
               return acc;
             },
             {
@@ -1606,8 +2275,8 @@
         function getRoemTotals() {
           return partijen.reduce(
             (acc, partij) => {
-              acc.left += partij.roemL || 0;
-              acc.right += partij.roemR || 0;
+              acc.left += Number(partij?.roemL) || 0;
+              acc.right += Number(partij?.roemR) || 0;
               return acc;
             },
             { left: 0, right: 0 },
@@ -1617,8 +2286,8 @@
         function getKruisTotals() {
           return partijen.reduce(
             (acc, partij) => {
-              acc.left += partij.kruisL || 0;
-              acc.right += partij.kruisR || 0;
+              acc.left += Number(partij?.kruisL) || 0;
+              acc.right += Number(partij?.kruisR) || 0;
               return acc;
             },
             {
@@ -1693,8 +2362,9 @@
             spades: { symbol: "♠", colorClass: "black" },
           };
           const matchFinished = hasReachedScoreTarget();
+          const includeWinnerBonus = lastSubmittedWasFinal;
           const { currentTotals, baseTotals, kruisTotals, loserBonusKruis } =
-            getMatchTotals(true);
+            getMatchTotals(includeWinnerBonus);
           const kruisTotalsSoFar = getKruisTotals();
           if (totalsLabelEl) {
             totalsLabelEl.style.display = matchFinished ? "none" : "flex";
@@ -1703,7 +2373,7 @@
             totalsBlockEl.classList.toggle("final-mode", matchFinished);
           }
 
-          if (matchFinished) {
+          if (matchFinished && includeWinnerBonus) {
             const leftNormalKruis = Number(kruisTotals.right || 0);
             const rightNormalKruis = Number(kruisTotals.left || 0);
             const leftWinKruis = Number(loserBonusKruis.right || 0);
@@ -1776,7 +2446,8 @@
               const kruisRText =
                 partij.kruisR > 0 ? `${partij.kruisR || 0}X` : "";
               const spel = `${spelendTeam}${troefText}`.trim();
-              return `<div class="partijitem"><span>${
+              const isEditing = editingPartijIndex === index ? " is-editing" : "";
+              return `<div class="partijitem${isEditing}" data-partij-index="${index}"><span>${
                 index + 1
               }:</span><span class="partijcol-center">${spel}</span><span class="partijcol-center">${scoreFlagText}</span><span class="partijcol-right vet">${
                 partij.scoreL
@@ -2002,7 +2673,7 @@
             return;
           }
 
-          partijen.push({
+          const partijPayload = {
             pointsL,
             pointsR,
             troefTeam: currentTroefTeam,
@@ -2021,11 +2692,24 @@
             roem50R,
             roem100R,
             roem200R,
+            autoKruisL: computedScores.extraKruisL,
+            autoKruisR: computedScores.extraKruisR,
             kruisL,
             kruisR,
             inputKruisL,
             inputKruisR,
-          });
+          };
+
+          const isEditingExistingPartij =
+            Number.isInteger(editingPartijIndex) &&
+            editingPartijIndex >= 0 &&
+            editingPartijIndex < partijen.length;
+
+          if (isEditingExistingPartij) {
+            partijen[editingPartijIndex] = partijPayload;
+          } else {
+            partijen.push(partijPayload);
+          }
           pointsLInput.value = "0";
           pointsRInput.value = "0";
           scoreLInput.value = "0";
@@ -2046,7 +2730,7 @@
             .forEach((cb) => {
               cb.checked = false;
             });
-          pointsLInput.focus();
+          focusElement(pointsLInput);
 
           const nextTroefTeam = currentTroefTeam === "L" ? "R" : "L";
           troefState.activeTeam = nextTroefTeam;
@@ -2055,14 +2739,23 @@
           updateTroefAndScorePanels();
 
           clearCurrentPartijTotal();
+          const updatedIndex = editingPartijIndex;
+          editingPartijIndex = null;
           updatePartijLabels();
           hasCalculatedTotal = true;
           updateActionButtons();
-          setMessage("Partij toegevoegd.", "ok");
+          setMessage(
+            Number.isInteger(updatedIndex) && updatedIndex >= 0
+              ? `Partij ${updatedIndex + 1} bijgewerkt.`
+              : "Partij toegevoegd.",
+            "ok",
+          );
           renderPartijen();
           if (mode !== "final") {
             sendCurrentTotal(true);
           }
+
+          saveScoreEntryState();
         }
 
         function restorePartijInputs(partij) {
@@ -2105,8 +2798,8 @@
 
           updateTroefAndScorePanels();
           updateRoemTotalDisplay();
-          calculateCurrentPartijTotal(false);
-          pointsLInput.focus();
+          clearCurrentPartijTotal();
+          focusElement(pointsLInput);
         }
 
         function undoPartij() {
@@ -2117,6 +2810,7 @@
 
           const revertFinalSubmission = lastSubmittedWasFinal;
           lastSubmittedWasFinal = false;
+          editingPartijIndex = null;
 
           const removedPartij = partijen.pop();
           restorePartijInputs(removedPartij);
@@ -2137,7 +2831,7 @@
           updatePartijLabels();
           updateActionButtons();
           setMessage(
-            "Laatste partij ongedaan gemaakt en teruggezet in invoer.",
+            "Laatste partij ongedaan gemaakt. Klik op Bereken om kruisen opnieuw te berekenen.",
             "ok",
           );
           renderPartijen();
@@ -2146,11 +2840,14 @@
           }
 
           if (revertFinalSubmission) {
+            setFinalSubmittedState(false);
             setMessage(
               "Eindstand ongedaan gemaakt. Tussenstand opnieuw berekend.",
               "ok",
             );
           }
+
+          saveScoreEntryState();
         }
 
         calcTotaalBtn.addEventListener("click", () =>
@@ -2158,17 +2855,97 @@
         );
         addPartijBtn.addEventListener("click", addPartij);
         undoPartijBtn.addEventListener("click", undoPartij);
+        partijenListEl.addEventListener("click", (event) => {
+          const item = event.target.closest(".partijitem");
+          if (!item || !partijenListEl.contains(item)) {
+            return;
+          }
+
+          const selectedIndex = Number(item.getAttribute("data-partij-index"));
+          if (
+            !Number.isInteger(selectedIndex) ||
+            selectedIndex < 0 ||
+            selectedIndex >= partijen.length
+          ) {
+            return;
+          }
+
+          editingPartijIndex = selectedIndex;
+          restorePartijInputs(partijen[selectedIndex]);
+          updatePartijLabels();
+          updateActionButtons();
+          renderPartijen();
+          setMessage(
+            `Partij ${selectedIndex + 1} geladen. Klik op Bereken en daarna Verwerk om op te slaan.`,
+            "ok",
+          );
+        });
+
+        // === Lock mekanisme starten ===
+        const hasLock = acquireTabelLock();
+        checkAndUpdateViewOnlyMode();
+        if (hasLock) {
+          // Vernieuwen we de lock elke 30 seconden
+          lockRenewalInterval = setInterval(() => {
+            renewTabelLock();
+          }, 30000);
+        } else {
+          // Controleer elke 2 seconden of de lock vrijgegeven is
+          lockCheckInterval = setInterval(() => {
+            const hasLockNow = acquireTabelLock();
+            checkAndUpdateViewOnlyMode();
+            if (hasLockNow) {
+              clearInterval(lockCheckInterval);
+              lockCheckInterval = null;
+              lockRenewalInterval = setInterval(() => {
+                renewTabelLock();
+              }, 30000);
+              setMessage("U hebt de bewerkingsrechten overgenomen.", "ok");
+            }
+          }, 2000);
+        }
+        // Bij verlaten van pagina, lock vrijgeven
+        window.addEventListener("unload", () => {
+          releaseTabelLock();
+          if (lockRenewalInterval) clearInterval(lockRenewalInterval);
+          if (lockCheckInterval) clearInterval(lockCheckInterval);
+          if (viewOnlyPollingInterval) clearInterval(viewOnlyPollingInterval);
+        });
+        // === Lock mekanisme klaar ===
 
         updatePartijLabels();
         setKruisCount("L", 0);
         setKruisCount("R", 0);
         pointsLInput.value = "0";
         pointsRInput.value = "0";
+        applyScoreEntryStateFromStorage();
+        updatePartijLabels();
         updateTroefAndScorePanels();
         updateRoemTotalDisplay();
+        setupFirefoxCursorGuard();
         clearCurrentPartijTotal();
         renderPartijen();
         updateActionButtons();
+        applyFinalSubmittedStateFromStorage();
+        restoreExistingSubmission();
+        if (metaQrBtn) {
+          metaQrBtn.addEventListener("click", openMetaQrLink);
+        }
+        if (qrCloseBtnEl) {
+          qrCloseBtnEl.addEventListener("click", closeMetaQrOverlay);
+        }
+        if (qrOverlayEl) {
+          qrOverlayEl.addEventListener("click", (event) => {
+            if (event.target === qrOverlayEl) {
+              closeMetaQrOverlay();
+            }
+          });
+        }
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape" && qrOverlayEl?.classList.contains("is-open")) {
+            closeMetaQrOverlay();
+          }
+        });
         viewStandBtn.addEventListener("click", () => {
           window.location.href = buildStandingsUrl();
         });
@@ -2192,16 +2969,19 @@
             try {
               const sent = await sendCurrentTotal(true, true);
               if (sent) {
+                setFinalSubmittedState(true);
                 submitBtn.classList.add("hidden");
                 viewStandBtn.classList.remove("hidden");
                 // Probeer het formuliervenster automatisch te sluiten.
-                window.close();
+                if (!isFirefoxBrowser()) {
+                  window.close();
+                }
                 if (!window.closed) {
                   setMessage(
                     "Eindtotaal verstuurd. Tik op 'Bekijk tussenstand'.",
                     "ok",
                   );
-                  viewStandBtn.focus();
+                  focusElement(viewStandBtn);
                 }
               }
             } finally {

@@ -4,7 +4,7 @@
   <div class="h-auto w-full">
     <div class="mb-1 flex items-center rounded border border-blue-700 p-1">
       <div class="flex-1">
-        <p class="text-center text-sm text-blue-700 sm:text-lg">Toernooidatum</p>
+        <p class="text-center text-sm text-blue-700 sm:text-lg">Nieuw toernooi</p>
       </div>
       <DateSelect v-model="localDatum" />
     </div>
@@ -65,8 +65,8 @@
         html: true,
       }">
       <div class="flex">
-        <label class="w-full text-xs text-black sm:text-sm" for="newPlayer"
-          >Nieuwe speler:</label
+        <label class="w-full pt-1 text-xs text-blue-700 sm:text-sm" for="newPlayer" >
+          Nieuwe speler:</label
         >
       </div>
       <div class="flex-2">

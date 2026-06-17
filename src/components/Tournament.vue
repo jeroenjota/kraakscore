@@ -19,10 +19,7 @@
       :matches="matches"
       :groupMatches="groupMatches"
       :finalMatches="finalMatches"
-      :manualRefreshInProgress="manualRefreshInProgress"
-      :manualRefreshStatus="manualRefreshStatus"
       @update:submitMode="(value) => (remoteScoreVisibilityMode = value)"
-      @refreshOnlineScores="handleManualRemoteRefresh"
       class="m-1"
     />
 
@@ -208,8 +205,6 @@ const scoreRedoStack = ref([]);
 const isApplyingUndo = ref(false);
 const remoteScoreVisibilityMode = ref("immediate");
 const onlineScoreEnabled = ref(false);
-const manualRefreshInProgress = ref(false);
-const manualRefreshStatus = ref("");
 const processedRemoteSubmissions = new Set();
 let remoteScoreEventSource = null;
 let remoteScorePollTimer = null;
@@ -900,26 +895,6 @@ function handleVisibilityChange() {
 
 function handlePageShow() {
   triggerForegroundSync();
-}
-
-async function handleManualRemoteRefresh() {
-  if (manualRefreshInProgress.value) {
-    return;
-  }
-
-  manualRefreshInProgress.value = true;
-  manualRefreshStatus.value = "Handmatig verversen...";
-
-  try {
-    processedRemoteSubmissions.clear();
-    await syncRemoteScoreForms("manual");
-    manualRefreshStatus.value = `Bijgewerkt om ${new Date().toLocaleTimeString("nl-NL")}`;
-  } catch (error) {
-    manualRefreshStatus.value = "Verversen mislukt";
-    console.warn('Handmatige score form sync mislukt:', error?.message || error);
-  } finally {
-    manualRefreshInProgress.value = false;
-  }
 }
 
 function totalMatchesPlayed() {

@@ -118,7 +118,7 @@
             <span
               v-if="!showSavedTeamsList"
               v-tooltip="{ content: 'Toon opgeslagen teams', html: true }"
-              >Bestaande teams &#x25BC;</span
+              >Selecteer teams &#x25BC;</span
             >
             <span v-else>Bestaande teams &#x25B2;</span>
             <!-- Bestaande teams {{ showSavedTeamsList ? "-" : "+" }} -->

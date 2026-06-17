@@ -48,7 +48,7 @@
             html: true,
           }"
           @change="$emit('handleSelectTournament')">
-          <option value="Toernooien" disabled>Toernooien</option>
+          <option value="Toernooien" disabled>Gespeeld</option>
           <option
             v-for="(tn, tnindex) in filteredToernooien"
             :key="tnindex"
@@ -58,7 +58,7 @@
         </select>
       </div>
       <div
-        v-if="selectToernooi !== 'Toernooien'"
+        v-if="selectToernooi !== 'Gespeeld' && thisToernooiID && serverAvailable"
         class="titel regel justify-left flex">
         <h2 class="m-1 text-sm text-white">
           Datum: {{ niceDate(thisToernooiDatum) }}
