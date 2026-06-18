@@ -1,27 +1,27 @@
 <template>
   <div id="tournament">
-    <TournamentSettings
-      v-if="showOnlineScoreControls"
-      v-model:scoreTarget="scoreTarget"
-      v-model:winnerKruis="winnerKruis"
-      v-model:onlineScoreEnabled="onlineScoreEnabled"
-      class="ml-1 mr-1"
-    />
+    <div v-if="showOnlineScoreSection">
+      <TournamentSettings
+        v-if="showOnlineScoreControls"
+        v-model:scoreTarget="scoreTarget"
+        v-model:winnerKruis="winnerKruis"
+        v-model:onlineScoreEnabled="onlineScoreEnabled"
+        class="ml-1 mr-1" />
 
-    <ScoreFormsPanel
-      v-if="showOnlineScoreControls && onlineScoreEnabled"
-      :submitMode="remoteScoreVisibilityMode"
-      :tournamentId="tournamentId"
-      :tournamentDate="tournamentDate"
-      :scoreTarget="scoreTarget"
-      :winnerKruis="winnerKruis"
-      :groups="groups"
-      :matches="matches"
-      :groupMatches="groupMatches"
-      :finalMatches="finalMatches"
-      @update:submitMode="(value) => (remoteScoreVisibilityMode = value)"
-      class="m-1"
-    />
+      <ScoreFormsPanel
+        v-if="showOnlineScoreControls && onlineScoreEnabled"
+        :submitMode="remoteScoreVisibilityMode"
+        :tournamentId="tournamentId"
+        :tournamentDate="tournamentDate"
+        :scoreTarget="scoreTarget"
+        :winnerKruis="winnerKruis"
+        :groups="groups"
+        :matches="matches"
+        :groupMatches="groupMatches"
+        :finalMatches="finalMatches"
+        @update:submitMode="(value) => (remoteScoreVisibilityMode = value)"
+        class="m-1" />
+    </div>
 
     <div v-if="groups.length === 2">
       <div class="schema">
@@ -108,23 +108,26 @@
     <!--  geen groepen -->
     <div v-else class="schema">
       <div class="mb-0 flex items-center justify-between">
-        <h2 class="text-xl font-bold">Schema</h2>
-          <div class="mb-0 flex justify-end px-2 py-1" v-if="!standOnly && editMode">
-            <button
-              class="mr-2 rounded bg-sky-600 px-3 py-1 text-sm text-white disabled:cursor-not-allowed disabled:bg-sky-200"
-              :disabled="!canRedoScore"
-              @click="redoLastScoreChange"
-              v-tooltip="'Herstel de laatst ongedaan gemaakte scorewijziging'">
-              Redo score
-            </button>
-            <button
-              class="rounded bg-orange-500 px-3 py-1 text-sm text-white disabled:cursor-not-allowed disabled:bg-orange-200"
-              :disabled="!canUndoScore"
-              @click="undoLastScoreChange"
-              v-tooltip="'Maak de laatste scorewijziging ongedaan'">
-              Undo score
-            </button>
-          </div>
+        <h2 class="text-xl font-bold" @click.ctrl="showOnlineScoreSection = !showOnlineScoreSection">Schema
+        </h2>
+        <div
+          class="mb-0 flex justify-end px-2 py-1"
+          v-if="!standOnly && editMode">
+          <button
+            class="mr-2 rounded bg-sky-600 px-3 py-1 text-sm text-white disabled:cursor-not-allowed disabled:bg-sky-200"
+            :disabled="!canRedoScore"
+            @click="redoLastScoreChange"
+            v-tooltip="'Herstel de laatst ongedaan gemaakte scorewijziging'">
+            Redo score
+          </button>
+          <button
+            class="rounded bg-orange-500 px-3 py-1 text-sm text-white disabled:cursor-not-allowed disabled:bg-orange-200"
+            :disabled="!canUndoScore"
+            @click="undoLastScoreChange"
+            v-tooltip="'Maak de laatste scorewijziging ongedaan'">
+            Undo score
+          </button>
+        </div>
       </div>
       <div v-for="(ronde, index) in matches" :key="index">
         <h3>Ronde: {{ index + 1 }}</h3>
@@ -205,6 +208,7 @@ const scoreRedoStack = ref([]);
 const isApplyingUndo = ref(false);
 const remoteScoreVisibilityMode = ref("immediate");
 const onlineScoreEnabled = ref(false);
+const showOnlineScoreSection = ref(false);
 const processedRemoteSubmissions = new Set();
 let remoteScoreEventSource = null;
 let remoteScorePollTimer = null;
@@ -227,9 +231,17 @@ const isPastTournament = computed(() => {
   const date = new Date(props.tournamentDate);
   if (Number.isNaN(date.getTime())) return false;
 
-  const tournamentDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const tournamentDay = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+  );
   const today = new Date();
-  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const todayStart = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  );
   return tournamentDay < todayStart;
 });
 
@@ -237,9 +249,7 @@ const showOnlineScoreControls = computed(
   () => !props.standOnly && !isPastTournament.value,
 );
 
-const shouldRunRemoteScoreSync = computed(
-  () => Boolean(props.tournamentId),
-);
+const shouldRunRemoteScoreSync = computed(() => Boolean(props.tournamentId));
 
 // console.log("Edit mode in Tournament:", props.editMode);
 
@@ -253,22 +263,22 @@ function splitIntoGroups(teamList) {
   // Chris/Ramon, Gerard/Willem, Tijmen/Karlijn, Joost/Wim
   // Carla/Theo, Jan/Angelo, Ron/Jeroen, Joren/Lize
 
-//   if (confirm("Wil je zelf de teams in groepen verdelen?")) {
-//     const groupA = prompt(
-//       "Voer de teams voor Groep A in, gescheiden door een komma:",
-//       teamList.slice(0, Math.ceil(teamList.length / 2)).join(","),
-//     );
-//     const groupB = prompt(
-//       "Voer de teams voor Groep B in, gescheiden door een komma:",
-//       teamList.slice(Math.ceil(teamList.length / 2)).join(","),
-//     );
-// // console.log("Group A:", groupA)
-// // console.log("Group B:", groupB)
-//     return [
-//       groupA.split(",").map((t) => t.trim()),
-//       groupB.split(",").map((t) => t.trim()),
-//     ];
-//   }
+  //   if (confirm("Wil je zelf de teams in groepen verdelen?")) {
+  //     const groupA = prompt(
+  //       "Voer de teams voor Groep A in, gescheiden door een komma:",
+  //       teamList.slice(0, Math.ceil(teamList.length / 2)).join(","),
+  //     );
+  //     const groupB = prompt(
+  //       "Voer de teams voor Groep B in, gescheiden door een komma:",
+  //       teamList.slice(Math.ceil(teamList.length / 2)).join(","),
+  //     );
+  // // console.log("Group A:", groupA)
+  // // console.log("Group B:", groupB)
+  //     return [
+  //       groupA.split(",").map((t) => t.trim()),
+  //       groupB.split(",").map((t) => t.trim()),
+  //     ];
+  //   }
   const shuffled = shuffle([...teamList]);
   const half = Math.ceil(shuffled.length / 2);
   return [shuffled.slice(0, half), shuffled.slice(half)];
@@ -437,8 +447,12 @@ function applyScoreChange(change, useOldScores) {
   }
 
   if (change.type === "group") {
-    groupMatches.value[change.groupIndex][change.matchIndex][change.tableIndex].scoreL = scoreL;
-    groupMatches.value[change.groupIndex][change.matchIndex][change.tableIndex].scoreR = scoreR;
+    groupMatches.value[change.groupIndex][change.matchIndex][
+      change.tableIndex
+    ].scoreL = scoreL;
+    groupMatches.value[change.groupIndex][change.matchIndex][
+      change.tableIndex
+    ].scoreR = scoreR;
     localStorage.setItem(
       "tournamentGroupMatches",
       JSON.stringify(groupMatches.value),
@@ -587,7 +601,9 @@ function saveToLocalStorage() {
 function refreshTournamentViewState() {
   if (groups.value.length === 2) {
     groupMatches.value = groupMatches.value.map((groupRounds) =>
-      groupRounds.map((roundMatches) => roundMatches.map((match) => ({ ...match }))),
+      groupRounds.map((roundMatches) =>
+        roundMatches.map((match) => ({ ...match })),
+      ),
     );
     finalMatches.value = finalMatches.value.map((match) => ({ ...match }));
     return;
@@ -637,9 +653,14 @@ function applyRemoteSubmission(entry) {
 
     current.scoreL = newScoreL;
     current.scoreR = newScoreR;
-    current.kruisL = Number.isFinite(Number(entry.kruisL)) ? Number(entry.kruisL) : null;
-    current.kruisR = Number.isFinite(Number(entry.kruisR)) ? Number(entry.kruisR) : null;
-    current.lastTroefTeam = entry.lastTroefTeam || current.lastTroefTeam || null;
+    current.kruisL = Number.isFinite(Number(entry.kruisL))
+      ? Number(entry.kruisL)
+      : null;
+    current.kruisR = Number.isFinite(Number(entry.kruisR))
+      ? Number(entry.kruisR)
+      : null;
+    current.lastTroefTeam =
+      entry.lastTroefTeam || current.lastTroefTeam || null;
     return true;
   }
 
@@ -653,9 +674,11 @@ function applyRemoteSubmission(entry) {
     if (!current) {
       current = roundMatches.find((match) => {
         if (!match) return false;
-        const sameTable = Number.isFinite(entryTable) && Number(match.tafel) === entryTable;
+        const sameTable =
+          Number.isFinite(entryTable) && Number(match.tafel) === entryTable;
         const sameTeams =
-          entryTeamL && entryTeamR &&
+          entryTeamL &&
+          entryTeamR &&
           String(match.teamL || "").trim() === entryTeamL &&
           String(match.teamR || "").trim() === entryTeamR;
         return sameTable || sameTeams;
@@ -672,9 +695,14 @@ function applyRemoteSubmission(entry) {
 
     current.scoreL = newScoreL;
     current.scoreR = newScoreR;
-    current.kruisL = Number.isFinite(Number(entry.kruisL)) ? Number(entry.kruisL) : null;
-    current.kruisR = Number.isFinite(Number(entry.kruisR)) ? Number(entry.kruisR) : null;
-    current.lastTroefTeam = entry.lastTroefTeam || current.lastTroefTeam || null;
+    current.kruisL = Number.isFinite(Number(entry.kruisL))
+      ? Number(entry.kruisL)
+      : null;
+    current.kruisR = Number.isFinite(Number(entry.kruisR))
+      ? Number(entry.kruisR)
+      : null;
+    current.lastTroefTeam =
+      entry.lastTroefTeam || current.lastTroefTeam || null;
     updateFinalists();
     return true;
   }
@@ -687,9 +715,11 @@ function applyRemoteSubmission(entry) {
   if (!current) {
     current = roundMatches.find((match) => {
       if (!match) return false;
-      const sameTable = Number.isFinite(entryTable) && Number(match.tafel) === entryTable;
+      const sameTable =
+        Number.isFinite(entryTable) && Number(match.tafel) === entryTable;
       const sameTeams =
-        entryTeamL && entryTeamR &&
+        entryTeamL &&
+        entryTeamR &&
         String(match.teamL || "").trim() === entryTeamL &&
         String(match.teamR || "").trim() === entryTeamR;
       return sameTable || sameTeams;
@@ -706,14 +736,22 @@ function applyRemoteSubmission(entry) {
 
   current.scoreL = newScoreL;
   current.scoreR = newScoreR;
-  current.kruisL = Number.isFinite(Number(entry.kruisL)) ? Number(entry.kruisL) : null;
-  current.kruisR = Number.isFinite(Number(entry.kruisR)) ? Number(entry.kruisR) : null;
+  current.kruisL = Number.isFinite(Number(entry.kruisL))
+    ? Number(entry.kruisL)
+    : null;
+  current.kruisR = Number.isFinite(Number(entry.kruisR))
+    ? Number(entry.kruisR)
+    : null;
   current.lastTroefTeam = entry.lastTroefTeam || current.lastTroefTeam || null;
   return true;
 }
 
 async function syncRemoteScoreForms(source = "auto") {
   if (!props.tournamentId) {
+    return;
+  }
+
+  if (!showOnlineScoreSection.value) {
     return;
   }
 
@@ -724,7 +762,9 @@ async function syncRemoteScoreForms(source = "auto") {
   remoteScoreSyncInFlight = true;
 
   try {
-    const response = await dbService.fetchScoreFormSubmissions(props.tournamentId);
+    const response = await dbService.fetchScoreFormSubmissions(
+      props.tournamentId,
+    );
     if (!response.success) {
       return;
     }
@@ -792,7 +832,10 @@ function connectRemoteScoreStream() {
         saveToLocalStorage();
       }
     } catch (error) {
-      console.warn('Kon realtime score-update niet verwerken:', error?.message || error);
+      console.warn(
+        "Kon realtime score-update niet verwerken:",
+        error?.message || error,
+      );
     }
   });
 
@@ -801,7 +844,7 @@ function connectRemoteScoreStream() {
   });
 
   remoteScoreEventSource.onerror = (error) => {
-    console.warn('Realtime score stream fout:', error?.message || error);
+    console.warn("Realtime score stream fout:", error?.message || error);
   };
 }
 
@@ -813,7 +856,11 @@ function disconnectRemoteScoreStream() {
 }
 
 function startRemoteScorePolling() {
-  if (typeof window === "undefined" || remoteScorePollTimer || !props.tournamentId) {
+  if (
+    typeof window === "undefined" ||
+    remoteScorePollTimer ||
+    !props.tournamentId
+  ) {
     return;
   }
 
@@ -825,17 +872,26 @@ function startRemoteScorePolling() {
     try {
       await syncRemoteScoreForms("poll");
     } catch (error) {
-      console.warn('Periodieke score form sync mislukt:', error?.message || error);
+      console.warn(
+        "Periodieke score form sync mislukt:",
+        error?.message || error,
+      );
     }
 
     if (!remoteScorePollTimer || !shouldRunRemoteScoreSync.value) {
       return;
     }
 
-    remoteScorePollTimer = window.setTimeout(runPollLoop, REMOTE_SCORE_POLL_INTERVAL_MS);
+    remoteScorePollTimer = window.setTimeout(
+      runPollLoop,
+      REMOTE_SCORE_POLL_INTERVAL_MS,
+    );
   };
 
-  remoteScorePollTimer = window.setTimeout(runPollLoop, REMOTE_SCORE_POLL_INTERVAL_MS);
+  remoteScorePollTimer = window.setTimeout(
+    runPollLoop,
+    REMOTE_SCORE_POLL_INTERVAL_MS,
+  );
 }
 
 function stopRemoteScorePolling() {
@@ -853,7 +909,7 @@ function startRemoteScoreSync() {
   }
 
   syncRemoteScoreForms().catch((error) => {
-    console.warn('Initiële score form sync mislukt:', error?.message || error);
+    console.warn("Initiële score form sync mislukt:", error?.message || error);
   });
 
   connectRemoteScoreStream();
@@ -877,7 +933,10 @@ function triggerForegroundSync() {
 
   lastForegroundSyncAt = now;
   syncRemoteScoreForms().catch((error) => {
-    console.warn('Foreground score form sync mislukt:', error?.message || error);
+    console.warn(
+      "Foreground score form sync mislukt:",
+      error?.message || error,
+    );
   });
 }
 
@@ -886,7 +945,10 @@ function handleWindowFocus() {
 }
 
 function handleVisibilityChange() {
-  if (typeof document === "undefined" || document.visibilityState !== "visible") {
+  if (
+    typeof document === "undefined" ||
+    document.visibilityState !== "visible"
+  ) {
     return;
   }
 
@@ -910,9 +972,9 @@ function totalMatchesPlayed() {
 function loadFromLocalStorage() {
   const t = localStorage.getItem("tournamentTeams");
   if (t) {
-// console.log("Opgehaald: toernooiTeams:", t)
+    // console.log("Opgehaald: toernooiTeams:", t)
     toernooiTeams.value = JSON.parse(t);
-// console.log("Opgehaald: toernooiTeams:", toernooiTeams.value)
+    // console.log("Opgehaald: toernooiTeams:", toernooiTeams.value)
   }
   const g = localStorage.getItem("tournamentGroups");
   const gm = localStorage.getItem("tournamentGroupMatches");
@@ -931,7 +993,7 @@ function loadFromLocalStorage() {
     // console.log("Opgehaald: matches:", matches.value)
   }
   if (fm) {
-// console.log("Opgehaald: finalMatches:", fm.length)
+    // console.log("Opgehaald: finalMatches:", fm.length)
     // finalMatches;
     finalMatches.value = JSON.parse(fm);
 
@@ -954,11 +1016,12 @@ function loadFromLocalStorage() {
   }
 }
 
-
 onMounted(() => {
   const storedOnlineScoreEnabled = localStorage.getItem("onlineScoreEnabled");
   onlineScoreEnabled.value =
-    storedOnlineScoreEnabled === null ? true : storedOnlineScoreEnabled === "true";
+    storedOnlineScoreEnabled === null
+      ? true
+      : storedOnlineScoreEnabled === "true";
 
   remoteScoreVisibilityMode.value =
     localStorage.getItem("remoteScoreVisibilityMode") || "immediate";
@@ -966,11 +1029,11 @@ onMounted(() => {
   scoreUndoStack.value = [];
   scoreRedoStack.value = [];
   if (!props.toernooiPlayed) {
-// console.log("Nieuw toernooi, genereer schema")
+    // console.log("Nieuw toernooi, genereer schema")
     localStorage.clear();
     if (props.groepsToernooi) {
       groups.value = splitIntoGroups(toernooiTeams.value);
-// console.log("groep.value", groups.value)
+      // console.log("groep.value", groups.value)
       groupMatches.value = groups.value.map((group, index) =>
         generateMatches(group, index),
       );
@@ -987,7 +1050,7 @@ onMounted(() => {
     saveToLocalStorage();
   } else {
     // console.log("Laad toernooi uit localStorage");
-// console.log("Laad toernooi uit localStorage")
+    // console.log("Laad toernooi uit localStorage")
     loadFromLocalStorage();
     // console.log("matches:" ,  matches.value)
     updateFinalists();
@@ -1001,7 +1064,6 @@ onMounted(() => {
   if (typeof document !== "undefined") {
     document.addEventListener("visibilitychange", handleVisibilityChange);
   }
-
 });
 
 onUnmounted(() => {
@@ -1018,7 +1080,10 @@ onUnmounted(() => {
 });
 
 watch(remoteScoreVisibilityMode, (mode) => {
-  localStorage.setItem("remoteScoreVisibilityMode", mode === "final" ? "final" : "immediate");
+  localStorage.setItem(
+    "remoteScoreVisibilityMode",
+    mode === "final" ? "final" : "immediate",
+  );
 });
 
 watch(onlineScoreEnabled, (enabled) => {

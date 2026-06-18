@@ -68,13 +68,34 @@
 <script setup>
 // import { defineProps } from 'vue';
 import { computed } from 'vue';
-import { rankingPDF } from '../utils/pdf/rankingPDF';
-import { jsPDF } from 'jspdf';
 
 import { niceDate, getSemester } from '../utils/dateUtils';
 
 import { PrinterIcon } from '@heroicons/vue/24/solid'
 const printer = PrinterIcon
+
+let rankingPdfDependenciesPromise = null;
+
+async function loadRankingPdfDependencies() {
+  if (!rankingPdfDependenciesPromise) {
+    rankingPdfDependenciesPromise = Promise.all([
+      import('../utils/pdf/rankingPDF'),
+      import('jspdf'),
+    ]).then(([rankingPdfModule, jspdfModule]) => {
+      const jsPDF = jspdfModule.jsPDF ?? jspdfModule.default;
+      if (!jsPDF) {
+        throw new Error('jsPDF kon niet worden geladen.');
+      }
+
+      return {
+        jsPDF,
+        rankingPDF: rankingPdfModule.rankingPDF,
+      };
+    });
+  }
+
+  return rankingPdfDependenciesPromise;
+}
 
 
 const props = defineProps({
@@ -100,8 +121,9 @@ const toernooien = computed(() => {
   return props.toernooien.filter(t => new Date(t.datum) >= new Date(props.vanaf) && new Date(t.datum) <= new Date(props.tot)).sort((b, a) => new Date(b.datum) - new Date(a.datum));
 });
 
-function maakRankingPdf() {
+async function maakRankingPdf() {
   // console.log("Ranking PDF aanmaken", props.ranking, toernooien.value, props.vanaf, props.tot);
+  const { jsPDF, rankingPDF } = await loadRankingPdfDependencies();
   const doc = new jsPDF();
   rankingPDF(doc, props.ranking, toernooien.value, props.vanaf);
   doc.save("ranking.pdf");

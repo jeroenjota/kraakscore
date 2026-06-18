@@ -201,9 +201,6 @@ import SelectPlayers from "./components/SelectPlayers.vue";
 import { niceDate, getSemester, stripTime } from "./utils/dateUtils.js";
 import longpress from "./directives/longpress.js";
 import { useToast } from "vue-toastification";
-import { uitslagPDF } from "./utils/pdf/tournamentPDF.js";
-import { rankingPDF } from "./utils/pdf/rankingPDF.js";
-import jsPDF from "jspdf";
 import { getPdfUrl } from "./utils/pdfUtils.js";
 import DOMPurify from "dompurify";
 import { cleanTeamName } from "./utils/editUtils.js";
@@ -231,6 +228,31 @@ const sluitKnop = computed(() => {
 
 const windowWidth = ref(window.innerWidth);
 const windowHeight = ref(window.innerHeight);
+
+let pdfDependenciesPromise = null;
+
+async function loadPdfDependencies() {
+  if (!pdfDependenciesPromise) {
+    pdfDependenciesPromise = Promise.all([
+      import("./utils/pdf/tournamentPDF.js"),
+      import("./utils/pdf/rankingPDF.js"),
+      import("jspdf"),
+    ]).then(([tournamentPdfModule, rankingPdfModule, jspdfModule]) => {
+      const jsPDF = jspdfModule.jsPDF ?? jspdfModule.default;
+      if (!jsPDF) {
+        throw new Error("jsPDF kon niet worden geladen.");
+      }
+
+      return {
+        jsPDF,
+        uitslagPDF: tournamentPdfModule.uitslagPDF,
+        rankingPDF: rankingPdfModule.rankingPDF,
+      };
+    });
+  }
+
+  return pdfDependenciesPromise;
+}
 
 const scale = ref(1);
 
@@ -411,6 +433,8 @@ async function maakPdf(showPdf = true) {
     }
   }
   await refreshRankingDataForPdf();
+
+  const { jsPDF, uitslagPDF, rankingPDF } = await loadPdfDependencies();
 
   const datum = thisToernooiDatum.value || new Date();
   const doc = new jsPDF();

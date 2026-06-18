@@ -17,6 +17,11 @@ export function stripTime(date) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
+export function getWeekday(date) {
+  const d = new Date(date);
+  return d.toLocaleDateString("nl-NL", { weekday: "long" });
+}
+
 export function getSemester(date, jaar) {
   const d = new Date(date);
   const month = d.getMonth() + 1; // Months are zero-indexed
