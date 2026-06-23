@@ -116,8 +116,10 @@ const dbService = {
     }
   },
 
-  fetchRanking: async () =>
-    await get('/ranking', {}, 'Fout bij het ophalen van ranking'),
+  fetchRanking: async (seizoen = null) => {
+    const params = seizoen ? { seizoen } : {};
+    return await get('/ranking', params, 'Fout bij het ophalen van ranking');
+  },
 
   logTournamentEvent: async (event) => {
     try {

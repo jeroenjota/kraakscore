@@ -401,7 +401,16 @@ function setPeriode() {
   vanaf.value = `${year}-${startMonth}-01`;
   tot.value = `${year}-${semester === "1" ? "06" : "12"}-31`;
   filterToernooien();
-  filterRankingByPeriod();
+  getRanking();
+}
+
+function toBackendSeason(semesterValue) {
+  if (!semesterValue) return null;
+  const [year, half] = String(semesterValue).split("-");
+  if (!year || !half) return null;
+  if (half === "1") return `${year}-H1`;
+  if (half === "2") return `${year}-H2`;
+  return null;
 }
 
 async function maakPdf(showPdf = true) {
@@ -1477,11 +1486,10 @@ const getRanking = async (msg) => {
   // haal de ranking op van de API
   if (!serverAvailable.value) return; // als de server niet beschikbaar is, doe niets
   try {
-    const response = await dbService.fetchRanking();
-
-    // console.log(response)
-    //    //    console.log("Ranking opgehaald:", response.data);
-    rankingData.value = response.data;
+    const seizoen = toBackendSeason(currentSemester.value);
+    const response = await dbService.fetchRanking(seizoen);
+    rankingData.value = Array.isArray(response.data) ? response.data : [];
+    await filterRankingByPeriod();
     if (msg) {
       toast.success(msg, {
         position: "top-center",
