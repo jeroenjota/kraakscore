@@ -175,8 +175,10 @@ export function rankingPDF(doc, ranking, toernooien, datum) {
   yPos += 5;
   doc.setFontSize(12);
   const rnkTxt = "Ranking scores: 1e plaats 12, 2e plaats 9, 3e plaats 6, 4e plaats 3, meedoen 1 pnt"
-
-  doc.text(`${rnkTxt} \nde beste 6 resultaten (bij gelijk aantal pnt telt het hoogste gemiddelde)`, pageWidth / 2, yPos, { align: "center" });
+  doc.text(`${rnkTxt}`  , pageWidth / 2, yPos, { align: "center" });
+  doc.setFontSize(9);
+  const stndTxt ="Beste 6 resultaten (vet gedrukt) tellen mee. Als gelijk, dan het hoogste gemiddelde daarna de meeste 1e, 2e, 3e plaats etc."
+  doc.text(`${stndTxt}`  , pageWidth / 2, yPos += 5, { align: "center" });
   yPos += 8;
   doc.line(marge, yPos, pageWidth - marge, yPos);
   // yPos = doc.lastAutoTable.finalY + 2;

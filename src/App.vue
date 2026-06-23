@@ -1520,25 +1520,59 @@ async function filterRankingByPeriod() {
       .sort((a, b) => b.punten - a.punten)
       .slice(0, 6);
     const totaal = beste6.reduce((sum, s) => sum + s.punten, 0);
+    const scoreValues = filteredScores.map((s) => s.punten).filter((punten) => punten > 0);
+    const average = scoreValues.length > 0
+      ? scoreValues.reduce((sum, punten) => sum + punten, 0) / scoreValues.length
+      : 0;
     //    //    //    console.log("Totaal punten voor", speler.speler, ":", totaal)
     return {
       speler: speler.speler,
       scores: filteredScores,
       totaal,
+      average,
+      count12: scoreValues.filter((punten) => punten === 12).length,
+      count9: scoreValues.filter((punten) => punten === 9).length,
+      count6: scoreValues.filter((punten) => punten === 6).length,
+      count3: scoreValues.filter((punten) => punten === 3).length,
     };
   });
   const result = resultAll.filter((s) => s.totaal > 0);
-  result.sort((a, b) => b.totaal - a.totaal);
+  result.sort((a, b) => {
+    if (a.totaal !== b.totaal) return b.totaal - a.totaal;
+    if (a.average !== b.average) return b.average - a.average;
+    if (a.count12 !== b.count12) return b.count12 - a.count12;
+    if (a.count9 !== b.count9) return b.count9 - a.count9;
+    if (a.count6 !== b.count6) return b.count6 - a.count6;
+    if (a.count3 !== b.count3) return b.count3 - a.count3;
+    return 0;
+  });
   //  console.log("Result:", result)
   let lastTotaal = null;
+  let lastAverage = null;
+  let lastCount12 = null;
+  let lastCount9 = null;
+  let lastCount6 = null;
+  let lastCount3 = null;
   let plaats = 0;
   let echtePlaats = 0;
 
   const metPlaats = result.map((s) => {
     echtePlaats++;
-    if (s.totaal !== lastTotaal) {
+    if (
+      s.totaal !== lastTotaal ||
+      s.average !== lastAverage ||
+      s.count12 !== lastCount12 ||
+      s.count9 !== lastCount9 ||
+      s.count6 !== lastCount6 ||
+      s.count3 !== lastCount3
+    ) {
       plaats = echtePlaats;
       lastTotaal = s.totaal;
+      lastAverage = s.average;
+      lastCount12 = s.count12;
+      lastCount9 = s.count9;
+      lastCount6 = s.count6;
+      lastCount3 = s.count3;
     }
     return { ...s, plaats };
   });
