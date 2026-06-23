@@ -176,7 +176,7 @@ export function rankingPDF(doc, ranking, toernooien, datum) {
   doc.setFontSize(12);
   const rnkTxt = "Ranking scores: 1e plaats 12, 2e plaats 9, 3e plaats 6, 4e plaats 3, meedoen 1 pnt"
 
-  doc.text(`${rnkTxt} \n(maximaal de beste 6 resultaten)`, pageWidth / 2, yPos, { align: "center" });
+  doc.text(`${rnkTxt} \nde beste 6 resultaten (bij gelijk aantal pnt telt het hoogste gemiddelde)`, pageWidth / 2, yPos, { align: "center" });
   yPos += 8;
   doc.line(marge, yPos, pageWidth - marge, yPos);
   // yPos = doc.lastAutoTable.finalY + 2;
