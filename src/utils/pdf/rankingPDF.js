@@ -133,22 +133,12 @@ export function rankingPDF(doc, ranking, toernooien, datum) {
         const colIndex = data.column.index;
         const rowIndex = data.row.index;
 
-        const current = ranking[rowIndex];
-        const above = ranking[rowIndex - 1];
-        const sameAsAbove =
-          rowIndex > 0 &&
-          current?.totaal === above?.totaal &&
-          current?.average === above?.average &&
-          current?.count12 === above?.count12 &&
-          current?.count9 === above?.count9 &&
-          current?.count6 === above?.count6 &&
-          current?.count3 === above?.count3;
         const isTopRow = rowIndex === 0;
 
         const isNameCol = colIndex === 1;
         const isTotaalCol = colIndex === data.table.columns.length - 1;
 
-        if ((isTopRow || sameAsAbove) && (isNameCol || isTotaalCol)) {
+        if (isTopRow && (isNameCol || isTotaalCol)) {
           data.cell.styles.fontStyle = 'bold';
         }
       }
