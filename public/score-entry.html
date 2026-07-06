@@ -2022,7 +2022,40 @@
         }
 
         function applyRestoredEntry(entry) {
-          const storedPartijen = Array.isArray(entry?.parties) ? entry.parties : [];
+          const sanitizeStoredPartij = (partij) => {
+            const safe = partij && typeof partij === "object" ? partij : {};
+            const toInt = (value, min, max) => {
+              const n = Number(value);
+              if (!Number.isFinite(n)) return min;
+              const t = Math.trunc(n);
+              if (t < min) return min;
+              if (t > max) return max;
+              return t;
+            };
+            const asTeam = String(safe.troefTeam || "").trim().toUpperCase();
+            const asSuit = String(safe.troefSuit || "").trim().toLowerCase();
+            const asFlag = String(safe.scoreFlag || "").trim().toLowerCase();
+
+            return {
+              scoreL: toInt(safe.scoreL, 0, 2000),
+              scoreR: toInt(safe.scoreR, 0, 2000),
+              roemL: toInt(safe.roemL, 0, 2000),
+              roemR: toInt(safe.roemR, 0, 2000),
+              kruisL: toInt(safe.kruisL, 0, 32),
+              kruisR: toInt(safe.kruisR, 0, 32),
+              troefTeam: asTeam === "L" || asTeam === "R" ? asTeam : "",
+              troefSuit: ["clubs", "diamonds", "hearts", "spades"].includes(asSuit)
+                ? asSuit
+                : null,
+              scoreFlag: ["kraak", "re", "super"].includes(asFlag)
+                ? asFlag
+                : null,
+            };
+          };
+
+          const storedPartijen = Array.isArray(entry?.parties)
+            ? entry.parties.slice(0, 64).map(sanitizeStoredPartij)
+            : [];
           if (storedPartijen.length === 0) return false;
 
           const sumScoreL = storedPartijen.reduce((s, p) => s + (Number(p?.scoreL) || 0), 0);
@@ -2354,6 +2387,15 @@
           };
         }
 
+        function escapeHtml(value) {
+          return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/\"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+        }
+
         function renderPartijen() {
           const troefDisplayBySuit = {
             clubs: { symbol: "♣", colorClass: "black" },
@@ -2430,29 +2472,33 @@
                 partij.troefTeam ||
                 "";
               const troefDisplay = troefDisplayBySuit[partij.troefSuit] || {
-                symbol: partij.troefSuit || "?",
+                symbol: "?",
                 colorClass: "black",
               };
-              const troefText = `<span class="partij-troef-suit ${troefDisplay.colorClass}">${troefDisplay.symbol}</span>`;
+              const troefText = `<span class="partij-troef-suit ${troefDisplay.colorClass}">${escapeHtml(troefDisplay.symbol)}</span>`;
               let scoreFlagText = " ";
               if (partij.scoreFlag) {
                 const flagExclamations = { kraak: "!", re: "!!", super: "!!!" };
                 scoreFlagText = flagExclamations[partij.scoreFlag] || " ";
               }
-              const roemLText = partij.roemL > 0 ? `(${partij.roemL}r)` : "";
-              const roemRText = partij.roemR > 0 ? `(${partij.roemR}r)` : "";
-              const kruisLText =
-                partij.kruisL > 0 ? `${partij.kruisL || 0}X` : "";
-              const kruisRText =
-                partij.kruisR > 0 ? `${partij.kruisR || 0}X` : "";
-              const spel = `${spelendTeam}${troefText}`.trim();
+              const roemL = Number(partij.roemL) || 0;
+              const roemR = Number(partij.roemR) || 0;
+              const kruisL = Number(partij.kruisL) || 0;
+              const kruisR = Number(partij.kruisR) || 0;
+              const scoreL = Number(partij.scoreL) || 0;
+              const scoreR = Number(partij.scoreR) || 0;
+              const roemLText = roemL > 0 ? `(${roemL}r)` : "";
+              const roemRText = roemR > 0 ? `(${roemR}r)` : "";
+              const kruisLText = kruisL > 0 ? `${kruisL}X` : "";
+              const kruisRText = kruisR > 0 ? `${kruisR}X` : "";
+              const spel = `${escapeHtml(spelendTeam)}${troefText}`.trim();
               const isEditing = editingPartijIndex === index ? " is-editing" : "";
               return `<div class="partijitem${isEditing}" data-partij-index="${index}"><span>${
                 index + 1
               }:</span><span class="partijcol-center">${spel}</span><span class="partijcol-center">${scoreFlagText}</span><span class="partijcol-right vet">${
-                partij.scoreL
+                scoreL
               }</span><span class="partijcol-right">${roemLText}</span><span class="partijcol-center">${kruisLText}</span></span><span class="partijcol-right vet">${
-                partij.scoreR
+                scoreR
               }</span><span class="partijcol-right">${roemRText}</span><span class="partijcol-center">${kruisRText}</span></div>`;
             })
             .join("");

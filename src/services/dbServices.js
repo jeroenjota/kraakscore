@@ -14,7 +14,13 @@ export const apiClient = axios.create({
 const toast = useToast();
 
 function handleError(error, message) {
-  const errorMessage = error.response?.data?.message || error.message || 'Onbekende fout';
+  const status = Number(error?.response?.status || 0);
+  const responseData = error?.response?.data || {};
+  const apiErrorMessage = responseData?.error || responseData?.message || '';
+  const errorMessage = status === 403
+    ? 'Admin code onjuist of ontbreekt'
+    : apiErrorMessage || error.message || 'Onbekende fout';
+
   toast.error(`${message}: ${errorMessage}`, {
     timeout: 5000,
     position: 'top-center',
@@ -53,9 +59,9 @@ async function put(endpoint, body = {}, message) {
   }
 }
 
-async function remove(endpoint, message) {
+async function remove(endpoint, config = {}, message) {
   try {
-    const response = await apiClient.delete(endpoint);
+    const response = await apiClient.delete(endpoint, config);
     return { success: true, data: response.data };
   } catch (error) {
     return handleError(error, message);
@@ -90,8 +96,19 @@ const dbService = {
   updateToernooi: async (id, toernooiData) =>
     await put(`/toernooien/${id}`, toernooiData, `Fout bij het updaten van toernooi ${id}`),
 
-  deleteToernooi: async (id) =>
-    await remove(`/toernooien/${id}`, `Fout bij het verwijderen van toernooi ${id}`),
+  deleteToernooi: async (id, adminCode = "") => {
+    const headers = {};
+    const code = String(adminCode || "").trim();
+    if (code) {
+      headers["x-admin-code"] = code;
+    }
+
+    return await remove(
+      `/toernooien/${id}`,
+      Object.keys(headers).length > 0 ? { headers } : {},
+      `Fout bij het verwijderen van toernooi ${id}`,
+    );
+  },
 
 
   fetchSavedTeams: async () =>

@@ -413,6 +413,35 @@ function toBackendSeason(semesterValue) {
   return null;
 }
 
+function requestDeleteAdminCode() {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  const storageKey = "kraakDeleteAdminCode";
+  const cachedCode = sessionStorage.getItem(storageKey) || "";
+  const input = window.prompt(
+    "Voer de admin code in om dit toernooi te verwijderen:",
+    cachedCode,
+  );
+
+  if (input === null) {
+    return "";
+  }
+
+  const code = String(input).trim();
+  if (!code) {
+    toast.error("Admin code ontbreekt. Verwijderen is geannuleerd.", {
+      position: "top-center",
+      timeout: 2500,
+    });
+    return "";
+  }
+
+  sessionStorage.setItem(storageKey, code);
+  return code;
+}
+
 async function maakPdf(showPdf = true) {
   // console.log("PDF maken voor toernooi:", thisToernooiID.value, "Datum:", thisToernooiDatum.value)
   if (!allMatchesPlayed()) {
@@ -834,7 +863,18 @@ async function undoTournamentStart() {
   // Dat tijdelijke toernooi verwijderen we weer als de start wordt teruggedraaid.
   if (thisToernooiID.value && serverAvailable.value) {
     try {
-      await dbService.deleteToernooi(thisToernooiID.value);
+      const adminCode = requestDeleteAdminCode();
+      if (!adminCode) {
+        return;
+      }
+
+      const deleteResult = await dbService.deleteToernooi(
+        thisToernooiID.value,
+        adminCode,
+      );
+      if (!deleteResult?.success) {
+        throw new Error(deleteResult?.error || "onbekende fout");
+      }
     } catch (error) {
       toast.error(
         "Undo start mislukt: kon gestart toernooi niet verwijderen.",
@@ -1186,8 +1226,20 @@ async function removeTournament(tn) {
     "error",
   );
   if (!ok) return;
+
+  const adminCode = requestDeleteAdminCode();
+  if (!adminCode) return;
+
   // verwijder het toernooi uit de database
-  await dbService.deleteToernooi(tn.id);
+  const deleteResult = await dbService.deleteToernooi(tn.id, adminCode);
+  if (!deleteResult?.success) {
+    toast.error(`Verwijderen mislukt: ${deleteResult?.error || "onbekende fout"}`, {
+      position: "top-center",
+      timeout: 2500,
+    });
+    return;
+  }
+
   resetApp();
   toast.success(`Toernooi op ${niceDate(tn.datum)} is verwijderd.`, {
     position: "top-center",
@@ -1343,7 +1395,26 @@ async function startTournament() {
         // oude gegevens verwijderen
         resetLocalStorage(false); // reset de data in localStorage (just to be sure), maar niet de geselecteerde teams
         // verwijder het oude toernooi
-        await dbService.deleteToernooi(existingTournamentId);
+        const adminCode = requestDeleteAdminCode();
+        if (!adminCode) {
+          return;
+        }
+
+        const deleteResult = await dbService.deleteToernooi(
+          existingTournamentId,
+          adminCode,
+        );
+        if (!deleteResult?.success) {
+          toast.error(
+            `Kon bestaand toernooi niet verwijderen: ${deleteResult?.error || "onbekende fout"}`,
+            {
+              position: "top-center",
+              timeout: 2500,
+            },
+          );
+          return;
+        }
+
         thisToernooiID.value = null; // reset toernooi ID
         selectToernooi.value = "Toernooien";
       } else if (action === "open") {
