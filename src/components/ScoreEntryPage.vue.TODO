@@ -1,205 +1,330 @@
 <!--  Eventueel voor toekomstig gebruik -->
 <template>
-  <main class="min-h-dvh bg-slate-100 p-2 sm:p-4">
-    <div class="mx-auto max-w-3xl rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
-      <header class="mb-3 border-b border-slate-200 pb-3">
-        <h1 class="text-center text-xl font-bold text-slate-900">Scoreformulier {{ datumText }}</h1>
-        <p class="text-center text-sm text-slate-600">ronde {{ round || "?" }} | tafel {{ table || "?" }}</p>
+  <main class="se-wrap">
+    <div class="se-card">
+      <header class="se-header">
+        <div class="se-title-row">
+          <h1 class="se-title">Scoreformulier {{ datumText }}</h1>
+        </div>
+        <div class="se-meta-row">
+          <p class="se-meta">ronde {{ round || "?" }} | tafel {{ table || "?" }}</p>
+          <div class="se-meta-row-end">
+            <button
+              type="button"
+              class="se-meta-qr-btn"
+              title="Open QR-link voor dit scoreformulier"
+              aria-label="Open QR-link voor dit scoreformulier"
+              @click="openQrModal"
+            >
+              Link
+            </button>
+          </div>
+        </div>
       </header>
 
-      <section class="mb-3 grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          class="rounded-md border px-3 py-2 text-left font-semibold"
-          :class="troefState.activeTeam === 'L' ? 'border-sky-500 bg-sky-50 text-sky-900' : 'border-slate-200 text-slate-700'"
-          @click="setTroefActiveTeam('L')"
-        >
-          {{ teamL }}
-        </button>
-        <button
-          type="button"
-          class="rounded-md border px-3 py-2 text-left font-semibold"
-          :class="troefState.activeTeam === 'R' ? 'border-sky-500 bg-sky-50 text-sky-900' : 'border-slate-200 text-slate-700'"
-          @click="setTroefActiveTeam('R')"
-        >
-          {{ teamR }}
-        </button>
+      <div
+        v-if="qrOpen"
+        class="se-qr-overlay is-open"
+        aria-hidden="false"
+        @click.self="closeQrModal"
+      >
+        <div class="se-qr-modal" role="dialog" aria-modal="true" aria-label="QR code scoreformulier">
+          <div class="se-qr-modal-top">
+            <span class="se-qr-modal-title">Link naar scoreformulier</span>
+            <button type="button" class="se-qr-close-btn" aria-label="Sluit QR venster" @click="closeQrModal">X</button>
+          </div>
+          <img
+            class="se-qr-image"
+            :src="qrImageUrl"
+            alt="QR code voor scoreformulier"
+          />
+        </div>
+      </div>
+
+      <section class="se-teams">
+        <div class="se-team-column">
+          <button
+            type="button"
+            class="se-team-btn se-team-btn-left"
+            :class="troefState.activeTeam === 'L' ? 'border-sky-500 bg-sky-50 text-sky-900' : 'border-slate-200 text-slate-700'"
+            @click="setTroefActiveTeam('L')"
+          >
+            {{ teamL }}
+          </button>
+
+          <div v-if="troefState.ownerTeam === 'L' && teamChosen" class="se-troef-strip se-troef-strip-left">
+            <button
+              v-for="suit in suits"
+              :key="`L-${suit.value}`"
+              type="button"
+              :class="[
+                'se-suit-btn',
+                selectedSuit === suit.value ? 'border-sky-500 bg-green-200' : 'border-slate-200 bg-white',
+                suitTextClass(suit.value),
+              ]"
+              :disabled="!troefState.ownerTeam || hasReachedScoreTarget"
+              @click="setSelectedSuit(suit.value)"
+            >
+              {{ suit.label }}
+            </button>
+          </div>
+
+          <div v-if="troefState.ownerTeam === 'R' && teamChosen" class="se-score-flag-strip se-score-flag-strip-left">
+            <button
+              v-for="flag in scoreFlags"
+              :key="`L-flag-${flag.value}`"
+              type="button"
+              class="se-flag-btn"
+              :disabled="!canEditCurrentPartij"
+              :class="scoreFlagState === flag.value ? 'border-amber-500 bg-amber-50 text-amber-900' : 'border-slate-200 bg-white text-slate-700'"
+              @click="toggleScoreFlag(flag.value)"
+            >
+              {{ flag.label }}
+            </button>
+          </div>
+
+        </div>
+
+        <div class="se-team-column">
+          <button
+            type="button"
+            class="se-team-btn se-team-btn-right"
+            :class="troefState.activeTeam === 'R' ? 'border-sky-500 bg-sky-50 text-sky-900' : 'border-slate-200 text-slate-700'"
+            @click="setTroefActiveTeam('R')"
+          >
+            {{ teamR }}
+          </button>
+
+          <div v-if="troefState.ownerTeam === 'R' && teamChosen" class="se-troef-strip se-troef-strip-right">
+            <button
+              v-for="suit in suits"
+              :key="`R-${suit.value}`"
+              type="button"
+              :class="[
+                'se-suit-btn',
+                selectedSuit === suit.value ? 'border-sky-500 bg-green-200' : 'border-slate-200 bg-white',
+                suitTextClass(suit.value),
+              ]"
+              :disabled="!troefState.ownerTeam || hasReachedScoreTarget"
+              @click="setSelectedSuit(suit.value)"
+            >
+              {{ suit.label }}
+            </button>
+          </div>
+
+          <div v-if="troefState.ownerTeam === 'L' && teamChosen" class="se-score-flag-strip se-score-flag-strip-right">
+            <button
+              v-for="flag in scoreFlags"
+              :key="`R-flag-${flag.value}`"
+              type="button"
+              class="se-flag-btn"
+              :disabled="!canEditCurrentPartij"
+              :class="scoreFlagState === flag.value ? 'border-amber-500 bg-amber-50 text-amber-900' : 'border-slate-200 bg-white text-slate-700'"
+              @click="toggleScoreFlag(flag.value)"
+            >
+              {{ flag.label }}
+            </button>
+          </div>
+
+        </div>
       </section>
 
-      <section v-if="teamChosen" class="mb-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
-        <p>Troef</p>
-        <div class="mt-2 grid grid-cols-8 gap-2">
-          
-          <button
-            v-for="suit in suits"
-            :key="suit.value"
-            type="button"
-            :class="[
-              'rounded-md border px-2 py-0 text-center text-lg',
-              selectedSuit === suit.value ? 'border-sky-500 bg-green-200' : 'border-slate-200 bg-white',
-              suitTextClass(suit.value), 
-            ]"
-            :disabled="!troefState.ownerTeam || hasReachedScoreTarget"
-            @click="setSelectedSuit(suit.value)"
-          >
-            {{ suit.label }}
-          </button>
+      <section class="se-roem-block">
+        <div class="se-roem-header">
+          <div class="se-roem-header-cell">{{ teamL }}</div>
+          <div class="se-roem-header-divider">|</div>
+          <div class="se-roem-header-cell">{{ teamR }}</div>
+        </div>
+
+        <div class="se-roem-row">
+        <div class="se-roem-column">
+          <div v-for="row in roemValueRows" :key="`L-row-${row.join('-')}`" class="se-roem-row-group">
+            <div v-for="value in row" :key="`L-${value}`" class="se-roem-counter">
+              <span class="se-roem-counter-label">{{ value }}</span>
+              <div class="se-stepper">
+                <button
+                  type="button"
+                  class="se-stepper-btn"
+                  :disabled="!canEditCurrentPartij || getRoemCount('L', value) <= 0"
+                  @click="adjustRoemCount('L', value, -1)"
+                >
+                  -
+                </button>
+                <span class="se-stepper-count">{{ getRoemCount('L', value) }}</span>
+                <button
+                  type="button"
+                  class="se-stepper-btn"
+                  :disabled="!canEditCurrentPartij || !canIncreaseRoemCount('L', value)"
+                  @click="adjustRoemCount('L', value, 1)"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="se-roem-column">
+          <div v-for="row in roemValueRows" :key="`R-row-${row.join('-')}`" class="se-roem-row-group">
+            <div v-for="value in row" :key="`R-${value}`" class="se-roem-counter">
+              <span class="se-roem-counter-label">{{ value }}</span>
+              <div class="se-stepper">
+                <button
+                  type="button"
+                  class="se-stepper-btn"
+                  :disabled="!canEditCurrentPartij || getRoemCount('R', value) <= 0"
+                  @click="adjustRoemCount('R', value, -1)"
+                >
+                  -
+                </button>
+                <span class="se-stepper-count">{{ getRoemCount('R', value) }}</span>
+                <button
+                  type="button"
+                  class="se-stepper-btn"
+                  :disabled="!canEditCurrentPartij || !canIncreaseRoemCount('R', value)"
+                  @click="adjustRoemCount('R', value, 1)"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
         </div>
       </section>
 
-      <section class="mb-3 rounded-lg border border-slate-200 p-3">
-        <div class="mb-2 grid grid-cols-2 gap-2">
-          <label class="text-xs font-medium text-slate-600">Punten {{ teamL }}
-            <input
-              v-model.number="pointsL"
-              type="number"
-              min="0"
-              max="162"
-              class="mt-1 w-full rounded border border-slate-300 px-2 py-1"
-              :disabled="!canEditCurrentPartij"
-              @input="setFixedTotalPoints('L')"
-            />
-          </label>
-          <label class="text-xs font-medium text-slate-600">Punten {{ teamR }}
-            <input
-              v-model.number="pointsR"
-              type="number"
-              min="0"
-              max="162"
-              class="mt-1 w-full rounded border border-slate-300 px-2 py-1"
-              :disabled="!canEditCurrentPartij"
-              @input="setFixedTotalPoints('R')"
-            />
-          </label>
+      <section class="se-input-block">
+        <div class="se-score-heading">Punten</div>
+
+        <div class="se-score-grid">
+          <div class="se-score-row">
+            <div class="se-score-cell">
+              <span class="se-field-label se-field-label-tight">Geteld</span>
+              <input
+                v-model.number="pointsL"
+                type="number"
+                min="0"
+                max="162"
+                class="se-input se-input-points"
+                :disabled="!canEditCurrentPartij"
+                @input="setFixedTotalPoints('L')"
+              />
+            </div>
+            <div class="se-score-cell">
+              <span class="se-field-label se-field-label-tight">Roem</span>
+              <div class="se-roem-total-box">{{ roemL }}</div>
+            </div>
+            <div class="se-score-cell">
+              <span class="se-field-label se-field-label-tight">Totaal</span>
+              <input
+                class="se-input se-input-points"
+                type="text"
+                readonly
+                :value="computedPreview.scoreL"
+              />
+            </div>
+          </div>
+
+          <div class="se-score-row">
+            <div class="se-score-cell">
+              <span class="se-field-label se-field-label-tight">Geteld</span>
+              <input
+                v-model.number="pointsR"
+                type="number"
+                min="0"
+                max="162"
+                class="se-input se-input-points"
+                :disabled="!canEditCurrentPartij"
+                @input="setFixedTotalPoints('R')"
+              />
+            </div>
+            <div class="se-score-cell">
+              <span class="se-field-label se-field-label-tight">Roem</span>
+              <div class="se-roem-total-box">{{ roemR }}</div>
+            </div>
+            <div class="se-score-cell">
+              <span class="se-field-label se-field-label-tight">Totaal</span>
+              <input
+                class="se-input se-input-points"
+                type="text"
+                readonly
+                :value="computedPreview.scoreR"
+              />
+            </div>
+          </div>
         </div>
 
-        <div class="mb-2 grid grid-cols-2 gap-2">
-          <label class="text-xs font-medium text-slate-600">Roem {{ teamL }}
-            <input
-              v-model.number="roemL"
-              type="number"
-              min="0"
-              class="mt-1 w-full rounded border border-slate-300 px-2 py-1"
-              :disabled="!canEditCurrentPartij"
-            />
-          </label>
-          <label class="text-xs font-medium text-slate-600">Roem {{ teamR }}
-            <input
-              v-model.number="roemR"
-              type="number"
-              min="0"
-              class="mt-1 w-full rounded border border-slate-300 px-2 py-1"
-              :disabled="!canEditCurrentPartij"
-            />
-          </label>
-        </div>
-
-        <div class="mb-2 grid grid-cols-2 gap-2">
-          <label class="text-xs font-medium text-slate-600">Invoer kruis {{ teamL }}
-            <input
-              v-model.number="inputKruisL"
-              type="number"
-              min="0"
-              max="32"
-              class="mt-1 w-full rounded border border-slate-300 px-2 py-1"
-              :disabled="!canEditCurrentPartij"
-            />
-          </label>
-          <label class="text-xs font-medium text-slate-600">Invoer kruis {{ teamR }}
-            <input
-              v-model.number="inputKruisR"
-              type="number"
-              min="0"
-              max="32"
-              class="mt-1 w-full rounded border border-slate-300 px-2 py-1"
-              :disabled="!canEditCurrentPartij"
-            />
-          </label>
-        </div>
-
-        <div class="mb-2 grid grid-cols-4 gap-2">
-          <button
-            v-for="flag in scoreFlags"
-            :key="flag.value"
-            type="button"
-            class="rounded-md border px-2 py-1 text-sm"
-            :disabled="!canEditCurrentPartij"
-            :class="scoreFlagState === flag.value ? 'border-amber-500 bg-amber-50 text-amber-900' : 'border-slate-200 bg-white text-slate-700'"
-            @click="toggleScoreFlag(flag.value)"
-          >
-            {{ flag.label }}
-          </button>
-          <button
-            type="button"
-            class="rounded-md border border-slate-200 bg-white px-2 py-1 text-sm text-slate-700"
-            :disabled="!canEditCurrentPartij"
-            @click="scoreFlagState = null"
-          >
-            Geen
-          </button>
-        </div>
-
-        <div class="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-sm text-slate-700">
+        <div class="se-preview">
           Berekend: {{ computedPreview.scoreL }} - {{ computedPreview.scoreR }}
-          <span class="ml-1 text-xs text-slate-500">(x{{ computedPreview.scoreMultiplier }})</span>
+          <span class="se-preview-multiplier">(x{{ computedPreview.scoreMultiplier }})</span>
         </div>
       </section>
 
-      <section class="mb-3 flex flex-wrap gap-2">
+      <section class="se-actions">
         <button
           type="button"
-          class="rounded-md bg-sky-600 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
-          :disabled="!canCalculate"
-          @click="calculateCurrentPartijTotal"
-        >
-          Bereken totaal
-        </button>
-        <button
-          type="button"
-          class="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
-          :disabled="!canAddPartij"
-          @click="addPartij"
-        >
-          Voeg partij toe
-        </button>
-        <button
-          type="button"
-          class="rounded-md bg-slate-700 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
+          class="se-action-btn bg-slate-700 text-white disabled:opacity-50"
           :disabled="partijen.length === 0"
           @click="undoPartij"
         >
-          Undo partij
+          Undo
+        </button>
+        <button
+          type="button"
+          class="se-action-btn bg-sky-600 text-white disabled:opacity-50"
+          :disabled="!canCalculate"
+          @click="calculateCurrentPartijTotal"
+        >
+          Bereken
+        </button>
+        <button
+          type="button"
+          class="se-action-btn bg-emerald-600 text-white disabled:opacity-50"
+          :disabled="!canAddPartij"
+          @click="addPartij"
+        >
+          Verwerk
         </button>
       </section>
 
-      <section class="mb-3 rounded-lg border border-slate-200 p-3">
-        <h2 class="mb-2 text-sm font-semibold text-slate-800">Partijen</h2>
-        <div v-if="partijen.length === 0" class="text-sm text-slate-500">Nog geen partijen toegevoegd.</div>
-        <ul v-else class="space-y-1 text-sm">
-          <li v-for="(partij, index) in partijen" :key="index" class="grid grid-cols-[2rem_1fr_auto_auto] gap-2 rounded border border-slate-100 px-2 py-1">
-            <span class="font-semibold text-slate-600">{{ index + 1 }}.</span>
-            <span class="text-slate-700">
+      <section class="se-partij-section">
+        <h2 class="se-partij-title">Partijen</h2>
+        <div v-if="partijen.length === 0" class="se-empty">Nog geen partijen toegevoegd.</div>
+        <ul v-else class="se-partij-list">
+          <li v-for="(partij, index) in partijen" :key="index" class="se-partij-item">
+            <span class="se-partij-index">{{ index + 1 }}.</span>
+            <span class="se-partij-middle">
               {{ partij.troefTeam }}
               <span :class="suitTextClass(partij.troefSuit)">{{ suitLabel(partij.troefSuit) }}</span>
               {{ partij.scoreFlag ? scoreFlagLabel(partij.scoreFlag) : '' }}
             </span>
-            <span class="font-semibold text-slate-900">{{ partij.scoreL }}</span>
-            <span class="font-semibold text-slate-900">{{ partij.scoreR }}</span>
+            <span class="se-partij-score">{{ partij.scoreL }}</span>
+            <span class="se-partij-score">{{ partij.scoreR }}</span>
           </li>
         </ul>
       </section>
 
-      <section class="mb-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
-        <div class="text-sm font-semibold text-slate-800">Totaal: {{ totals.currentTotals.left }} - {{ totals.currentTotals.right }}</div>
-        <div class="text-xs text-slate-600">Kruis totaal: {{ totals.kruisTotals.left }}X - {{ totals.kruisTotals.right }}X</div>
-        <div class="text-xs text-slate-600">Basis (zonder kruis-afrekening): {{ totals.baseTotals.left }} - {{ totals.baseTotals.right }}</div>
+      <section class="se-totals">
+        <div class="se-totals-label">stand</div>
+        <div class="se-totals-col">
+          <div class="se-totals-value">
+            <span>{{ totals.currentTotals.left }}</span>
+            <span class="se-totals-kruis-inline">{{ totals.kruisTotals.left }}X</span>
+          </div>
+        </div>
+        <div class="se-totals-col">
+          <div class="se-totals-value">
+            <span>{{ totals.currentTotals.right }}</span>
+            <span class="se-totals-kruis-inline">{{ totals.kruisTotals.right }}X</span>
+          </div>
+        </div>
       </section>
 
-      <section class="flex flex-wrap gap-2">
+      <section class="se-footer-actions">
         <button
           v-if="mode === 'final'"
           type="button"
-          class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
+          class="se-action-btn bg-indigo-600 text-white disabled:opacity-50"
           :disabled="partijen.length === 0 || !hasReachedScoreTarget || sendInFlight"
           @click="submitFinal"
         >
@@ -208,14 +333,14 @@
 
         <button
           type="button"
-          class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700"
+          class="se-action-btn border border-slate-300 bg-white text-slate-700"
           @click="viewStand"
         >
           Bekijk tussenstand
         </button>
       </section>
 
-      <p v-if="message" class="mt-3 rounded-md px-2 py-1 text-sm" :class="messageClass">{{ message }}</p>
+      <p v-if="message" class="se-message" :class="messageClass">{{ message }}</p>
     </div>
   </main>
 </template>
@@ -272,10 +397,21 @@ const partijen = ref([]);
 const sendInFlight = ref(false);
 const sendAgain = ref(false);
 const lastSubmittedWasFinal = ref(false);
+const qrOpen = ref(false);
 const message = ref("");
 const messageType = ref("info");
 const baseOffsetTotals = ref({ ...initialBaseTotalsFromParams });
 const kruisOffsetTotals = ref({ ...initialKruisTotalsFromParams });
+
+const qrTargetUrl = computed(() => {
+  if (typeof window === "undefined") return "";
+  return window.location.href;
+});
+
+const qrImageUrl = computed(() => {
+  if (!qrTargetUrl.value) return "";
+  return `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(qrTargetUrl.value)}`;
+});
 
 const troefState = reactive({
   activeTeam: initialLastTroefTeam ? (initialLastTroefTeam === "L" ? "R" : "L") : null,
@@ -291,16 +427,35 @@ const suits = [
 ];
 
 const scoreFlags = [
-  { value: "kraak", label: "Kraak !" },
-  { value: "re", label: "Rekraak !!" },
-  { value: "super", label: "Super !!!" },
+  { value: "kraak", label: "Kraak" },
+  { value: "re", label: "Re" },
+  { value: "super", label: "Super" },
 ];
+
+const roemValues = [20, 50, 100, 200];
+const roemValueRows = [
+  [20, 50],
+  [100, 200],
+];
+const roemCounts = reactive({
+  L: { 20: 0, 50: 0, 100: 0, 200: 0 },
+  R: { 20: 0, 50: 0, 100: 0, 200: 0 },
+});
 
 const selectedSuit = computed(() => (troefState.ownerTeam ? troefState.selectedSuit[troefState.ownerTeam] : null));
 
 function setMessage(text, type = "info") {
   message.value = text;
   messageType.value = type;
+}
+
+function openQrModal() {
+  if (!qrImageUrl.value) return;
+  qrOpen.value = true;
+}
+
+function closeQrModal() {
+  qrOpen.value = false;
 }
 
 const messageClass = computed(() => {
@@ -317,6 +472,52 @@ function clampNumber(value, min = 0, max = Infinity) {
 
 function getPartijMultiplierBySuit(troefSuit) {
   return troefSuit === "spades" ? 2 : 1;
+}
+
+function getRoemCount(team, value) {
+  return Number(roemCounts?.[team]?.[value] || 0);
+}
+
+function getRoemTotalForTeam(team) {
+  return (
+    getRoemCount(team, 20) * 20 +
+    getRoemCount(team, 50) * 50 +
+    getRoemCount(team, 100) * 100 +
+    getRoemCount(team, 200) * 200
+  );
+}
+
+function syncCurrentRoemTotals() {
+  roemL.value = getRoemTotalForTeam("L");
+  roemR.value = getRoemTotalForTeam("R");
+}
+
+function canIncreaseRoemCount(team, value) {
+  const currentCount = getRoemCount(team, value);
+  if (currentCount >= 99) {
+    return false;
+  }
+
+  if (value !== 200) {
+    return true;
+  }
+
+  const total200 = getRoemCount("L", 200) + getRoemCount("R", 200);
+  return total200 < 1 || currentCount > 0;
+}
+
+function adjustRoemCount(team, value, delta) {
+  if (!canEditCurrentPartij.value) return;
+
+  const nextValue = getRoemCount(team, value) + delta;
+  if (delta > 0 && !canIncreaseRoemCount(team, value)) {
+    return;
+  }
+
+  const safeValue = Math.max(0, Math.min(99, nextValue));
+  roemCounts[team][value] = safeValue;
+  syncCurrentRoemTotals();
+  hasCalculatedTotal.value = false;
 }
 
 function getScoreFlagMultiplier(flag) {
@@ -549,8 +750,11 @@ function calculateCurrentPartijTotal() {
 function resetCurrentPartij(nextTroefTeam) {
   pointsL.value = 0;
   pointsR.value = 0;
-  roemL.value = 0;
-  roemR.value = 0;
+  roemValues.forEach((value) => {
+    roemCounts.L[value] = 0;
+    roemCounts.R[value] = 0;
+  });
+  syncCurrentRoemTotals();
   inputKruisL.value = 0;
   inputKruisR.value = 0;
   scoreFlagState.value = null;
@@ -715,6 +919,10 @@ async function addPartij() {
     scoreR: computedScores.scoreR,
     roemL: safeRoemL,
     roemR: safeRoemR,
+    roemCounts: {
+      L: { ...roemCounts.L },
+      R: { ...roemCounts.R },
+    },
     kruisL: safeInputKruisL + computedScores.extraKruisL,
     kruisR: safeInputKruisR + computedScores.extraKruisR,
     inputKruisL: safeInputKruisL,
@@ -745,6 +953,11 @@ async function undoPartij() {
   pointsR.value = Number(removedPartij?.pointsR ?? 0);
   roemL.value = Number(removedPartij?.roemL ?? 0);
   roemR.value = Number(removedPartij?.roemR ?? 0);
+  roemValues.forEach((value) => {
+    roemCounts.L[value] = Number(removedPartij?.roemCounts?.L?.[value] ?? 0);
+    roemCounts.R[value] = Number(removedPartij?.roemCounts?.R?.[value] ?? 0);
+  });
+  syncCurrentRoemTotals();
   inputKruisL.value = Number(removedPartij?.inputKruisL ?? 0);
   inputKruisR.value = Number(removedPartij?.inputKruisR ?? 0);
   scoreFlagState.value = removedPartij?.scoreFlag || null;
@@ -772,6 +985,47 @@ async function submitFinal() {
   if (partijen.value.length === 0) {
     setMessage("Voeg minimaal 1 partij toe voordat je verstuurt.", "err");
     return;
+  }
+
+  const {
+    baseTotals,
+    kruisTotals,
+    winnerTeam,
+    loserBonusKruis,
+    finalKruisTotals,
+    finalTotals,
+  } = getMatchTotals(true);
+
+  const winnerLabel = winnerTeam === "L"
+    ? teamL
+    : winnerTeam === "R"
+      ? teamR
+      : "Onbekend";
+
+  const confirmMessage = [
+    "Controle eindstand",
+    "",
+    `Teams: ${teamL} vs ${teamR}`,
+    `Partijen: ${partijen.value.length}`,
+    `Winnaar: ${winnerLabel}`,
+    "",
+    `Basisstand: ${baseTotals.left} - ${baseTotals.right}`,
+    `Kruisen (zonder eindbonus): ${kruisTotals.left}X - ${kruisTotals.right}X`,
+    `Eindbonus kruisen (verliezer): +${loserBonusKruis.left}X links, +${loserBonusKruis.right}X rechts`,
+    `Kruisen totaal: ${finalKruisTotals.left}X - ${finalKruisTotals.right}X`,
+    `Bonuspunten uit kruisen: +${finalKruisTotals.right * 100} links, +${finalKruisTotals.left * 100} rechts`,
+    "",
+    `Eindstand om te versturen: ${finalTotals.left} - ${finalTotals.right}`,
+    "",
+    "Klopt dit?",
+  ].join("\n");
+
+  if (typeof window !== "undefined") {
+    const confirmed = window.confirm(confirmMessage);
+    if (!confirmed) {
+      setMessage("Versturen geannuleerd. Controleer en pas aan indien nodig.", "info");
+      return;
+    }
   }
 
   const sent = await sendCurrentTotal(true, true);
@@ -1023,3 +1277,588 @@ onMounted(() => {
   restoreExistingSubmission();
 });
 </script>
+
+<style scoped>
+.se-wrap {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px;
+  background: radial-gradient(circle at top right, #dce7ff, #f5f7fb 50%);
+}
+
+.se-card {
+  width: 100%;
+  max-width: 520px;
+  border: 1px solid #dde3ee;
+  border-radius: 14px;
+  box-shadow: 0 12px 24px rgba(17, 37, 68, 0.08);
+  background: #fff;
+  padding: 12px 4px;
+}
+
+.se-header {
+  margin-bottom: 8px;
+}
+
+.se-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.se-title {
+  margin: 0 0 1px;
+  font-size: 1.2rem;
+  line-height: 0.95;
+  text-align: center;
+  font-weight: 700;
+  color: #12223a;
+}
+
+.se-meta {
+  width: fit-content;
+  margin: 0;
+  border-top: 1px solid #adadad;
+  border-bottom: 1px solid #adadad;
+  padding: 2px 10px;
+  line-height: 1.2;
+  font-size: 1rem;
+  color: #5f6b7a;
+}
+
+.se-meta-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  width: 100%;
+  padding: 0 2px;
+  margin: 6px 0 4px;
+}
+
+.se-meta-row .se-meta {
+  grid-column: 2;
+}
+
+.se-meta-row-end {
+  grid-column: 3;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.se-meta-qr-btn {
+  border: 1px solid #b7c0ce;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 4px 8px;
+  cursor: pointer;
+  width: fit-content;
+  min-height: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.se-qr-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.se-qr-overlay.is-open {
+  display: flex;
+}
+
+.se-qr-modal {
+  width: min(88vw, 260px);
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #d4dceb;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.22);
+  padding: 8px;
+}
+
+.se-qr-modal-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.se-qr-modal-title {
+  font-size: 0.82rem;
+  color: #5f6b7a;
+  font-weight: 700;
+}
+
+.se-qr-close-btn {
+  border: 1px solid #cbd4e4;
+  background: #fff;
+  color: #556173;
+  border-radius: 6px;
+  min-height: 0;
+  width: auto;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.se-qr-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 6px;
+}
+
+.se-teams {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 6px;
+  align-items: start;
+}
+
+.se-team-column {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.se-team-btn {
+  min-height: 32px;
+  border-radius: 8px;
+  border-width: 1px;
+  padding: 4px 8px;
+  text-align: center;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.se-team-btn-left {
+  align-self: stretch;
+}
+
+.se-team-btn-right {
+  align-self: stretch;
+}
+
+.se-troef-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  border: 1px solid #dbe5f6;
+  border-radius: 8px;
+  background: #fff;
+  padding: 2px 4px;
+}
+
+.se-troef-strip-left {
+  justify-content: flex-start;
+}
+
+.se-troef-strip-right {
+  justify-content: flex-end;
+}
+
+.se-score-flag-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  align-items: center;
+  border: 1px solid #dbe5f6;
+  border-radius: 8px;
+  background: #fff;
+  padding: 2px 4px;
+}
+
+.se-score-flag-strip-left {
+  justify-content: flex-start;
+}
+
+.se-score-flag-strip-right {
+  justify-content: flex-end;
+}
+
+.se-roem-block {
+  margin-bottom: 6px;
+}
+
+.se-roem-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  margin-bottom: 4px;
+  color: #5f6b7a;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.se-roem-header-cell {
+  text-align: center;
+}
+
+.se-roem-header-divider {
+  width: 14px;
+  text-align: center;
+}
+
+.se-roem-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.se-roem-column {
+  display: grid;
+  gap: 4px;
+  border: 1px solid #dbe5f6;
+  border-radius: 8px;
+  background: #fff;
+  padding: 2px;
+}
+
+.se-roem-row-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.se-roem-counter {
+  border: 1px solid #dbe5f6;
+  border-radius: 8px;
+  background: #fff;
+  padding: 1px;
+}
+
+.se-roem-counter-label {
+  display: block;
+  margin-bottom: 2px;
+  text-align: center;
+  font-size: 0.72rem;
+  color: #5f6b7a;
+  font-weight: 700;
+}
+
+.se-stepper {
+  display: grid;
+  grid-template-columns: 20px 1fr 20px;
+  gap: 2px;
+  align-items: center;
+}
+
+.se-stepper-btn {
+  min-height: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 4px;
+  border: 1px solid #c9d8f3;
+  background: #eef4ff;
+  color: #16345f;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.se-stepper-count {
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.se-suit-btn {
+  width: 100%;
+  min-height: 22px;
+  border-radius: 5px;
+  border-width: 1px;
+  padding: 0 6px;
+  font-size: 1rem;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.se-input-block {
+  border: 1px solid #e3eaf7;
+  border-radius: 10px;
+  background: #fbfdff;
+  padding: 4px;
+  margin-bottom: 6px;
+}
+
+.se-score-heading {
+  margin-bottom: 6px;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #5f6b7a;
+}
+
+.se-score-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.se-score-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.se-kruis-row {
+  grid-column: 1 / -1;
+}
+
+.se-score-cell {
+  min-width: 0;
+}
+
+.se-grid-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.se-field-label {
+  display: block;
+  font-size: 0.75rem;
+  color: #5f6b7a;
+  font-weight: 600;
+  text-align: center;
+}
+
+.se-field-label-tight {
+  margin-bottom: 2px;
+}
+
+.se-input {
+  width: 100%;
+  min-height: 26px;
+  margin-top: 3px;
+  padding: 2px 3px;
+  border: 1px solid #cdd8ea;
+  border-radius: 5px;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.se-input-points {
+  min-width: 6ch;
+}
+
+.se-input-roem {
+  min-width: 4ch;
+}
+
+.se-kruis-row {
+  margin-top: 2px;
+}
+
+.se-roem-total-box {
+  min-height: 26px;
+  margin-top: 3px;
+  padding: 2px 3px;
+  border-radius: 5px;
+  background: #f2f6fc;
+  color: #2d466b;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.se-input-kruis {
+  min-width: 3ch;
+}
+
+.se-flag-btn {
+  width: 100%;
+  min-height: 22px;
+  border-radius: 6px;
+  border-width: 1px;
+  padding: 1px 6px;
+  font-size: 0.78rem;
+}
+
+.se-preview {
+  border: 1px solid #d8e3f5;
+  border-radius: 10px;
+  background: #f6faff;
+  padding: 6px 8px;
+  font-size: 0.9rem;
+  color: #2d466b;
+}
+
+.se-preview-multiplier {
+  margin-left: 4px;
+  font-size: 0.78rem;
+  color: #5f6b7a;
+}
+
+.se-actions,
+.se-footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.se-action-btn {
+  min-height: 28px;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.se-action-btn:disabled,
+.se-stepper-btn:disabled,
+.se-suit-btn:disabled,
+.se-flag-btn:disabled {
+  background-color: lightgrey;
+  color: darkgray;
+}
+
+button:hover:enabled {
+  background-color: #65a30d;
+  color: #ecfccb;
+  transform: scale3d(1.1, 1.1, 0.3);
+}
+
+.se-partij-section {
+  margin-bottom: 8px;
+  border: 1px solid #e0e7f2;
+  border-radius: 10px;
+  background: #fcfdff;
+  padding: 6px;
+}
+
+.se-partij-title {
+  margin: 0 0 6px;
+  font-size: 0.82rem;
+  color: #5f6b7a;
+  font-weight: 700;
+}
+
+.se-empty {
+  font-size: 0.9rem;
+  color: #5f6b7a;
+}
+
+.se-partij-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+}
+
+.se-partij-item {
+  display: grid;
+  grid-template-columns: 16px minmax(80px, 1fr) 52px 52px;
+  column-gap: 8px;
+  align-items: center;
+  border-bottom: 1px solid #edf2fb;
+  padding: 2px 4px;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.se-partij-index {
+  color: #5f6b7a;
+  font-weight: 700;
+}
+
+.se-partij-middle {
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.se-partij-score {
+  text-align: right;
+  font-weight: 700;
+  color: #12223a;
+}
+
+.se-totals {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border: 1px solid #d8e3f5;
+  border-radius: 10px;
+  background: #f6faff;
+  display: grid;
+  grid-template-columns: 68px 116px 116px;
+  column-gap: 8px;
+  align-items: center;
+}
+
+.se-totals-label {
+  min-height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #5f6b7a;
+}
+
+.se-totals-value {
+  min-height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #12223a;
+}
+
+.se-totals-col {
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.5rem;
+}
+
+.se-totals-kruis-inline {
+  margin-left: 6px;
+  color: #5f6b7a;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.se-message {
+  margin-top: 8px;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 560px) {
+  .se-roem-row {
+    grid-template-columns: 1fr;
+  }
+
+  .se-totals {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .se-totals-label {
+    display: none;
+  }
+}
+</style>

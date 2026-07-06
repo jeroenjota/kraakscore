@@ -39,6 +39,10 @@
             :tournamentDate="tournamentDate"
             :round="index + 1"
             group="A"
+            :submitMode="remoteScoreVisibilityMode"
+            :scoreTarget="scoreTarget"
+            :winnerKruis="winnerKruis"
+            :showOnlineScoreQr="showOnlineScoreControls && onlineScoreEnabled && showOnlineScoreSection"
             :oldToernooi="toernooiPlayed"
             :edit-mode="!standOnly && editMode"
             @update-result="
@@ -62,6 +66,10 @@
             :tournamentDate="tournamentDate"
             :round="index + 1"
             group="B"
+            :submitMode="remoteScoreVisibilityMode"
+            :scoreTarget="scoreTarget"
+            :winnerKruis="winnerKruis"
+            :showOnlineScoreQr="showOnlineScoreControls && onlineScoreEnabled && showOnlineScoreSection"
             :oldToernooi="toernooiPlayed"
             :edit-mode="!standOnly && editMode"
             @update-result="
@@ -99,6 +107,11 @@
             :tournamentDate="tournamentDate"
             :round="'finales'"
             group="finales"
+            :submitMode="remoteScoreVisibilityMode"
+            :scoreTarget="scoreTarget"
+            :winnerKruis="winnerKruis"
+            :showOnlineScoreQr="showOnlineScoreControls && onlineScoreEnabled && showOnlineScoreSection"
+            :finalIndex="index"
             :oldToernooi="toernooiPlayed"
             :edit-mode="!standOnly && editMode"
             @update-result="(i, a, b) => updateFinalResult(index, a, b)" />
@@ -138,6 +151,10 @@
           :tournamentDate="tournamentDate"
           :round="index + 1"
           group="single"
+          :submitMode="remoteScoreVisibilityMode"
+          :scoreTarget="scoreTarget"
+          :winnerKruis="winnerKruis"
+          :showOnlineScoreQr="showOnlineScoreControls && onlineScoreEnabled && showOnlineScoreSection"
           :oldToernooi="toernooiPlayed"
           :edit-mode="!standOnly && editMode"
           @update-result="(i, a, b) => updateSingleResult(index, i, a, b)" />
@@ -208,7 +225,7 @@ const scoreRedoStack = ref([]);
 const isApplyingUndo = ref(false);
 const remoteScoreVisibilityMode = ref("immediate");
 const onlineScoreEnabled = ref(false);
-const showOnlineScoreSection = ref(false);
+const showOnlineScoreSection = ref(true);
 const processedRemoteSubmissions = new Set();
 let remoteScoreEventSource = null;
 let remoteScorePollTimer = null;

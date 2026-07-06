@@ -123,3 +123,6 @@ Om scores op de centrale computer automatisch te verwerken is daarnaast een read
 Still learning!
 *© 2025 Jota Services*
 
+TODO:
+OnlineScore (ja/Nee) in de Instellingen component. Als dit aan staat kunnen de links naar de online score pagina worden geopend per tafel/ronde. 
+En dan ook de keuze voor Live of alleen Eind score naar de server sturen toevoegen aan de instelligen regel. Wordt krap, maar moet kunnen
