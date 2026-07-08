@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
-        scoreEntryVue: resolve(__dirname, 'score-entry-vue.html'),
+        
       },
     },
   },
