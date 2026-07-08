@@ -1252,6 +1252,7 @@
         const finalConfirmOkBtnEl = document.getElementById("finalConfirmOkBtn");
         const messageEl = document.getElementById("message");
         const submitBtn = document.getElementById("submitBtn");
+        const defaultSubmitBtnText = submitBtn?.textContent?.trim() || "Eindstand maken en versturen";
         const viewStandBtn = document.getElementById("viewStandBtn");
         const calcTotaalBtn = document.getElementById("calcTotaalBtn");
         const addPartijBtn = document.getElementById("addPartijBtn");
@@ -1537,7 +1538,7 @@
         teamLEl.textContent = teamL;
         teamREl.textContent = teamR;
         kopregel.textContent = `Scoreformulier ${datum || "?"}`;
-        meta.textContent = `${group ? `groep ${String(group).toUpperCase()}: ` : ""}ronde ${round || "?"}, tafel ${table || "?"}`;
+        meta.textContent = `${group && String(group).toLowerCase() !== "single" ? `groep ${String(group).toUpperCase()}: ` : ""}ronde ${round || "?"}, tafel ${table || "?"}`;
 
         if (mode === "final") {
           modeText.textContent =
@@ -1595,8 +1596,14 @@
           try {
             if (isSubmitted) {
               localStorage.setItem(finalSubmittedStateKey, "1");
+              if (submitBtn) {
+                submitBtn.textContent = "Eindstand opnieuw versturen";
+              }
             } else {
               localStorage.removeItem(finalSubmittedStateKey);
+              if (submitBtn) {
+                submitBtn.textContent = defaultSubmitBtnText;
+              }
             }
           } catch {
             // localStorage is optioneel; UI blijft bruikbaar zonder persistentie.
@@ -1611,12 +1618,16 @@
           try {
             const isSubmitted = localStorage.getItem(finalSubmittedStateKey) === "1";
             if (!isSubmitted) {
+              if (submitBtn) {
+                submitBtn.textContent = defaultSubmitBtnText;
+              }
               return;
             }
 
-            submitBtn.classList.add("hidden");
+            submitBtn.classList.remove("hidden");
+            submitBtn.textContent = "Eindstand opnieuw versturen";
             viewStandBtn.classList.remove("hidden");
-            setMessage("Eindtotaal is al verstuurd. Tik op 'Bekijk tussenstand'.", "ok");
+            setMessage("Eindtotaal is al verstuurd. Je kunt opnieuw versturen.", "ok");
           } catch {
             // localStorage is optioneel; geen actie nodig.
           }
@@ -1845,8 +1856,7 @@
             !canEditCurrentPartij || !hasValidEnteredScore();
           addPartijBtn.disabled = !canEditCurrentPartij || !hasCalculatedTotal;
           undoPartijBtn.disabled = partijen.length === 0;
-          submitBtn.disabled =
-            partijen.length === 0 || !hasCalculatedTotal || !matchFinished;
+          submitBtn.disabled = partijen.length === 0 || !matchFinished;
         }
 
         function setFixedTotalPoints(changedTeam, options = {}) {
@@ -2121,6 +2131,60 @@
           }
         }
 
+        function clearPersistedScoreEntryState() {
+          if (typeof localStorage === "undefined") {
+            return;
+          }
+
+          try {
+            localStorage.removeItem(scoreEntryStateKey);
+            localStorage.removeItem(finalSubmittedStateKey);
+          } catch {
+            // localStorage is optioneel; geen actie nodig.
+          }
+        }
+
+        async function clearStateIfTournamentMissing() {
+          if (!tournamentId) {
+            return false;
+          }
+
+          try {
+            const response = await fetch(
+              `${apiBaseUrl()}/toernooien/${encodeURIComponent(String(tournamentId))}`,
+            );
+
+            if (response.status !== 404) {
+              return false;
+            }
+
+            partijen.splice(0, partijen.length);
+            clearPersistedScoreEntryState();
+            lastSubmittedWasFinal = false;
+            editingPartijIndex = null;
+            scoreFlagState = null;
+
+            setKruisCount("L", 0);
+            setKruisCount("R", 0);
+            pointsLInput.value = "0";
+            pointsRInput.value = "0";
+            troefState.ownerTeam = null;
+            troefState.selectedSuit.L = null;
+            troefState.selectedSuit.R = null;
+
+            updatePartijLabels();
+            updateTroefAndScorePanels();
+            updateRoemTotalDisplay();
+            clearCurrentPartijTotal();
+            renderPartijen();
+            updateActionButtons();
+            setMessage("Oude score-invoer verwijderd: toernooi bestaat niet meer.", "ok");
+            return true;
+          } catch {
+            return false;
+          }
+        }
+
         function isMatchEntry(entry) {
           if (!entry) return false;
           const entryMt = String(entry.matchType || "single");
@@ -2248,6 +2312,9 @@
           try {
             const url = new URL(`${apiBaseUrl()}/score-forms/submissions`);
             url.searchParams.set("tournamentId", String(tournamentId));
+            if (date) {
+              url.searchParams.set("tournamentDate", String(date));
+            }
             const response = await fetch(url.toString());
             if (!response.ok) return;
             const entries = await response.json();
@@ -2262,7 +2329,10 @@
               });
 
             const latest = relevant[0];
-            if (!latest) return;
+            if (!latest) {
+              await clearStateIfTournamentMissing();
+              return;
+            }
 
             const applied = applyRestoredEntry(latest);
             if (applied) {
@@ -2754,7 +2824,8 @@
             .join("");
 
           const partijItems = partijenListEl.querySelectorAll(".partijitem");
-          const visibleCount = Math.min(partijItems.length, 4);
+          const visibleRows = 8;
+          const visibleCount = Math.min(partijItems.length, visibleRows);
           if (visibleCount > 0) {
             let visibleHeight = 0;
             for (let index = 0; index < visibleCount; index += 1) {
@@ -3297,7 +3368,7 @@
               const sent = await sendCurrentTotal(true, true);
               if (sent) {
                 setFinalSubmittedState(true);
-                submitBtn.classList.add("hidden");
+                submitBtn.classList.remove("hidden");
                 viewStandBtn.classList.remove("hidden");
                 // Probeer het formuliervenster automatisch te sluiten.
                 if (!isFirefoxBrowser()) {

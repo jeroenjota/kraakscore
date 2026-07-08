@@ -86,26 +86,9 @@
         </div>
       </div>
 
-      <!-- rechter div -->
-      <!-- kan ofwel de standaard deelnemers lijst ofwel de stand laten zien -->
-      <!-- Afhankelijk of er al dan niet al een schema is gemaakt -->
-      <!-- AANPASSING Twee kolommen met spelers om de teams uit samen te stellen -->
-
       <div
         class="teamlijst"
         :class="{ 'teamlijst-collapsed': !showSavedTeamsList }">
-        <!-- TODO Opties instellen -->
-        <!-- 
-        <div id="optionsForm" v-if="!tournamentStarted && !showRanking && !showSavedTeamsList">
-          <h2
-            @click="toggleShowOptions"
-            class="cursor-pointer text-center text-lg text-blue-700">
-            <span v-if="!showOptions">Toon opties</span>
-            <span v-else>Verberg opties</span>
-          </h2>
-          <Options v-if="showOptions" />
-         </div>
-         -->
         <!-- Opgeslagen team lijst -->
         <div
           id="savedTeams"
@@ -194,7 +177,7 @@ import { ref, computed, watch, onMounted, nextTick } from "vue";
 import Ranking from "./components/Ranking.vue";
 import Tournament from "./components/Tournament.vue";
 import Header from "./components/Header.vue";
-import Options from "./components/Options.vue";
+// import Options from "./components/Options.vue";
 
 import SelectPlayers from "./components/SelectPlayers.vue";
 // import Pdf from './components/Pdf.vue'

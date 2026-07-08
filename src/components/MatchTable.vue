@@ -3,7 +3,10 @@
   <table class="rondes table w-full" :id="matchType">
     <tbody>
       <tr v-for="(match, index) in matches" :key="index">
-        <td style="width:9%; text-align: center;" class="border px-2">
+        <td
+          style="width:9%; text-align: center;"
+          class="border"
+          :class="canShowQrForMatch(match) ? 'p-0' : 'px-2'">
           <div class="match-header-cell">
             <button
               v-if="canShowQrForMatch(match)"
@@ -13,6 +16,15 @@
               @click="openQrForMatch(match, index)">
               <span v-if="!matchType">T {{ match.tafel }}</span>
               <span v-else>Pl {{ match.pl }}</span>
+              <svg
+                class="match-header-qr-icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false">
+                <path
+                  fill="currentColor"
+                  d="M3 3h8v8H3V3Zm2 2v4h4V5H5Zm8-2h8v8h-8V3Zm2 2v4h4V5h-4ZM3 13h8v8H3v-8Zm2 2v4h4v-4H5Zm8 0h2v2h-2v-2Zm2 2h2v2h-2v-2Zm-2 2h2v2h-2v-2Zm4-4h4v2h-4v-2Zm2 2h2v4h-2v-4Zm-2 2h2v2h-2v-2Z" />
+              </svg>
             </button>
             <span v-else-if="!matchType">T {{ match.tafel }}</span>
             <span v-else>Pl {{ match.pl }}</span>
@@ -289,6 +301,7 @@ function update(index) {
   const { scoreL, scoreR } = scores.value[index]
   if (scoreL !== '' && scoreR !== '') {
     const match = props.matches[index] ?? {}
+    const isFinalMatch = props.group === 'finales' || Boolean(props.matchType)
     const oldScoreL = Number(match.scoreL ?? 0)
     const oldScoreR = Number(match.scoreR ?? 0)
     const newScoreL = Number(scoreL)
@@ -312,6 +325,8 @@ function update(index) {
       group: props.group,
       matchType: props.matchType ?? 'group',
       table: match.tafel ?? null,
+      matchIndex: isFinalMatch ? null : index,
+      finalIndex: isFinalMatch ? (props.finalIndex ?? index) : null,
       place: match.pl ?? null,
       teamL: match.teamL ?? null,
       teamR: match.teamR ?? null,
@@ -335,21 +350,35 @@ onMounted(() => {
   flex-direction: row;
   align-items: center;
   justify-content: center;
+  height: 100%;
 }
 
 .match-header-qr-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  width: 100%;
+  min-height: 2.2rem;
   border: 0;
   background: transparent;
   color: #0369a1;
-  font-size: 0.85rem;
+  padding: 0.35rem 0.2rem;
+  /* font-size: 0.85rem;
   font-weight: 700;
   line-height: 1;
   padding: 0;
-  text-decoration: underline;
+  text-decoration: underline; */
   cursor: pointer;
 }
 
 .match-header-qr-btn:hover {
   color: #0c4a6e;
+}
+
+.match-header-qr-icon {
+  width: 0.75rem;
+  height: 0.75rem;
+  flex: 0 0 auto;
 }
 </style>

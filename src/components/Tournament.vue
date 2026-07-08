@@ -6,21 +6,8 @@
         v-model:scoreTarget="scoreTarget"
         v-model:winnerKruis="winnerKruis"
         v-model:onlineScoreEnabled="onlineScoreEnabled"
+        v-model:submitMode="remoteScoreVisibilityMode"
         class="ml-1 mr-1" />
-
-      <ScoreFormsPanel
-        v-if="showOnlineScoreControls && onlineScoreEnabled"
-        :submitMode="remoteScoreVisibilityMode"
-        :tournamentId="tournamentId"
-        :tournamentDate="tournamentDate"
-        :scoreTarget="scoreTarget"
-        :winnerKruis="winnerKruis"
-        :groups="groups"
-        :matches="matches"
-        :groupMatches="groupMatches"
-        :finalMatches="finalMatches"
-        @update:submitMode="(value) => (remoteScoreVisibilityMode = value)"
-        class="m-1" />
     </div>
 
     <div v-if="groups.length === 2">
@@ -171,7 +158,6 @@
 import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import MatchTable from "./MatchTable.vue";
 import GroupStandings from "./GroupStandings.vue";
-import ScoreFormsPanel from "./ScoreFormsPanel.vue";
 import TournamentSettings from "./TournamentSettings.vue";
 import dbService from "../services/dbServices.js";
 import { resolveApiBaseUrl } from "../services/apiConfig.js";
@@ -684,9 +670,18 @@ function applyRemoteSubmission(entry) {
   if (entry.matchType === "group") {
     const groupIndex = String(entry.group || "A").toUpperCase() === "B" ? 1 : 0;
     const roundIndex = Math.max(Number(entry.round || 1) - 1, 0);
-    const tableIndex = Math.max(Number(entry.matchIndex ?? 0), 0);
+    const hasMatchIndex =
+      entry.matchIndex !== null &&
+      entry.matchIndex !== undefined &&
+      String(entry.matchIndex).trim() !== "";
+    const tableIndex = hasMatchIndex
+      ? Math.max(Number(entry.matchIndex), 0)
+      : null;
     const roundMatches = groupMatches.value?.[groupIndex]?.[roundIndex] || [];
-    let current = roundMatches[tableIndex];
+    let current =
+      Number.isFinite(tableIndex) && tableIndex !== null
+        ? roundMatches[tableIndex]
+        : null;
 
     if (!current) {
       current = roundMatches.find((match) => {
@@ -725,9 +720,16 @@ function applyRemoteSubmission(entry) {
   }
 
   const roundIndex = Math.max(Number(entry.round || 1) - 1, 0);
-  const tableIndex = Math.max(Number(entry.matchIndex ?? 0), 0);
+  const hasMatchIndex =
+    entry.matchIndex !== null &&
+    entry.matchIndex !== undefined &&
+    String(entry.matchIndex).trim() !== "";
+  const tableIndex = hasMatchIndex ? Math.max(Number(entry.matchIndex), 0) : null;
   const roundMatches = matches.value?.[roundIndex] || [];
-  let current = roundMatches[tableIndex];
+  let current =
+    Number.isFinite(tableIndex) && tableIndex !== null
+      ? roundMatches[tableIndex]
+      : null;
 
   if (!current) {
     current = roundMatches.find((match) => {
