@@ -211,7 +211,8 @@ const scoreRedoStack = ref([]);
 const isApplyingUndo = ref(false);
 const remoteScoreVisibilityMode = ref("immediate");
 const onlineScoreEnabled = ref(false);
-const showOnlineScoreSection = ref(true);
+// Zet de mobile score bijhoudenm uit als default
+const showOnlineScoreSection = ref(false);
 const processedRemoteSubmissions = new Set();
 let remoteScoreEventSource = null;
 let remoteScorePollTimer = null;
