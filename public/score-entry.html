@@ -1517,6 +1517,7 @@
         const finalIndex = params.get("fi");
         const teamL = params.get("teamL") || "Team links";
         const teamR = params.get("teamR") || "Team rechts";
+        const token = params.get("token") || "";
         const scoreTarget = Number(params.get("scoreTarget") || 2000);
         const winKruis = Number(params.get("winnerKruis") || 4);
         let initialBaseTotals = {
@@ -2901,6 +2902,7 @@
               parties: partijen,
               isFinal,
               submittedAt: new Date().toISOString(),
+              token: token || null,
             };
 
             const endpoints = [

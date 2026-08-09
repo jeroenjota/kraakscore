@@ -184,7 +184,7 @@ function canShowQrForMatch(match) {
   )
 }
 
-function buildScoreEntryUrl(match, index) {
+async function buildScoreEntryUrl(match, index) {
   if (!scoreEntryBaseUrl.value) return ''
 
   const params = new URLSearchParams()
@@ -227,11 +227,34 @@ function buildScoreEntryUrl(match, index) {
     params.set('mi', String(index))
   }
 
+  try {
+    const tokenResponse = await dbService.createScoreFormToken({
+      tournamentId: props.tournamentId ?? null,
+      tournamentDate: props.tournamentDate ? new Date(props.tournamentDate).toISOString() : null,
+      mode: props.submitMode || 'immediate',
+      matchType,
+      group: props.group ?? null,
+      round: props.round ?? null,
+      table: match?.tafel ?? null,
+      matchIndex: isFinal ? null : index,
+      finalIndex: isFinal ? (props.finalIndex ?? index) : null,
+      place: isFinal && match?.pl !== null && match?.pl !== undefined ? String(match.pl) : null,
+      teamL: match?.teamL ?? null,
+      teamR: match?.teamR ?? null,
+    })
+
+    if (tokenResponse?.success && tokenResponse?.data?.token) {
+      params.set('token', tokenResponse.data.token)
+    }
+  } catch (error) {
+    console.warn('Kon scoreformulier-token niet aanmaken:', error?.message || error)
+  }
+
   return `${scoreEntryBaseUrl.value}?${params.toString()}`
 }
 
-function openQrForMatch(match, index) {
-  const url = buildScoreEntryUrl(match, index)
+async function openQrForMatch(match, index) {
+  const url = await buildScoreEntryUrl(match, index)
   if (!url) return
 
   const isFinal = props.group === 'finales' || Boolean(props.matchType)

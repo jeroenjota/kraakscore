@@ -14,7 +14,8 @@
       <div class="schema">
         <div v-for="(ronde, index) in groupMatches[0]" :key="index">
           <div v-if="index < 1">
-            <h2 class="text-blue text-xl font-bold">Groep A</h2>
+            <!--  -->
+            <h2 class="text-blue text-xl font-bold" @click.ctrl="showOnlineScoreSection = !showOnlineScoreSection">Groep A</h2>
           </div>
           <div v-else>
             <h3>Ronde: {{ index + 1 }}</h3>

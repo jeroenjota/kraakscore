@@ -148,6 +148,11 @@ const dbService = {
     }
   },
 
+  createScoreFormToken: async (payload) => {
+    const response = await post('/score-forms/token', payload, {}, 'Fout bij het aanmaken van scoreformulier-token');
+    return response;
+  },
+
   logScoreEntry: async (entry) =>
     await post('/score-entries/log', entry, {}, 'Fout bij het loggen van score entry'),
 
