@@ -168,7 +168,8 @@
       :standOnly="standOnlyView"
       :groepsToernooi="groepsToernooi"
       :toernooiPlayed="thisToernooiID !== null"
-      @saveToernooi="saveTournament" />
+      @saveToernooi="saveTournament"
+      @tournament-complete="handleTournamentComplete" />
   </div>
 </template>
 
@@ -472,8 +473,14 @@ async function maakPdf(showPdf = true) {
   const opgeslagen = await savePDF(doc, tnNaam);
   if (!opgeslagen) return;
 
-  // Korte wachttijd zodat de browser de nieuw opgeslagen PDF direct kan vinden.
-  await new Promise((resolve) => setTimeout(resolve, 600));
+  const pdfAvailable = await waitForPdfAvailability(pdfFileName);
+  if (!pdfAvailable) {
+    toast.error("De PDF is opgeslagen, maar nog niet beschikbaar om te openen.", {
+      position: "top-center",
+      timeout: 5000,
+    });
+    return false;
+  }
 
   pdfUrl.value = getPdfUrl(thisToernooiDatum.value);
   if (showPdf) {
@@ -488,6 +495,39 @@ async function maakPdf(showPdf = true) {
   }
 
   return true;
+}
+
+async function waitForPdfAvailability(filename, maxAttempts = 10, delayMs = 300) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    if (await dbService.pdfExists(filename)) return true;
+    if (attempt < maxAttempts) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+  return false;
+}
+
+let tournamentCompletionHandled = false;
+
+async function handleTournamentComplete() {
+  if (tournamentCompletionHandled || !allMatchesPlayed()) return;
+  tournamentCompletionHandled = true;
+
+  const ok = await bevestig(
+    "Toernooi afgerond",
+    "Alle scores zijn ingevuld. Wil je het toernooi opslaan en daarna de uitslag-PDF openen?",
+    "question",
+  );
+  if (!ok) {
+    tournamentCompletionHandled = false;
+    return;
+  }
+
+  await saveTournament();
+  const pdfCreated = await maakPdf(false);
+  if (pdfCreated) {
+    dbService.openPDF(getPdfFileName(thisToernooiDatum.value));
+  }
 }
 
 async function refreshRankingDataForPdf(maxAttempts = 4, delayMs = 300) {
@@ -766,11 +806,19 @@ function allMatchesPlayed() {
 
   if (gm) {
     const groupMatches = JSON.parse(gm);
-    return groupMatches.every((group) =>
+    const matchesPlayed = groupMatches.every((group) =>
       group.every((match) => {
         return match.every((tafel) => hasAnyScore(tafel));
       }),
     );
+    if (!matchesPlayed) return false;
+
+    const finalMatches = JSON.parse(
+      localStorage.getItem("tournamentFinalMatches") || "[]",
+    );
+    return finalMatches
+      .filter((match) => match?.teamL && match?.teamR)
+      .every((match) => hasAnyScore(match));
   }
 
   const matches = JSON.parse(m);

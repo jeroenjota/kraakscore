@@ -200,7 +200,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["saveToernooi"]);
+const emit = defineEmits(["saveToernooi", "tournament-complete"]);
 
 const toernooiTeams = ref([...props.initialTeams]);
 const matches = ref([]);
@@ -370,8 +370,9 @@ function updateGroupResult(groupIndex, matchIndex, tableIndex, scoreL, scoreR) {
   // console.log("Score updated")
   window.dispatchEvent(new Event("storage"));
   // console.log("Opgeslagen: groupMatches.value", groupMatches.value)
-  saveToLocalStorage();
   updateFinalists();
+  saveToLocalStorage();
+  checkTournamentComplete();
 }
 
 function updateSingleResult(ronde, table, scoreL, scoreR) {
@@ -401,6 +402,8 @@ function updateSingleResult(ronde, table, scoreL, scoreR) {
   // console.log("Score updated")
 
   window.dispatchEvent(new Event("storage"));
+  saveToLocalStorage();
+  checkTournamentComplete();
 }
 
 function updateFinalResult(index, scoreL, scoreR) {
@@ -425,6 +428,29 @@ function updateFinalResult(index, scoreL, scoreR) {
   current.scoreR = newScoreR;
   // console.log("finalMatches.value:", finalMatches.value);
   saveToLocalStorage();
+  checkTournamentComplete();
+}
+
+let completionEmitted = false;
+
+function checkTournamentComplete() {
+  const regularMatches =
+    groups.value.length === 2
+      ? groupMatches.value.flat(2)
+      : matches.value.flat();
+  const regularMatchesPlayed = regularMatches.every((match) => hasAnyScore(match));
+  const activeFinalMatches = finalMatches.value.filter(
+    (match) => match?.teamL && match?.teamR,
+  );
+  const finalMatchesPlayed = activeFinalMatches.every((match) => hasAnyScore(match));
+  const complete = regularMatchesPlayed && finalMatchesPlayed;
+
+  if (complete && !completionEmitted) {
+    completionEmitted = true;
+    emit("tournament-complete");
+  } else if (!complete) {
+    completionEmitted = false;
+  }
 }
 
 const canUndoScore = computed(() => scoreUndoStack.value.length > 0);
