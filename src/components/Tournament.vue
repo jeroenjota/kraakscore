@@ -271,8 +271,7 @@ const canEditMatchups = computed(
     props.editMode &&
     groups.value.length === 0 &&
     toernooiTeams.value.length <= 8 &&
-    matches.value.length > 0 &&
-    matches.value.flat().every((match) => !hasAnyScore(match)),
+    matches.value.length > 0,
 );
 
 // console.log("Edit mode in Tournament:", props.editMode);
@@ -401,9 +400,16 @@ function canEditGroupMatchups(groupIndex) {
     props.editMode &&
     groups.value.length === 2 &&
     Array.isArray(rounds) &&
-    rounds.length > 0 &&
-    rounds.flat().every((match) => !hasAnyScore(match))
+    rounds.length > 0
   );
+}
+
+function swapTeamAndResult(matchA, sideA, matchB, sideB) {
+  for (const field of ["team", "score", "kruis"]) {
+    const keyA = `${field}${sideA === "teamL" ? "L" : "R"}`;
+    const keyB = `${field}${sideB === "teamL" ? "L" : "R"}`;
+    [matchA[keyA], matchB[keyB]] = [matchB[keyB], matchA[keyA]];
+  }
 }
 
 function updateGroupPairing(groupIndex, roundIndex, matchIndex, side, selectedTeam) {
@@ -421,17 +427,7 @@ function updateGroupPairing(groupIndex, roundIndex, matchIndex, side, selectedTe
   if (!selectedMatch) return;
 
   const selectedSide = selectedMatch.teamL === selectedTeam ? "teamL" : "teamR";
-  const currentTeam = currentMatch[side];
-  currentMatch[side] = selectedTeam;
-  selectedMatch[selectedSide] = currentTeam;
-
-  for (const match of new Set([currentMatch, selectedMatch])) {
-    match.scoreL = 0;
-    match.scoreR = 0;
-    match.kruisL = null;
-    match.kruisR = null;
-    match.lastTroefTeam = null;
-  }
+  swapTeamAndResult(currentMatch, side, selectedMatch, selectedSide);
 
   saveToLocalStorage();
   window.dispatchEvent(new Event("storage"));
@@ -481,17 +477,7 @@ function updateMatchPairing(roundIndex, matchIndex, side, selectedTeam) {
   if (!selectedMatch) return;
 
   const selectedSide = selectedMatch.teamL === selectedTeam ? "teamL" : "teamR";
-  const currentTeam = currentMatch[side];
-  currentMatch[side] = selectedTeam;
-  selectedMatch[selectedSide] = currentTeam;
-
-  for (const match of new Set([currentMatch, selectedMatch])) {
-    match.scoreL = 0;
-    match.scoreR = 0;
-    match.kruisL = null;
-    match.kruisR = null;
-    match.lastTroefTeam = null;
-  }
+  swapTeamAndResult(currentMatch, side, selectedMatch, selectedSide);
 
   saveToLocalStorage();
   window.dispatchEvent(new Event("storage"));
