@@ -30,9 +30,29 @@
             <span v-else>Pl {{ match.pl }}</span>
           </div>
         </td>
-        <td style="width:23%; text-align: left;" class="border px-2 text-sm sm:text-lg">{{ match.teamL }}</td>
+        <td style="width:23%; text-align: left;" class="border px-2 text-sm sm:text-lg">
+          <select
+            v-if="pairingEditMode"
+            :value="match.teamL"
+            :aria-label="`Ronde ${round}, tafel ${match.tafel}, team links`"
+            class="w-full bg-transparent"
+            @change="emit('update-pairing', index, 'teamL', $event.target.value)">
+            <option v-for="team in getRoundTeamOptions()" :key="team" :value="team">{{ team }}</option>
+          </select>
+          <span v-else>{{ match.teamL }}</span>
+        </td>
         <td style="width:5%; text-align: center;" class="border px-2">vs</td>
-        <td style="width:23%; text-align: left;" class="border px-2 text-sm sm:text-lg">{{ match.teamR }}</td>
+        <td style="width:23%; text-align: left;" class="border px-2 text-sm sm:text-lg">
+          <select
+            v-if="pairingEditMode"
+            :value="match.teamR"
+            :aria-label="`Ronde ${round}, tafel ${match.tafel}, team rechts`"
+            class="w-full bg-transparent"
+            @change="emit('update-pairing', index, 'teamR', $event.target.value)">
+            <option v-for="team in getRoundTeamOptions()" :key="team" :value="team">{{ team }}</option>
+          </select>
+          <span v-else>{{ match.teamR }}</span>
+        </td>
         <td style="width:15%; text-align: left;" class="border px-2">
           <input style="width:100%; margin:0" type="number" v-model.number="scores[index].scoreL" min="0" step="10"
             :disabled="!editMode || hasVRIJ(index)"
@@ -131,6 +151,10 @@ const props = defineProps({
   },
   editMode: {
     type: Boolean
+  },
+  pairingEditMode: {
+    type: Boolean,
+    default: false,
   }
 
 })
@@ -138,7 +162,7 @@ const props = defineProps({
 
 // console.log('Edit mode in MatchTable:', editMode);
 
-const emit = defineEmits(['update-result'])
+const emit = defineEmits(['update-result', 'update-pairing'])
 
 const scores = ref([])
 const qrEntry = ref(null)
@@ -171,6 +195,11 @@ watch(
 function hasVRIJ(match){
   let VRIJ = props.matches[match].teamL === "VRIJ" ||  props.matches[match].teamR === "VRIJ"
   return VRIJ
+}
+
+function getRoundTeamOptions() {
+  const roundTeams = props.matches.flatMap((match) => [match.teamL, match.teamR]);
+  return [...props.teams, ...(roundTeams.includes('VRIJ') ? ['VRIJ'] : [])];
 }
 
 function canShowQrForMatch(match) {

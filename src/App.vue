@@ -167,6 +167,7 @@
       :edit-mode="editMode"
       :standOnly="standOnlyView"
       :groepsToernooi="groepsToernooi"
+      :initialGroups="initialGroups"
       :toernooiPlayed="thisToernooiID !== null"
       @saveToernooi="saveTournament"
       @tournament-complete="handleTournamentComplete" />
@@ -278,6 +279,7 @@ instructions +=
 instructions += "<br/> Bij 4 of meer teams kan het toernooi worden gestart";
 
 const groepsToernooi = ref(false); // boolean check groeps/single toernooi
+const initialGroups = ref([]);
 const thisToernooiID = ref(null); // het huidige actieve toernooi
 const thisToernooiDatum = ref(new Date()); // de datum van het huidige toernooi
 const currentSemester = ref(""); // default value for semester selection
@@ -1387,6 +1389,38 @@ const filteredTeams = computed(() =>
   toernooiTeams.value.map((t) => t.trim()).filter((t) => t),
 );
 
+function promptManualGroups(teams) {
+  const groupASize = Math.ceil(teams.length / 2);
+  const teamList = teams.map((team, index) => `${index + 1}. ${team}`).join("\n");
+
+  while (true) {
+    const selection = window.prompt(
+      `Kies ${groupASize} teams voor Groep A door de nummers met komma's te scheiden:\n\n${teamList}`,
+    );
+    if (selection === null) return null;
+
+    const selectedIndexes = selection
+      .split(",")
+      .map((value) => Number(value.trim()) - 1);
+    const isValid =
+      selectedIndexes.length === groupASize &&
+      new Set(selectedIndexes).size === groupASize &&
+      selectedIndexes.every(
+        (index) => Number.isInteger(index) && index >= 0 && index < teams.length,
+      );
+
+    if (isValid) {
+      const groupAIndexes = new Set(selectedIndexes);
+      return [
+        selectedIndexes.map((index) => teams[index]),
+        teams.filter((_, index) => !groupAIndexes.has(index)),
+      ];
+    }
+
+    window.alert(`Voer precies ${groupASize} verschillende geldige nummers in.`);
+  }
+}
+
 watch(filteredTeams, (newTeams) => {
   // console.log("toernooiTeams gewijzigd:", newTeams);
   localStorage.setItem("tournamentTeams", JSON.stringify(newTeams));
@@ -1464,6 +1498,7 @@ async function startTournament() {
     // begin nieuw toernooi
     addTeamsToList(); // voeg eventueel nieuwe teams aan de standaardlijst toe
     groepsToernooi.value = false;
+    initialGroups.value = [];
     if (filteredTeams.value.length >= 7) {
       // Bepaal of het een groepstoernooi wordt
       groepsToernooi.value = await bevestig(
@@ -1472,7 +1507,26 @@ async function startTournament() {
         "question",
       );
     }
-    if (groepsToernooi.value) repeatRounds.value = 1; // bij groepsfase altijd 1 ronde, anders wordt het te veel
+    if (groepsToernooi.value) {
+      const groupMode = await bevestig(
+        "Groepsindeling",
+        "Hoe wil je de teams over de twee groepen verdelen?",
+        "question",
+        {
+          actions: [
+            { label: "Willekeurig verdelen", value: "random" },
+            { label: "Handmatig verdelen", value: "manual" },
+            { label: "Annuleren", value: "cancel" },
+          ],
+        },
+      );
+      if (groupMode === "cancel" || groupMode === false) return;
+      if (groupMode === "manual") {
+        initialGroups.value = promptManualGroups(filteredTeams.value);
+        if (!initialGroups.value) return;
+      }
+      repeatRounds.value = 1; // bij groepsfase altijd 1 ronde, anders wordt het te veel
+    }
 
     if (
       !groepsToernooi.value &&

@@ -33,9 +33,11 @@
             :showOnlineScoreQr="showOnlineScoreControls && onlineScoreEnabled && showOnlineScoreSection"
             :oldToernooi="toernooiPlayed"
             :edit-mode="!standOnly && editMode"
+            :pairing-edit-mode="canEditGroupMatchups(0)"
             @update-result="
               (i, a, b) => updateGroupResult(0, index, i, a, b)
-            " />
+            "
+            @update-pairing="(i, side, team) => updateGroupPairing(0, index, i, side, team)" />
         </div>
       </div>
       <div class="schema">
@@ -60,9 +62,11 @@
             :showOnlineScoreQr="showOnlineScoreControls && onlineScoreEnabled && showOnlineScoreSection"
             :oldToernooi="toernooiPlayed"
             :edit-mode="!standOnly && editMode"
+            :pairing-edit-mode="canEditGroupMatchups(1)"
             @update-result="
               (i, a, b) => updateGroupResult(1, index, i, a, b)
-            " />
+            "
+            @update-pairing="(i, side, team) => updateGroupPairing(1, index, i, side, team)" />
         </div>
       </div>
       <div class="stand">
@@ -145,7 +149,9 @@
           :showOnlineScoreQr="showOnlineScoreControls && onlineScoreEnabled && showOnlineScoreSection"
           :oldToernooi="toernooiPlayed"
           :edit-mode="!standOnly && editMode"
-          @update-result="(i, a, b) => updateSingleResult(index, i, a, b)" />
+          :pairing-edit-mode="canEditMatchups"
+          @update-result="(i, a, b) => updateSingleResult(index, i, a, b)"
+          @update-pairing="(i, side, team) => updateMatchPairing(index, i, side, team)" />
       </div>
       <div class="stand">
         <h2 class="text-left text-xl font-bold">Stand</h2>
@@ -170,6 +176,10 @@ const props = defineProps({
   initialTeams: {
     type: Array,
     required: true,
+  },
+  initialGroups: {
+    type: Array,
+    default: () => [],
   },
   tournamentId: {
     type: [Number, String],
@@ -255,6 +265,15 @@ const showOnlineScoreControls = computed(
 );
 
 const shouldRunRemoteScoreSync = computed(() => Boolean(props.tournamentId));
+const canEditMatchups = computed(
+  () =>
+    !props.standOnly &&
+    props.editMode &&
+    groups.value.length === 0 &&
+    toernooiTeams.value.length <= 8 &&
+    matches.value.length > 0 &&
+    matches.value.flat().every((match) => !hasAnyScore(match)),
+);
 
 // console.log("Edit mode in Tournament:", props.editMode);
 
@@ -375,6 +394,49 @@ function updateGroupResult(groupIndex, matchIndex, tableIndex, scoreL, scoreR) {
   checkTournamentComplete();
 }
 
+function canEditGroupMatchups(groupIndex) {
+  const rounds = groupMatches.value[groupIndex];
+  return (
+    !props.standOnly &&
+    props.editMode &&
+    groups.value.length === 2 &&
+    Array.isArray(rounds) &&
+    rounds.length > 0 &&
+    rounds.flat().every((match) => !hasAnyScore(match))
+  );
+}
+
+function updateGroupPairing(groupIndex, roundIndex, matchIndex, side, selectedTeam) {
+  if (!canEditGroupMatchups(groupIndex) || !["teamL", "teamR"].includes(side)) {
+    return;
+  }
+
+  const roundMatches = groupMatches.value[groupIndex]?.[roundIndex];
+  const currentMatch = roundMatches?.[matchIndex];
+  if (!currentMatch || currentMatch[side] === selectedTeam) return;
+
+  const selectedMatch = roundMatches.find(
+    (match) => match.teamL === selectedTeam || match.teamR === selectedTeam,
+  );
+  if (!selectedMatch) return;
+
+  const selectedSide = selectedMatch.teamL === selectedTeam ? "teamL" : "teamR";
+  const currentTeam = currentMatch[side];
+  currentMatch[side] = selectedTeam;
+  selectedMatch[selectedSide] = currentTeam;
+
+  for (const match of new Set([currentMatch, selectedMatch])) {
+    match.scoreL = 0;
+    match.scoreR = 0;
+    match.kruisL = null;
+    match.kruisR = null;
+    match.lastTroefTeam = null;
+  }
+
+  saveToLocalStorage();
+  window.dispatchEvent(new Event("storage"));
+}
+
 function updateSingleResult(ronde, table, scoreL, scoreR) {
   // console.log("updateSingleResult", ronde, table, scoreL, scoreR)
   const current = matches.value[ronde][table];
@@ -404,6 +466,35 @@ function updateSingleResult(ronde, table, scoreL, scoreR) {
   window.dispatchEvent(new Event("storage"));
   saveToLocalStorage();
   checkTournamentComplete();
+}
+
+function updateMatchPairing(roundIndex, matchIndex, side, selectedTeam) {
+  if (!canEditMatchups.value || !["teamL", "teamR"].includes(side)) return;
+
+  const roundMatches = matches.value[roundIndex];
+  const currentMatch = roundMatches?.[matchIndex];
+  if (!currentMatch || currentMatch[side] === selectedTeam) return;
+
+  const selectedMatch = roundMatches.find(
+    (match) => match.teamL === selectedTeam || match.teamR === selectedTeam,
+  );
+  if (!selectedMatch) return;
+
+  const selectedSide = selectedMatch.teamL === selectedTeam ? "teamL" : "teamR";
+  const currentTeam = currentMatch[side];
+  currentMatch[side] = selectedTeam;
+  selectedMatch[selectedSide] = currentTeam;
+
+  for (const match of new Set([currentMatch, selectedMatch])) {
+    match.scoreL = 0;
+    match.scoreR = 0;
+    match.kruisL = null;
+    match.kruisR = null;
+    match.lastTroefTeam = null;
+  }
+
+  saveToLocalStorage();
+  window.dispatchEvent(new Event("storage"));
 }
 
 function updateFinalResult(index, scoreL, scoreR) {
@@ -1079,7 +1170,13 @@ onMounted(() => {
     // console.log("Nieuw toernooi, genereer schema")
     localStorage.clear();
     if (props.groepsToernooi) {
-      groups.value = splitIntoGroups(toernooiTeams.value);
+      const initialGroups = Array.isArray(props.initialGroups)
+        ? props.initialGroups
+        : [];
+      groups.value =
+        initialGroups.length === 2
+          ? initialGroups.map((group) => [...group])
+          : splitIntoGroups(toernooiTeams.value);
       // console.log("groep.value", groups.value)
       groupMatches.value = groups.value.map((group, index) =>
         generateMatches(group, index),
