@@ -168,7 +168,11 @@ import GroupStandings from "./GroupStandings.vue";
 import TournamentSettings from "./TournamentSettings.vue";
 import dbService from "../services/dbServices.js";
 import { resolveApiBaseUrl } from "../services/apiConfig.js";
-import { hasAnyScore, toNumericScore } from "../utils/matchState.js";
+import {
+  hasAnyScore,
+  isMatchPlayed,
+  toNumericScore,
+} from "../utils/matchState.js";
 
 const matchTypes = ["finale", "3e plaats", "5e plaats", "7e plaats"];
 
@@ -515,11 +519,15 @@ function checkTournamentComplete() {
     groups.value.length === 2
       ? groupMatches.value.flat(2)
       : matches.value.flat();
-  const regularMatchesPlayed = regularMatches.every((match) => hasAnyScore(match));
+  const regularMatchesPlayed = regularMatches.every((match) =>
+    isMatchPlayed(match),
+  );
   const activeFinalMatches = finalMatches.value.filter(
     (match) => match?.teamL && match?.teamR,
   );
-  const finalMatchesPlayed = activeFinalMatches.every((match) => hasAnyScore(match));
+  const finalMatchesPlayed = activeFinalMatches.every((match) =>
+    isMatchPlayed(match),
+  );
   const complete = regularMatchesPlayed && finalMatchesPlayed;
 
   if (complete && !completionEmitted) {

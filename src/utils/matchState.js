@@ -11,5 +11,9 @@ export function hasAnyScore(match) {
 }
 
 export function isMatchPlayed(match) {
-  return hasAnyScore(match)
+  return (
+    match?.teamL === 'VRIJ' ||
+    match?.teamR === 'VRIJ' ||
+    hasAnyScore(match)
+  )
 }

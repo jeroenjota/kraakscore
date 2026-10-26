@@ -189,7 +189,7 @@ import { useToast } from "vue-toastification";
 import { getPdfUrl } from "./utils/pdfUtils.js";
 import DOMPurify from "dompurify";
 import { cleanTeamName } from "./utils/editUtils.js";
-import { hasAnyScore } from "./utils/matchState.js";
+import { hasAnyScore, isMatchPlayed } from "./utils/matchState.js";
 // import dotenv from "dotenv";
 // dotenv.config();
 
@@ -800,7 +800,7 @@ function toggleShowRanking() {
 }
 
 function allMatchesPlayed() {
-  // check of alle matches een uislag hebben in de localeStorage
+  // check of alle matches een uitslag hebben in de localeStorage
   const gm = localStorage.getItem("tournamentGroupMatches");
   const m = localStorage.getItem("tournamentMatches");
 
@@ -810,7 +810,7 @@ function allMatchesPlayed() {
     const groupMatches = JSON.parse(gm);
     const matchesPlayed = groupMatches.every((group) =>
       group.every((match) => {
-        return match.every((tafel) => hasAnyScore(tafel));
+        return match.every((tafel) => isMatchPlayed(tafel));
       }),
     );
     if (!matchesPlayed) return false;
@@ -820,11 +820,11 @@ function allMatchesPlayed() {
     );
     return finalMatches
       .filter((match) => match?.teamL && match?.teamR)
-      .every((match) => hasAnyScore(match));
+      .every((match) => isMatchPlayed(match));
   }
 
   const matches = JSON.parse(m);
-  return matches.every((round) => round.every((match) => hasAnyScore(match)));
+  return matches.every((round) => round.every((match) => isMatchPlayed(match)));
 }
 
 function removeTeamsFromToernooi() {
