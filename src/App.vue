@@ -206,9 +206,11 @@ const dialog = ref(null);
 const { toastHTML } = useToastMessage();
 
 const scoresEntered = ref(false);
+const allScoresEntered = ref(false);
 
 const sluitKnop = computed(() => {
-  return scoresEntered.value && editMode.value ? "Opslaan" : "Sluiten";
+  if (!scoresEntered.value || !editMode.value) return "Sluiten";
+  return allScoresEntered.value ? "Afsluiten" : "Opslaan";
 });
 
 const windowWidth = ref(window.innerWidth);
@@ -432,7 +434,7 @@ async function maakPdf(showPdf = true) {
   // console.log("PDF maken voor toernooi:", thisToernooiID.value, "Datum:", thisToernooiDatum.value)
   if (!allMatchesPlayed()) {
     toast.warning(
-      "De PDF kan pas gemaakt worden als alle wedstrijden minimaal een score hebben.",
+      "De PDF kan pas gemaakt worden als bij alle wedstrijden beide scores zijn ingevuld.",
       {
         position: "top-center",
         timeout: 5000,
@@ -516,19 +518,20 @@ async function handleTournamentComplete() {
   tournamentCompletionHandled = true;
 
   const ok = await bevestig(
-    "Toernooi afgerond",
-    "Alle scores zijn ingevuld. Wil je het toernooi opslaan en daarna de uitslag-PDF openen?",
+    "Toernooi afgelopen",
+    "Toernooi afgelopen, pdf maken en tonen?",
     "question",
   );
-  if (!ok) {
-    tournamentCompletionHandled = false;
-    return;
-  }
+  try {
+    if (!ok) return;
 
-  await saveTournament();
-  const pdfCreated = await maakPdf(false);
-  if (pdfCreated) {
-    dbService.openPDF(getPdfFileName(thisToernooiDatum.value));
+    await saveTournament();
+    const pdfCreated = await maakPdf(false);
+    if (pdfCreated) {
+      dbService.openPDF(getPdfFileName(thisToernooiDatum.value));
+    }
+  } finally {
+    tournamentCompletionHandled = false;
   }
 }
 
@@ -806,8 +809,8 @@ function allMatchesPlayed() {
 
   if (!m && !gm) return false; // geen matches = niets gespeeld
 
-  if (gm) {
-    const groupMatches = JSON.parse(gm);
+  const groupMatches = gm ? JSON.parse(gm) : [];
+  if (groupMatches.length > 0) {
     const matchesPlayed = groupMatches.every((group) =>
       group.every((match) => {
         return match.every((tafel) => isMatchPlayed(tafel));
@@ -823,8 +826,8 @@ function allMatchesPlayed() {
       .every((match) => isMatchPlayed(match));
   }
 
-  const matches = JSON.parse(m);
-  return matches.every((round) => round.every((match) => isMatchPlayed(match)));
+  const matches = JSON.parse(m || "[]").flat();
+  return matches.length > 0 && matches.every((match) => isMatchPlayed(match));
 }
 
 function removeTeamsFromToernooi() {
@@ -966,6 +969,7 @@ function scoresAreEntered() {
     JSON.parse(localStorage.getItem("tournamentMatches")) ||
     JSON.parse(localStorage.getItem("tournamentGroupMatches"));
   scoresEntered.value = hasScores !== null;
+  allScoresEntered.value = allMatchesPlayed();
   // console.log("scoresEntered:", scoresEntered.value);
 }
 
@@ -978,7 +982,7 @@ async function sluitToernooi() {
       if (scoresEntered.value && !allMatchesPlayed()) {
         const ok = await bevestig(
           "Niet alle wedstrijden gespeeld",
-          "Niet alle wedstrijden zijn gespeeld. Weet je zeker dat je het toernooi wilt opslaan? De PDF wordt pas gemaakt als alle wedstrijden minimaal een score hebben.",
+          "Niet alle wedstrijden zijn gespeeld. Weet je zeker dat je het toernooi wilt opslaan? De PDF wordt pas gemaakt als bij alle wedstrijden beide scores zijn ingevuld.",
           "warning",
         );
         if (!ok) {
@@ -986,9 +990,6 @@ async function sluitToernooi() {
         }
       }
       await saveTournament();
-      if (allMatchesPlayed()) {
-        await maakPdf();
-      }
       resetApp();
       //      //      //      console.log("Toernooi opgeslagen, nu Ranking ophalen.");
       // await filterToernooien();
@@ -1001,9 +1002,6 @@ async function sluitToernooi() {
         // als we in edit mode zijn, dan eerst opslaan
         await saveTournamentChanges("Toernooi opgeslagen.");
         await getRanking();
-        if (allMatchesPlayed()) {
-          await maakPdf(editMode);
-        }
       }
       resetApp();
     }
@@ -1030,6 +1028,7 @@ function resetLocalStorage(inclTeams = true) {
   localStorage.removeItem("tournamentFinalMatches");
   localStorage.removeItem("repeatRounds");
   localStorage.removeItem("toernooiTeams");
+  scoresAreEntered();
 }
 
 async function handleSelectTournament() {
@@ -1088,6 +1087,7 @@ async function loadTournament(tn) {
     localStorage.setItem("tournamentFinalMatches", data.finalMatches);
   }
   tournamentStarted.value = true;
+  scoresAreEntered();
 }
 
 async function saveToApi() {

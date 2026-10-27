@@ -10,6 +10,7 @@ import imgBeker from '../../assets/beker.jpg'
 
 
 import { niceDate } from "../dateUtils";
+import { isMatchPlayed } from "../matchState.js";
 
 
 let gesplitst = false
@@ -69,12 +70,7 @@ function finalPlayed() {
   )
   if (gespeeldeFinales.length === 0) return false
 
-  return gespeeldeFinales.every((match) =>
-    match.scoreL !== null &&
-    match.scoreL !== undefined &&
-    match.scoreR !== null &&
-    match.scoreR !== undefined,
-  )
+  return gespeeldeFinales.every(isMatchPlayed)
 }
 
 export async function uitslagPDF(doc, datum, groepstoernooi = false) {
@@ -138,7 +134,7 @@ export async function uitslagPDF(doc, datum, groepstoernooi = false) {
       table = [];
       r.forEach((match, idx) => {
         let obj = []
-        if ((match.scoreL || match.scoreR) || match.teamR === 'VRIJ') {
+        if (isMatchPlayed(match)) {
           obj = [`Tafel ${(idx + 1)}`, match.teamL + " vs " + match.teamR, `${match.scoreL} - ${match.scoreR}`];
           countPlayed += 1
         } else {
@@ -241,7 +237,7 @@ export async function uitslagPDF(doc, datum, groepstoernooi = false) {
         round.forEach((match, idx) => {
 //          //          //  console.log("Match:" , match)
           let obj = []
-          if ((match.scoreL || match.scoreR) || match.teamR === 'VRIJ') {
+          if (isMatchPlayed(match)) {
             obj = [`T${(match.tafel)}`, match.teamL + " vs " + match.teamR, `${match.scoreL} - ${match.scoreR}`];
             countPlayed += 1
           } else {
@@ -315,7 +311,7 @@ export async function uitslagPDF(doc, datum, groepstoernooi = false) {
           uitslag.push(finMatch.teamR)
           uitslag.push(finMatch.teamL)
         }
-        obj = [`${i*2+1}e pl:`, finMatch.teamL + " vs " + finMatch.teamR, `${finMatch.scoreL || ""} - ${finMatch.scoreR || ""}`];
+        obj = [`${i*2+1}e pl:`, finMatch.teamL + " vs " + finMatch.teamR, `${finMatch.scoreL ?? "-"} - ${finMatch.scoreR ?? "-"}`];
         table.push(obj)
       }
       yPos += 2

@@ -51,6 +51,9 @@ The maximum number of teams (normally 2 players) in a tournament is 8. When ther
 After the schedule is created, you can fill in the scores for each team after each round.
 The Standings will be updated immediatly
 At the end of the tournament you can generate a PDF with the results [*Afdrukken*]. The ranking numbers will also be updated.
+After the final score is entered, either manually or through a mobile score form, a dialog asks "Toernooi afgelopen, pdf maken en tonen?". Confirming saves the tournament, generates the PDF and opens it. Cancelling leaves the tournament open.
+After this dialog the tournament stays visible. The **Afsluiten** button saves any changes and returns to the main screen without generating a PDF or asking about it again. The print button remains available to generate a PDF manually.
+New matches start with `null` scores, shown as empty fields with a `-` placeholder. A match is complete only when both scores have been entered; an explicitly entered `0` (including `0–0`) is valid. `VRIJ` matches are automatically complete. Existing scores are preserved. Incomplete matches do not count towards the standings.
 The PDF will be stored on the server and you can share the link to the PDF with WhatsApp, or you can generate a QR-code which the players can scan it download the results PDF.
 #### Groups
 If you want to split up the tournament (possible with more than 6 participants), the app will randomly create groups. The winners of the groups will play the finals, the numbers 2 will play for the third place.

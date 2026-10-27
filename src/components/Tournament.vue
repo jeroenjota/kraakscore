@@ -169,8 +169,8 @@ import TournamentSettings from "./TournamentSettings.vue";
 import dbService from "../services/dbServices.js";
 import { resolveApiBaseUrl } from "../services/apiConfig.js";
 import {
-  hasAnyScore,
   isMatchPlayed,
+  toNullableScore,
   toNumericScore,
 } from "../utils/matchState.js";
 
@@ -336,8 +336,8 @@ function generateMatches(tms, grp) {
         tafel: i + 1 + 2 * grp,
         teamL,
         teamR,
-        scoreL: 0,
-        scoreR: 0,
+        scoreL: teamR === "VRIJ" ? 0 : null,
+        scoreR: teamR === "VRIJ" ? 0 : null,
       });
     }
     baseRounds.push(matches);
@@ -364,10 +364,10 @@ function generateMatches(tms, grp) {
 function updateGroupResult(groupIndex, matchIndex, tableIndex, scoreL, scoreR) {
   // console.log("index:", groupIndex, matchIndex, tableIndex, scoreL, scoreR)
   const current = groupMatches.value[groupIndex][matchIndex][tableIndex];
-  const oldScoreL = Number(current.scoreL ?? 0);
-  const oldScoreR = Number(current.scoreR ?? 0);
-  const newScoreL = Number(scoreL);
-  const newScoreR = Number(scoreR);
+  const oldScoreL = toNullableScore(current.scoreL);
+  const oldScoreR = toNullableScore(current.scoreR);
+  const newScoreL = toNullableScore(scoreL);
+  const newScoreR = toNullableScore(scoreR);
 
   if (oldScoreL === newScoreL && oldScoreR === newScoreR) return;
 
@@ -440,10 +440,10 @@ function updateGroupPairing(groupIndex, roundIndex, matchIndex, side, selectedTe
 function updateSingleResult(ronde, table, scoreL, scoreR) {
   // console.log("updateSingleResult", ronde, table, scoreL, scoreR)
   const current = matches.value[ronde][table];
-  const oldScoreL = Number(current.scoreL ?? 0);
-  const oldScoreR = Number(current.scoreR ?? 0);
-  const newScoreL = Number(scoreL);
-  const newScoreR = Number(scoreR);
+  const oldScoreL = toNullableScore(current.scoreL);
+  const oldScoreR = toNullableScore(current.scoreR);
+  const newScoreL = toNullableScore(scoreL);
+  const newScoreR = toNullableScore(scoreR);
 
   if (oldScoreL === newScoreL && oldScoreR === newScoreR) return;
 
@@ -489,10 +489,10 @@ function updateMatchPairing(roundIndex, matchIndex, side, selectedTeam) {
 
 function updateFinalResult(index, scoreL, scoreR) {
   const current = finalMatches.value[index];
-  const oldScoreL = Number(current.scoreL ?? 0);
-  const oldScoreR = Number(current.scoreR ?? 0);
-  const newScoreL = Number(scoreL);
-  const newScoreR = Number(scoreR);
+  const oldScoreL = toNullableScore(current.scoreL);
+  const oldScoreR = toNullableScore(current.scoreR);
+  const newScoreL = toNullableScore(scoreL);
+  const newScoreR = toNullableScore(scoreR);
 
   if (oldScoreL === newScoreL && oldScoreR === newScoreR) return;
 
@@ -528,9 +528,10 @@ function checkTournamentComplete() {
   const finalMatchesPlayed = activeFinalMatches.every((match) =>
     isMatchPlayed(match),
   );
-  const complete = regularMatchesPlayed && finalMatchesPlayed;
+  const complete =
+    regularMatches.length > 0 && regularMatchesPlayed && finalMatchesPlayed;
 
-  if (complete && !completionEmitted) {
+  if (complete && !completionEmitted && !props.standOnly) {
     completionEmitted = true;
     emit("tournament-complete");
   } else if (!complete) {
@@ -597,6 +598,7 @@ function undoLastScoreChange() {
     scoreRedoStack.value.shift();
   }
   isApplyingUndo.value = false;
+  checkTournamentComplete();
 }
 
 function redoLastScoreChange() {
@@ -610,6 +612,7 @@ function redoLastScoreChange() {
     scoreUndoStack.value.shift();
   }
   isApplyingUndo.value = false;
+  checkTournamentComplete();
 }
 
 function calculateStandings(teamsList, matchesList) {
@@ -621,7 +624,7 @@ function calculateStandings(teamsList, matchesList) {
 
   for (const round of matchesList) {
     for (const match of round) {
-      if (!hasAnyScore(match)) {
+      if (!isMatchPlayed(match)) {
         continue;
       }
 
@@ -710,6 +713,7 @@ function saveToLocalStorage() {
     "tournamentFinalMatches",
     JSON.stringify(finalMatches.value),
   );
+  window.dispatchEvent(new Event("storage"));
   // database bijwerken
   emit("saveToernooi");
 }
@@ -740,19 +744,23 @@ function getRemoteSubmissionKey(entry) {
     entry.table || "",
     entry.matchIndex || "",
     entry.finalIndex || "",
-    entry.scoreL || "",
-    entry.scoreR || "",
+    entry.scoreL ?? "",
+    entry.scoreR ?? "",
   ].join("|");
 }
 
 function applyRemoteSubmission(entry) {
-  const newScoreL = Number(entry.scoreL);
-  const newScoreR = Number(entry.scoreR);
+  const newScoreL = toNullableScore(entry.scoreL);
+  const newScoreR = toNullableScore(entry.scoreR);
   const entryTable = Number(entry.table);
   const entryTeamL = String(entry.teamL || "").trim();
   const entryTeamR = String(entry.teamR || "").trim();
 
-  if (!Number.isFinite(newScoreL) || !Number.isFinite(newScoreR)) {
+  if (
+    (entry.scoreL !== null && newScoreL === null) ||
+    (entry.scoreR !== null && newScoreR === null)
+  ) {
+    console.warn("Ongeldige scores in scoreformulier:", entry);
     return false;
   }
 
@@ -761,8 +769,8 @@ function applyRemoteSubmission(entry) {
     const current = finalMatches.value[index];
     if (!current) return false;
 
-    const oldScoreL = Number(current.scoreL ?? 0);
-    const oldScoreR = Number(current.scoreR ?? 0);
+    const oldScoreL = toNullableScore(current.scoreL);
+    const oldScoreR = toNullableScore(current.scoreR);
     if (oldScoreL === newScoreL && oldScoreR === newScoreR) {
       return false;
     }
@@ -812,8 +820,8 @@ function applyRemoteSubmission(entry) {
 
     if (!current) return false;
 
-    const oldScoreL = Number(current.scoreL ?? 0);
-    const oldScoreR = Number(current.scoreR ?? 0);
+    const oldScoreL = toNullableScore(current.scoreL);
+    const oldScoreR = toNullableScore(current.scoreR);
     if (oldScoreL === newScoreL && oldScoreR === newScoreR) {
       return false;
     }
@@ -860,8 +868,8 @@ function applyRemoteSubmission(entry) {
 
   if (!current) return false;
 
-  const oldScoreL = Number(current.scoreL ?? 0);
-  const oldScoreR = Number(current.scoreR ?? 0);
+  const oldScoreL = toNullableScore(current.scoreL);
+  const oldScoreR = toNullableScore(current.scoreR);
   if (oldScoreL === newScoreL && oldScoreR === newScoreR) {
     return false;
   }
@@ -925,6 +933,7 @@ async function syncRemoteScoreForms(source = "auto") {
       refreshTournamentViewState();
       window.dispatchEvent(new Event("storage"));
       saveToLocalStorage();
+      checkTournamentComplete();
     }
   } finally {
     remoteScoreSyncInFlight = false;
@@ -962,6 +971,7 @@ function connectRemoteScoreStream() {
         refreshTournamentViewState();
         window.dispatchEvent(new Event("storage"));
         saveToLocalStorage();
+        checkTournamentComplete();
       }
     } catch (error) {
       console.warn(

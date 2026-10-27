@@ -25,7 +25,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { hasAnyScore, toNumericScore } from '../utils/matchState.js'
+import { isMatchPlayed, toNumericScore } from '../utils/matchState.js'
 
 const props = defineProps({
   teams: Array,
@@ -58,7 +58,7 @@ const standings = computed(() => {
       for (const match of round) {
       //  console.log("tafel:", match)
 
-        if (!hasAnyScore(match)) continue
+        if (!isMatchPlayed(match) || match.teamL === 'VRIJ' || match.teamR === 'VRIJ') continue
 
         const scoreL = toNumericScore(match?.scoreL)
         const scoreR = toNumericScore(match?.scoreR)

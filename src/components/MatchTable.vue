@@ -54,14 +54,14 @@
           <span v-else>{{ match.teamR }}</span>
         </td>
         <td style="width:15%; text-align: left;" class="border px-2">
-          <input style="width:100%; margin:0" type="number" v-model.number="scores[index].scoreL" min="0" step="10"
+          <input style="width:100%; margin:0" type="number" v-model.number="scores[index].scoreL" min="0" step="10" placeholder="-"
             :disabled="!editMode || hasVRIJ(index)"
             @change="update(index)" @keypress="blokkeerLetters"/>
 
         </td>
         <td style="width:3%; text-align: center;" class="border px-2">-</td>
         <td style="width:15%; text-align: left;" class="border px-2">
-          <input style="width:100%; margin:0" type="number" v-model.number="scores[index].scoreR" min="0" step="10"
+          <input style="width:100%; margin:0" type="number" v-model.number="scores[index].scoreR" min="0" step="10" placeholder="-"
             @change="update(index)" @keypress="blokkeerLetters" :disabled="!editMode || hasVRIJ(index)"/>
         </td>
       </tr>
@@ -103,6 +103,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useInputFilters } from '../composables/useInputFilters';
 import dbService from '../services/dbServices';
 import QrcodeVue from 'qrcode.vue';
+import { toNullableScore } from '../utils/matchState.js';
 
 
 const { blokkeerLetters } = useInputFilters();
@@ -349,47 +350,44 @@ async function copyQrLinkToClipboard() {
 }
 
 function update(index) {
-  // console.log("update index:", index, "scores:", scores.value)
   const { scoreL, scoreR } = scores.value[index]
-  if (scoreL !== '' && scoreR !== '') {
-    const match = props.matches[index] ?? {}
-    const isFinalMatch = props.group === 'finales' || Boolean(props.matchType)
-    const oldScoreL = Number(match.scoreL ?? 0)
-    const oldScoreR = Number(match.scoreR ?? 0)
-    const newScoreL = Number(scoreL)
-    const newScoreR = Number(scoreR)
+  const match = props.matches[index] ?? {}
+  const isFinalMatch = props.group === 'finales' || Boolean(props.matchType)
+  const oldScoreL = toNullableScore(match.scoreL)
+  const oldScoreR = toNullableScore(match.scoreR)
+  const newScoreL = toNullableScore(scoreL)
+  const newScoreR = toNullableScore(scoreR)
 
-    let actionType = 'unchanged'
-    if (newScoreL === 0 && newScoreR === 0 && (oldScoreL !== 0 || oldScoreR !== 0)) {
-      actionType = 'clear'
-    } else if (oldScoreL === 0 && oldScoreR === 0 && (newScoreL !== 0 || newScoreR !== 0)) {
-      actionType = 'create'
-    } else if (oldScoreL !== newScoreL || oldScoreR !== newScoreR) {
-      actionType = 'update'
-    }
+  if (oldScoreL === newScoreL && oldScoreR === newScoreR) return
 
-    dbService.logScoreEntry({
-      tournamentId: props.tournamentId,
-      tournamentDate: props.tournamentDate
-        ? new Date(props.tournamentDate).toISOString()
-        : null,
-      round: props.round,
-      group: props.group,
-      matchType: props.matchType ?? 'group',
-      table: match.tafel ?? null,
-      matchIndex: isFinalMatch ? null : index,
-      finalIndex: isFinalMatch ? (props.finalIndex ?? index) : null,
-      place: match.pl ?? null,
-      teamL: match.teamL ?? null,
-      teamR: match.teamR ?? null,
-      oldScoreL,
-      oldScoreR,
-      scoreL: newScoreL,
-      scoreR: newScoreR,
-      actionType,
-    })
-    emit('update-result', index, newScoreL, newScoreR)
+  let actionType = 'update'
+  if (newScoreL === null && newScoreR === null) {
+    actionType = 'clear'
+  } else if (oldScoreL === null && oldScoreR === null) {
+    actionType = 'create'
   }
+
+  dbService.logScoreEntry({
+    tournamentId: props.tournamentId,
+    tournamentDate: props.tournamentDate
+      ? new Date(props.tournamentDate).toISOString()
+      : null,
+    round: props.round,
+    group: props.group,
+    matchType: props.matchType ?? 'group',
+    table: match.tafel ?? null,
+    matchIndex: isFinalMatch ? null : index,
+    finalIndex: isFinalMatch ? (props.finalIndex ?? index) : null,
+    place: match.pl ?? null,
+    teamL: match.teamL ?? null,
+    teamR: match.teamR ?? null,
+    oldScoreL,
+    oldScoreR,
+    scoreL: newScoreL,
+    scoreR: newScoreR,
+    actionType,
+  })
+  emit('update-result', index, newScoreL, newScoreR)
 }
 onMounted(() => {
  // console.log("MatchTable mounted with matches:", props.matches)
