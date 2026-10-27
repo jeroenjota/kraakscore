@@ -96,7 +96,7 @@ const dbService = {
   updateToernooi: async (id, toernooiData) =>
     await put(`/toernooien/${id}`, toernooiData, `Fout bij het updaten van toernooi ${id}`),
 
-  deleteToernooi: async (id, adminCode = "") => {
+  deleteToernooi: async (id, adminCode = "", undoStartToken = null) => {
     const headers = {};
     const code = String(adminCode || "").trim();
     if (code) {
@@ -105,7 +105,10 @@ const dbService = {
 
     return await remove(
       `/toernooien/${id}`,
-      Object.keys(headers).length > 0 ? { headers } : {},
+      {
+        headers,
+        ...(undoStartToken ? { data: { undoStartToken } } : {}),
+      },
       `Fout bij het verwijderen van toernooi ${id}`,
     );
   },

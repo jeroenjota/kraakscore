@@ -15,7 +15,12 @@
         <div v-for="(ronde, index) in groupMatches[0]" :key="index">
           <div v-if="index < 1">
             <!--  -->
-            <h2 class="text-blue text-xl font-bold" @click.ctrl="showOnlineScoreSection = !showOnlineScoreSection">Groep A</h2>
+            <h2 class="text-blue text-xl font-bold" @click.ctrl="showOnlineScoreSection = !showOnlineScoreSection">
+              Groep A
+              <span v-if="canEditGroupMatchups(0)" class="ml-2 text-xs font-normal text-gray-600">
+                Matches aanpassen kan tot de eerste score.
+              </span>
+            </h2>
           </div>
           <div v-else>
             <h3>Ronde: {{ index + 1 }}</h3>
@@ -43,7 +48,12 @@
       <div class="schema">
         <div v-for="(ronde, index) in groupMatches[1]" :key="index">
           <div v-if="index < 1">
-            <h2 class="text-blue text-xl font-bold">Groep B</h2>
+            <h2 class="text-blue text-xl font-bold">
+              Groep B
+              <span v-if="canEditGroupMatchups(1)" class="ml-2 text-xs font-normal text-gray-600">
+                Matches aanpassen kan tot de eerste score.
+              </span>
+            </h2>
           </div>
           <div v-else>
             <h3>Ronde: {{ index + 1 }}</h3>
@@ -114,6 +124,9 @@
     <div v-else class="schema">
       <div class="mb-0 flex items-center justify-between">
         <h2 class="text-xl font-bold" @click.ctrl="showOnlineScoreSection = !showOnlineScoreSection">Schema
+          <span v-if="canEditMatchups" class="ml-2 text-xs font-normal text-gray-600">
+            Matches aanpassen kan tot de eerste score.
+          </span>
         </h2>
         <div
           class="mb-0 flex justify-end px-2 py-1"
@@ -168,7 +181,9 @@ import GroupStandings from "./GroupStandings.vue";
 import TournamentSettings from "./TournamentSettings.vue";
 import dbService from "../services/dbServices.js";
 import { resolveApiBaseUrl } from "../services/apiConfig.js";
+import { swapTeamsInSchedule } from "../utils/scheduleUtils.js";
 import {
+  hasAnyScore,
   isMatchPlayed,
   toNullableScore,
   toNumericScore,
@@ -269,10 +284,18 @@ const showOnlineScoreControls = computed(
 );
 
 const shouldRunRemoteScoreSync = computed(() => Boolean(props.tournamentId));
+const hasEnteredTournamentScore = computed(() =>
+  [
+    ...matches.value.flat(),
+    ...groupMatches.value.flat(2),
+    ...finalMatches.value,
+  ].some(hasAnyScore),
+);
 const canEditMatchups = computed(
   () =>
     !props.standOnly &&
     props.editMode &&
+    !hasEnteredTournamentScore.value &&
     groups.value.length === 0 &&
     toernooiTeams.value.length <= 8 &&
     matches.value.length > 0,
@@ -402,18 +425,11 @@ function canEditGroupMatchups(groupIndex) {
   return (
     !props.standOnly &&
     props.editMode &&
+    !hasEnteredTournamentScore.value &&
     groups.value.length === 2 &&
     Array.isArray(rounds) &&
     rounds.length > 0
   );
-}
-
-function swapTeamAndResult(matchA, sideA, matchB, sideB) {
-  for (const field of ["team", "score", "kruis"]) {
-    const keyA = `${field}${sideA === "teamL" ? "L" : "R"}`;
-    const keyB = `${field}${sideB === "teamL" ? "L" : "R"}`;
-    [matchA[keyA], matchB[keyB]] = [matchB[keyB], matchA[keyA]];
-  }
 }
 
 function updateGroupPairing(groupIndex, roundIndex, matchIndex, side, selectedTeam) {
@@ -430,8 +446,13 @@ function updateGroupPairing(groupIndex, roundIndex, matchIndex, side, selectedTe
   );
   if (!selectedMatch) return;
 
-  const selectedSide = selectedMatch.teamL === selectedTeam ? "teamL" : "teamR";
-  swapTeamAndResult(currentMatch, side, selectedMatch, selectedSide);
+  swapTeamsInSchedule(
+    groupMatches.value[groupIndex],
+    currentMatch[side],
+    selectedTeam,
+  );
+  scoreUndoStack.value = [];
+  scoreRedoStack.value = [];
 
   saveToLocalStorage();
   window.dispatchEvent(new Event("storage"));
@@ -480,8 +501,9 @@ function updateMatchPairing(roundIndex, matchIndex, side, selectedTeam) {
   );
   if (!selectedMatch) return;
 
-  const selectedSide = selectedMatch.teamL === selectedTeam ? "teamL" : "teamR";
-  swapTeamAndResult(currentMatch, side, selectedMatch, selectedSide);
+  swapTeamsInSchedule(matches.value, currentMatch[side], selectedTeam);
+  scoreUndoStack.value = [];
+  scoreRedoStack.value = [];
 
   saveToLocalStorage();
   window.dispatchEvent(new Event("storage"));

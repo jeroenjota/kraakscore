@@ -884,36 +884,40 @@ function hasAnyEnteredScore() {
 async function undoTournamentStart() {
   if (!startUndoSnapshot.value) return;
 
-  if (hasAnyEnteredScore()) {
-    const ok = await bevestig(
-      "Toernooistart ongedaan maken",
-      "Er zijn al scores ingevuld. Bij ongedaan maken raak je dit schema en de scores kwijt. Doorgaan?",
-      "warning",
-    );
-    if (!ok) return;
-  }
+  const hasScores = hasAnyEnteredScore();
+  const ok = await bevestig(
+    "Terug naar teamkeuze",
+    hasScores
+      ? "Wil je terug naar de teamkeuze? Het schema en de ingevulde scores worden verwijderd."
+      : "Wil je terug naar de teamkeuze? Het huidige schema wordt verwijderd.",
+    "warning",
+  );
+  if (!ok) return;
 
   const snapshot = startUndoSnapshot.value;
 
   // Bij automatische save direct na start bestaat er al een nieuw toernooi-ID.
   // Dat tijdelijke toernooi verwijderen we weer als de start wordt teruggedraaid.
-  if (thisToernooiID.value && serverAvailable.value) {
+  if (thisToernooiID.value) {
     try {
-      const adminCode = requestDeleteAdminCode();
-      if (!adminCode) {
-        return;
+      if (!serverAvailable.value) {
+        throw new Error("Server niet beschikbaar.");
+      }
+      if (!snapshot.undoStartToken) {
+        throw new Error("Autorisatie voor teruggaan ontbreekt. Werk de API bij.");
       }
 
       const deleteResult = await dbService.deleteToernooi(
         thisToernooiID.value,
-        adminCode,
+        "",
+        snapshot.undoStartToken,
       );
       if (!deleteResult?.success) {
         throw new Error(deleteResult?.error || "onbekende fout");
       }
     } catch (error) {
       toast.error(
-        "Undo start mislukt: kon gestart toernooi niet verwijderen.",
+        `Undo start mislukt: ${error.message}`,
         {
           position: "top-center",
           timeout: 2000,
@@ -1210,6 +1214,9 @@ async function saveTournament(msg = "") {
     const response = await dbService.saveToernooi(toernooi);
     // console.log("response bij save:", response.data.message);
     thisToernooiID.value = response.data.id; // sla het ID van het toernooi op
+    if (startUndoSnapshot.value) {
+      startUndoSnapshot.value.undoStartToken = response.data.undoStartToken;
+    }
     // console.log("Toernooi opgeslagen met ID:", thisToernooiID.value)
     toernooiSaved.value = true; // toernooi is opgeslagen
     logTournamentEvent("tournament_saved", {
